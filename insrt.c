@@ -590,53 +590,53 @@ void find_unit_in_parent(char *unit_name_chars, int unit_name_size, struct unit_
 	}
 	
 }
-
-
 void handle_last_instrx()
 {
 	if ((parent_ptr->num_instrx > 0) && (new_instrx.oper != DEFINE))
 	{
-		if (DEF_NONE == instrxs[instrx_idx - 1]->unit->type)
+		struct instrx_struct *instrx = instrxs[instrx_idx - 1];
+		
+		if (DEF_NONE == instrx->unit->type)
 		{
-			set_error(UNDEFINED_UNIT, instrxs[instrx_idx - 1]->unit_line, instrxs[instrx_idx - 1]->unit->name);
+			set_error(UNDEFINED_UNIT, instrx->unit_line, instrx->unit->name);
 		}
-		else if ((DEFINE == instrxs[instrx_idx - 1]->oper) && (1 == parent_ptr->num_instrx))
+		else if ((DEFINE == instrx->oper) && (1 == parent_ptr->num_instrx))
 		{
-			handle_inheritance(instrxs[instrx_idx - 1]->unit);
+			handle_inheritance(instrx->unit);
 			
 		}
 		else
 		{
-			if (!instrxs[instrx_idx - 1]->unit->mem_base)
+			if (!instrx->unit->mem_base)
 			{
-				if ((instrxs[instrx_idx - 1]->ptr_source != NULL) && !instrxs[instrx_idx - 1]->ptr_source->mem_base)
+				if ((instrx->ptr_source != NULL) && !instrx->ptr_source->mem_base)
 				{
-					struct unit_struct *unit = instrxs[instrx_idx - 1]->unit;
-					instrxs[instrx_idx - 1]->unit = instantiate_unit(basic_units[PTR], NULL);
-					instrxs[instrx_idx - 1]->unit->num_subunits = unit->num_subunits;
-					instrxs[instrx_idx - 1]->unit->subunits = instantiate_superunit(unit, instrxs[instrx_idx - 1]->unit);
+					struct unit_struct *unit = instrx->unit;
+					instrx->unit = instantiate_unit(basic_units[PTR], NULL);
+					instrx->unit->num_subunits = unit->num_subunits;
+					instrx->unit->subunits = instantiate_superunit(unit, instrx->unit);
 				}
 				else
 				{
-					instrxs[instrx_idx - 1]->unit = instantiate_unit(instrxs[instrx_idx - 1]->unit, NULL);
-					if (DO == instrxs[instrx_idx - 1]->unit->type)
+					instrx->unit = instantiate_unit(instrx->unit, NULL);
+					if (DO == instrx->unit->type)
 					{
-						if (instrxs[instrx_idx - 1]->ptr_source != NULL)
+						if (instrx->ptr_source != NULL)
 						{
-							instrxs[instrx_idx - 1]->unit->base = instrxs[instrx_idx - 1]->ptr_source;
-							instrxs[instrx_idx - 1]->ptr_source = NULL;
+							instrx->unit->base = instrx->ptr_source;
+							instrx->ptr_source = NULL;
 						}
 						else
 						{
-							instrxs[instrx_idx - 1]->unit->base = parent_ptr->base;
+							instrx->unit->base = parent_ptr->base;
 							
 						}
 					}
 				}
 			}
-			if (DEFINE == instrxs[instrx_idx - 1]->oper)
+			if (DEFINE == instrx->oper)
 			{
-				handle_define_statement(instrxs[instrx_idx - 2]->unit, instrxs[instrx_idx - 1]->unit);
+				handle_define_statement(instrxs[instrx_idx - 2]->unit, instrx->unit);
 			}
 		}
 	}
