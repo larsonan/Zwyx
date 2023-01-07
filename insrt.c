@@ -662,12 +662,15 @@ void handle_new_instrx()
 		{
 			new_instrx.unit = parent_ptr->base;
 		}
-		
-		
 		instrxs[instrx_idx] = clone_data(&new_instrx, sizeof(struct instrx_struct));
+		
 		if ((INSERTION == new_instrx.oper) || (SUBUNIT == new_instrx.oper))
 		{
 			instrxs[instrx_idx - 1]->insertion_source = instrxs[instrx_idx];
+		}
+		if ((ADD == new_instrx.oper) && (NO_OPER == instrxs[instrx_idx - 1]->oper))
+		{
+			instrxs[instrx_idx - 1]->oper = LOAD;
 		}
 		instrx_idx++;
 		parent_ptr->num_instrx++;
@@ -681,7 +684,6 @@ void handle_unit(struct unit_struct *unit)
 	new_instrx.unit = unit;
 	handle_new_instrx();
 }
-
 void handle_superunit()
 {
 	if (NULL == parent_ptr)
@@ -693,6 +695,7 @@ void handle_superunit()
 	parent_ptr->instrx_list = clone_data(&instrxs[instrx_idx - parent_ptr->num_instrx], 
 																(parent_ptr->num_instrx * sizeof(struct instrx_struct*)));
 	instrx_idx = instrx_idx - parent_ptr->num_instrx;
+	
 	parent_ptr->subunits = clone_data(parent_ptr->subunits, (parent_ptr->num_subunits * sizeof(struct unit_struct*)));
 	start_idx = instrx_idx;
 	if (parent_ptr->parent != NULL)
@@ -700,6 +703,7 @@ void handle_superunit()
 		parent_ptr = parent_ptr->parent;
 	}
 }
+
 void new_superunit()
 {
 	struct unit_struct *unit = clone_data(basic_units[STRUCT], sizeof(struct unit_struct));
@@ -742,10 +746,6 @@ void new_superunit()
 			unit->mem_used++;
 		}
 		handle_unit(unit);
-		if ((INSERTION == instrxs[instrx_idx - 1]->oper) || (ADD == instrxs[instrx_idx - 1]->oper))
-		{
-			new_instrx.oper = LOAD;
-		}
 	}
 	instantiated_base = 1;
 	unit->subunits = &parent_ptr->subunits[parent_ptr->num_subunits];
