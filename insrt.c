@@ -588,14 +588,12 @@ void find_unit_in_parent(char *unit_name_chars, int unit_name_size, struct unit_
 	{
 		find_unit_in_parent(unit_name_chars, unit_name_size, parent->base);
 	}
-	
 }
 void handle_last_instrx()
 {
 	if ((parent_ptr->num_instrx > 0) && (new_instrx.oper != DEFINE))
 	{
 		struct instrx_struct *instrx = instrxs[instrx_idx - 1];
-		
 		if (DEF_NONE == instrx->unit->type)
 		{
 			set_error(UNDEFINED_UNIT, instrx->unit_line, instrx->unit->name);
@@ -603,7 +601,6 @@ void handle_last_instrx()
 		else if ((DEFINE == instrx->oper) && (1 == parent_ptr->num_instrx))
 		{
 			handle_inheritance(instrx->unit);
-			
 		}
 		else
 		{
@@ -611,10 +608,12 @@ void handle_last_instrx()
 			{
 				if ((instrx->ptr_source != NULL) && !instrx->ptr_source->mem_base)
 				{
+					instrx->ptr_source = NULL;
 					struct unit_struct *unit = instrx->unit;
 					instrx->unit = instantiate_unit(basic_units[PTR], NULL);
 					instrx->unit->num_subunits = unit->num_subunits;
 					instrx->unit->subunits = instantiate_superunit(unit, instrx->unit);
+					
 				}
 				else
 				{
@@ -629,11 +628,11 @@ void handle_last_instrx()
 						else
 						{
 							instrx->unit->base = parent_ptr->base;
-							
 						}
 					}
 				}
 			}
+			
 			if (DEFINE == instrx->oper)
 			{
 				handle_define_statement(instrxs[instrx_idx - 2]->unit, instrx->unit);
@@ -641,6 +640,7 @@ void handle_last_instrx()
 		}
 	}
 }
+
 void handle_new_instrx()
 {
 	if ((SUBUNIT == new_instrx.oper) 
