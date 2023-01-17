@@ -354,9 +354,9 @@ void write_line(struct instrx_struct *instrx)
 		if ((BRANCH == instrx->oper) || (WHILE == instrx->oper))
 		{
 			(void)fprintf(xcfile, "b%d:\n", b_num);
+			instrx->oper = NO_OPER;
 		}
 	}
-	
 	if ((ADD == instrx->oper) && ((DO == instrx->unit->type) || (STRUCT == instrx->unit->type)))
 	{
 		(void)fprintf(xcfile, "mov\t%s,\t[%s-%d]\n", REG_TEMP, REG_DEFAULT, (instrx->unit->parent->mem_offset) * 8);
@@ -401,7 +401,7 @@ void write_line(struct instrx_struct *instrx)
 	default:
 		break;
 	}
-	if ((instrx->oper != NO_OPER) && (instrx->oper != DEFINE) && (instrx->oper != BRANCH) && (instrx->oper != SUBUNIT) 
+	if ((instrx->oper != NO_OPER) && (instrx->oper != COND) && (instrx->oper != DEFINE) && (instrx->oper != SUBUNIT) 
 		&& ((instrx->unit->type != INT_CONST) || ((instrx->oper != MODULUS) && (instrx->oper != DIVIDE))))
 	{
 		write_unit(instrx->unit);
@@ -428,6 +428,7 @@ void write_instrxs(struct instrx_struct **instrxs, int num_instrx)
 		}
 	}
 }
+
 void write_f(void)
 {
 	for (int i = 1; i < num_f; i++)
@@ -440,7 +441,6 @@ void write_f(void)
 		}
 	}
 }
-
 
 
 void write_xc(void)
@@ -676,10 +676,10 @@ void handle_new_instrx()
 		{
 			instrxs[instrx_idx - 1]->oper = COND;
 		}
-		else if (((ADD == new_instrx.oper) || (DIVIDE == new_instrx.oper) || (MODULUS == new_instrx.oper))
-						&& (NO_OPER == instrxs[instrx_idx - 1]->oper))
+		else if ((new_instrx.oper != NO_OPER) && (new_instrx.oper != DEFINE) 
+						&& (instrxs[instrx_idx - parent_ptr->num_instrx]->unit->type != DO))
 		{
-			instrxs[instrx_idx - 1]->oper = LOAD;
+			instrxs[instrx_idx - parent_ptr->num_instrx]->oper = LOAD;
 		}
 		instrx_idx++;
 		parent_ptr->num_instrx++;
