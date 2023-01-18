@@ -364,9 +364,9 @@ void write_line(struct instrx_struct *instrx)
 	switch (instrx->oper)
 	{
 	case INSERTION:
-		if (((DO == instrx->unit->type) && (NULL == instrx->unit->base))
-					|| (INT_CONST == instrx->unit->type))
+		if ((DO == instrx->unit->type) || (INT_CONST == instrx->unit->type))
 		{
+			
 			return;
 		}
 		else if ((instrx->ptr_source != NULL) && !instrx->ptr_source->mem_base)
