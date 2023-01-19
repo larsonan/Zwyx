@@ -486,7 +486,7 @@ void find_unit_in_superunit(char *unit_name_chars, int unit_name_size, struct un
 		new_instrx.unit = NULL;
 	}
 	if ((new_instrx.unit != NULL) && !new_instrx.unit->mem_base 
-								&& (new_instrx.unit->base != NULL) && new_instrx.unit->base->mem_base)
+							&& (new_instrx.unit->base != NULL) && new_instrx.unit->base->mem_base && superunit->mem_base)
 	{
 		new_instrx.ptr_source = superunit;
 	}
