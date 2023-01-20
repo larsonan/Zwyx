@@ -267,9 +267,9 @@ void write_do(struct unit_struct *unit)
 	{
 		(void)fprintf(xcfile, "lea\t%s,\t", REG_BASE);
 		(void)fprintf(xcfile, "[%s-%d]\n", REG_DEFAULT, unit->base->mem_offset * 8);
-		(void)fprintf(xcfile, "sub\t%s,\t%d\n", REG_DEFAULT, (unit->mem_offset + unit->base->mem_used - 1) * 8);
+		(void)fprintf(xcfile, "sub\t%s,\t%d\n", REG_DEFAULT, (unit->mem_offset - 1) * 8);
 		(void)fprintf(xcfile, "call\tf%d\n", unit->f_num);
-		(void)fprintf(xcfile, "add\t%s,\t%d\n", REG_DEFAULT, (unit->mem_offset + unit->base->mem_used - 1) * 8);
+		(void)fprintf(xcfile, "add\t%s,\t%d\n", REG_DEFAULT, (unit->mem_offset - 1) * 8);
 		(void)fprintf(xcfile, "mov\t%s,\t[%s]\n", REG_BASE, REG_DEFAULT);
 	}
 }
@@ -526,7 +526,7 @@ void handle_define_statement(struct unit_struct *defined_unit, struct unit_struc
 }
 struct unit_struct** instantiate_superunit(struct unit_struct *superunit, struct unit_struct *base)
 {
-	struct unit_struct** units;
+	struct unit_struct** units = NULL;
 	units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
 	for (int i = 0; i < superunit->num_subunits; i++)
 	{
@@ -540,12 +540,12 @@ struct unit_struct** instantiate_superunit(struct unit_struct *superunit, struct
 struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struct *base)
 {
 	
-	struct unit_struct *instance = NULL;
-	instance = clone_data(unit, sizeof(struct unit_struct));
+	struct unit_struct *instance = clone_data(unit, sizeof(struct unit_struct));
 	if (instance->do_unit != NULL)
 	{
 		instance->do_unit = instantiate_unit(instance->do_unit, base);
 		instance->do_unit->base = instance;
+		instance->do_unit->mem_offset += instance->mem_used;
 	}
 	instance->mem_base = parent_ptr->type;
 	if (base != NULL)
