@@ -369,7 +369,7 @@ void write_line(struct instrx_struct *instrx)
 			
 			return;
 		}
-		else if ((instrx->ptr_source != NULL) && !instrx->ptr_source->mem_base)
+		else if ((instrx->ptr_source != NULL) && DEF_NONE == instrx->ptr_source->type)
 		{
 			(void)fprintf(xcfile, "lea\t%s,\t", REG_TEMP);
 		}
@@ -526,7 +526,7 @@ void handle_define_statement(struct unit_struct *defined_unit, struct unit_struc
 }
 struct unit_struct** instantiate_superunit(struct unit_struct *superunit, struct unit_struct *base)
 {
-	struct unit_struct** units;
+	struct unit_struct** units = NULL;
 	units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
 	for (int i = 0; i < superunit->num_subunits; i++)
 	{
@@ -666,8 +666,8 @@ void handle_new_instrx()
 			
 			new_instrx.unit = parent_ptr->base;
 		}
+		instrxs[instrx_idx] = NULL;
 		instrxs[instrx_idx] = clone_data(&new_instrx, sizeof(struct instrx_struct));
-		
 		if ((INSERTION == new_instrx.oper) || (SUBUNIT == new_instrx.oper))
 		{
 			instrxs[instrx_idx - 1]->insertion_source = instrxs[instrx_idx];
