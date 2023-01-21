@@ -526,7 +526,7 @@ void handle_define_statement(struct unit_struct *defined_unit, struct unit_struc
 }
 struct unit_struct** instantiate_superunit(struct unit_struct *superunit, struct unit_struct *base)
 {
-	struct unit_struct** units = NULL;
+	struct unit_struct** units;
 	units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
 	for (int i = 0; i < superunit->num_subunits; i++)
 	{
@@ -609,7 +609,7 @@ void handle_last_instrx()
 		{
 			if (!instrx->unit->mem_base)
 			{
-				if ((instrx->ptr_source != NULL) && !instrx->ptr_source->mem_base)
+				if ((instrx->ptr_source != NULL) && DEF_NONE == instrx->ptr_source->type)
 				{
 					instrx->ptr_source = NULL;
 					struct unit_struct *unit = instrx->unit;
@@ -790,7 +790,7 @@ void handle_char(int c)
 		handle_unit(basic_units[BASE]);
 		break;
 	case '@':
-		new_instrx.ptr_source = basic_units[PTR];
+		new_instrx.ptr_source = basic_units[DEF_NONE];
 		break;
 	case '\\':
 		instantiated_base = 0;
