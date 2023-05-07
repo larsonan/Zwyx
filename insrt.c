@@ -398,6 +398,9 @@ void write_line(struct instrx_struct *instrx)
 	case COMPARE:
 		(void)fprintf(xcfile, "cmp\t%s,\t", REG_TEMP);
 		break;
+	case SUBTRACT:
+		(void)fprintf(xcfile, "sub\t%s,\t", REG_TEMP);
+		break;
 	default:
 		break;
 	}
@@ -407,13 +410,13 @@ void write_line(struct instrx_struct *instrx)
 		write_unit(instrx->unit);
 		(void)fprintf(xcfile, "\n");
 	}
-	
-	
 	if (MODULUS == instrx->oper)
 	{
 		(void)fprintf(xcfile, "mov\t%s,\trdx\n", REG_TEMP);
 	}
 }
+
+
 void write_instrxs(struct instrx_struct **instrxs, int num_instrx)
 {
 	for (int i = 0; i < num_instrx; i++)
@@ -441,8 +444,6 @@ void write_f(void)
 		}
 	}
 }
-
-
 void write_xc(void)
 {
 	xcfile = fopen("xc.asm", "w");
@@ -455,7 +456,6 @@ void write_xc(void)
 	(void)fprintf(xcfile, "ret\nSECTION .bss\nstaticdata:\tresb\t%d\n", 8);
 	fclose(xcfile);
 }
-
 void *clone_data(void *data, int data_size)
 {
 	void *clone;
