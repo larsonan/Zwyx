@@ -275,21 +275,31 @@ void write_do(struct unit_struct *unit)
 			(void)fprintf(xcfile, "mov\t");
 		}
 		(void)fprintf(xcfile, "%s,\t", REG_BASE);
-		if (DO == unit->base->mem_base)
-		{
-			(void)fprintf(xcfile, "[%s-%d]\n", REG_DEFAULT, unit->base->mem_offset * 8);
-		}
-		else
-		{
-			(void)fprintf(xcfile, "[%s-%d]\n", REG_BASE, unit->base->mem_offset * 8);
-		}
-		(void)fprintf(xcfile, "sub\t%s,\t%d\n", REG_DEFAULT, (unit->mem_offset - 1) * 8);
+		write_unit(unit->base);
+		(void)fprintf(xcfile, "\nsub\t%s,\t%d\n", REG_DEFAULT, (unit->mem_offset - 1) * 8);
 		(void)fprintf(xcfile, "call\tf%d\n", unit->f_num);
 		(void)fprintf(xcfile, "add\t%s,\t%d\n", REG_DEFAULT, (unit->mem_offset - 1) * 8);
 		(void)fprintf(xcfile, "mov\t%s,\t[%s]\n", REG_BASE, REG_DEFAULT);
 	}
 }
-
+void write_insertion(struct unit_struct *unit)
+{
+	if ((STRUCT == unit->type) && (unit->base != NULL))
+	{
+		if (STRUCT == unit->mem_base)
+		{
+			(void)fprintf(xcfile, "[%s+%d]", REG_BASE, (unit->mem_offset + 1) * 8);
+		}
+		else
+		{
+			(void)fprintf(xcfile, "[%s-%d]", REG_DEFAULT, (unit->mem_offset - 1) * 8);
+		}
+	}
+	else
+	{
+		write_unit(unit);
+	}
+}
 void write_line(struct instrx_struct *instrx)
 {
 	if ((instrx->ptr_source != NULL) && instrx->ptr_source->mem_base)
@@ -306,6 +316,7 @@ void write_line(struct instrx_struct *instrx)
 		(void)fprintf(xcfile, "\nmov\t[%s-%d],\t%s\n", REG_DEFAULT, 
 									(instrx->unit->mem_offset - instrx->unit->base->mem_offset) * 8, REG_TEMP);
 	}
+	
 	if (instrx->insertion_source != NULL)
 	{
 		write_line(instrx->insertion_source);
@@ -319,13 +330,11 @@ void write_line(struct instrx_struct *instrx)
 	if ((instrx->insertion_source != NULL) && (instrx->insertion_source->oper != SUBUNIT))
 	{
 		(void)fprintf(xcfile, "mov\t");
-		
 		if (INT_CONST == instrx->insertion_source->unit->type)
 		{
-			
 			(void)fprintf(xcfile, "qword\t");
 		}
-		write_unit(instrx->unit);
+		write_insertion(instrx->unit);
 		(void)fprintf(xcfile, ",\t");
 		if (INT_CONST == instrx->insertion_source->unit->type)
 		{
@@ -341,6 +350,7 @@ void write_line(struct instrx_struct *instrx)
 	{
 		(void)fprintf(xcfile, "mov\t[%s-%d],\t%s\n", REG_DEFAULT, (instrx->unit->parent->mem_offset) * 8, REG_TEMP);
 	}
+	
 	
 	if (STRUCT == instrx->unit->type)
 	{
@@ -363,6 +373,7 @@ void write_line(struct instrx_struct *instrx)
 			(void)fprintf(xcfile, "cmp\t%s,\t0\nje\tb%d\n", REG_TEMP, b_num);
 		}
 		write_do(instrx->unit);
+		
 		if (WHILE == instrx->oper)
 		{
 			(void)fprintf(xcfile, "jmp\tb%d\n", b_num - 1);
@@ -431,7 +442,6 @@ void write_line(struct instrx_struct *instrx)
 		(void)fprintf(xcfile, "mov\t%s,\trdx\n", REG_TEMP);
 	}
 }
-
 
 void write_instrxs(struct instrx_struct **instrxs, int num_instrx)
 {
@@ -732,7 +742,7 @@ void new_superunit()
 	if (DEFINE == new_instrx.oper)
 	{
 		unit->base = parent_ptr;
-		if (instantiated_base)
+		if (instantiated_base && (STRUCT == parent_ptr->type))
 		{
 			unit->base = clone_data(parent_ptr, sizeof(struct unit_struct));
 			
