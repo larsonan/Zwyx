@@ -302,7 +302,7 @@ void write_insertion(struct unit_struct *unit)
 }
 void write_line(struct instrx_struct *instrx)
 {
-	if ((instrx->ptr_source != NULL) && instrx->ptr_source->mem_base)
+	if ((instrx->ptr_source != NULL) && instrx->ptr_source->mem_base && (instrx->unit->type != DO))
 	{
 		if (STRUCT == instrx->ptr_source->type)
 		{
@@ -352,13 +352,13 @@ void write_line(struct instrx_struct *instrx)
 	}
 	
 	
-	if (STRUCT == instrx->unit->type)
-	{
-		if (instrx->unit->do_unit != NULL)
-		{
-			write_do(instrx->unit->do_unit);
-		}
-	}
+	
+	
+	
+	
+	
+	
+	
 	if (DO == instrx->unit->type)
 	{
 		int b_num = num_b;
@@ -457,7 +457,6 @@ void write_instrxs(struct instrx_struct **instrxs, int num_instrx)
 		}
 	}
 }
-
 void write_f(void)
 {
 	for (int i = 1; i < num_f; i++)
@@ -470,6 +469,7 @@ void write_f(void)
 		}
 	}
 }
+
 void write_xc(void)
 {
 	xcfile = fopen("xc.asm", "w");
@@ -482,8 +482,10 @@ void write_xc(void)
 	(void)fprintf(xcfile, "ret\nSECTION .bss\nstaticdata:\tresb\t%d\n", 8);
 	fclose(xcfile);
 }
+
 void *clone_data(void *data, int data_size)
 {
+	
 	void *clone;
 	clone = malloc(data_size);
 	memcpy(clone, data, data_size);
@@ -550,6 +552,7 @@ void handle_define_statement(struct unit_struct *defined_unit, struct unit_struc
 		num_f++;
 	}
 }
+
 struct unit_struct** instantiate_superunit(struct unit_struct *superunit, struct unit_struct *base)
 {
 	struct unit_struct** units = NULL;
@@ -565,14 +568,7 @@ struct unit_struct** instantiate_superunit(struct unit_struct *superunit, struct
 }
 struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struct *base)
 {
-	
 	struct unit_struct *instance = clone_data(unit, sizeof(struct unit_struct));
-	if ((instance->do_unit != NULL) && instantiated_base)
-	{
-		instance->do_unit = instantiate_unit(instance->do_unit, base);
-		instance->do_unit->base = instance;
-		instance->do_unit->mem_offset += instance->mem_used;
-	}
 	instance->mem_base = parent_ptr->type;
 	if (base != NULL)
 	{
@@ -618,7 +614,6 @@ void find_unit_in_parent(char *unit_name_chars, int unit_name_size, struct unit_
 		find_unit_in_parent(unit_name_chars, unit_name_size, parent->base);
 	}
 }
-
 void handle_last_instrx()
 {
 	if ((parent_ptr->num_instrx > 0) && (new_instrx.oper != DEFINE))
@@ -630,6 +625,7 @@ void handle_last_instrx()
 		}
 		else if ((DEFINE == instrx->oper) && (1 == parent_ptr->num_instrx))
 		{
+			
 			handle_inheritance(instrx->unit);
 		}
 		else
@@ -661,7 +657,6 @@ void handle_last_instrx()
 					}
 				}
 			}
-			
 			if (DEFINE == instrx->oper)
 			{
 				handle_define_statement(instrxs[instrx_idx - 2]->unit, instrx->unit);
@@ -674,7 +669,12 @@ void handle_new_instrx()
 	if ((SUBUNIT == new_instrx.oper) 
 			&& ((new_instrx.unit->type != DO) || !instantiated_base || (strlen(new_instrx.unit->name) > 0)))
 	{
-		if (BASE == new_instrx.unit->type)
+		if ((DO == new_instrx.unit->type) && (strlen(new_instrx.unit->name) > 0))
+		{
+			new_instrx.ptr_source = instrxs[instrx_idx - 1]->unit;
+			instrxs[instrx_idx - 1]->unit = instrxs[instrx_idx - 1]->unit->do_unit;
+		}
+		else if (BASE == new_instrx.unit->type)
 		{
 			instrxs[instrx_idx - 1]->unit = instrxs[instrx_idx - 1]->unit->base;
 		}
@@ -690,8 +690,14 @@ void handle_new_instrx()
 		{
 			new_instrx.unit = parent_ptr->base;
 		}
+		else if ((DO == new_instrx.unit->type) && (DO == parent_ptr->type) && (strlen(new_instrx.unit->name) > 0))
+		{
+			new_instrx.unit = parent_ptr->base->do_unit;
+			new_instrx.ptr_source = parent_ptr->base;
+		}
 		instrxs[instrx_idx] = NULL;
 		instrxs[instrx_idx] = clone_data(&new_instrx, sizeof(struct instrx_struct));
+		
 		if ((INSERTION == new_instrx.oper) || (SUBUNIT == new_instrx.oper))
 		{
 			instrxs[instrx_idx - 1]->insertion_source = instrxs[instrx_idx];
@@ -712,6 +718,7 @@ void handle_new_instrx()
 	new_instrx.ptr_source = NULL;
 	instrxs[instrx_idx - 1]->unit_line = line_num;
 }
+
 void handle_unit(struct unit_struct *unit)
 {
 	new_instrx.unit = unit;
@@ -719,6 +726,7 @@ void handle_unit(struct unit_struct *unit)
 }
 void handle_superunit()
 {
+	
 	if (NULL == parent_ptr)
 	{
 		set_error(UNMATCHED_END_BRACE, line_num, "}");
@@ -727,7 +735,9 @@ void handle_superunit()
 	handle_last_instrx();
 	parent_ptr->instrx_list = clone_data(&instrxs[instrx_idx - parent_ptr->num_instrx], 
 																(parent_ptr->num_instrx * sizeof(struct instrx_struct*)));
+	
 	instrx_idx = instrx_idx - parent_ptr->num_instrx;
+	
 	parent_ptr->subunits = clone_data(parent_ptr->subunits, (parent_ptr->num_subunits * sizeof(struct unit_struct*)));
 	start_idx = instrx_idx;
 	if (parent_ptr->parent != NULL)
@@ -864,7 +874,7 @@ void handle_unit_name(char *unit_name_chars, int unit_name_size)
 	else
 	{
 		new_instrx.unit = find_unit_from_list(basic_units, NUM_BASIC_UNITS, unit_name_chars, unit_name_size);
-		if ((NULL == new_instrx.unit) || ((SUBUNIT == new_instrx.oper) && (DO == new_instrx.unit->type)))
+		if (NULL == new_instrx.unit)
 		{
 			if (new_instrx.oper != SUBUNIT)
 			{
