@@ -351,13 +351,10 @@ void write_line(struct instrx_struct *instrx)
 		(void)fprintf(xcfile, "mov\t[%s-%d],\t%s\n", REG_DEFAULT, (instrx->unit->parent->mem_offset) * 8, REG_TEMP);
 	}
 	
-	
-	
-	
-	
-	
-	
-	
+	if ((STRUCT == instrx->unit->type) && (instrx->unit->do_unit != NULL) && (instrx->unit->do_unit->mem_base))
+	{
+		write_do(instrx->unit->do_unit);
+	}
 	
 	if (DO == instrx->unit->type)
 	{
@@ -373,7 +370,6 @@ void write_line(struct instrx_struct *instrx)
 			(void)fprintf(xcfile, "cmp\t%s,\t0\nje\tb%d\n", REG_TEMP, b_num);
 		}
 		write_do(instrx->unit);
-		
 		if (WHILE == instrx->oper)
 		{
 			(void)fprintf(xcfile, "jmp\tb%d\n", b_num - 1);
@@ -409,6 +405,7 @@ void write_line(struct instrx_struct *instrx)
 	case MODULUS:
 		if (INT_CONST == instrx->unit->type)
 		{
+			
 			(void)fprintf(xcfile, "xor\trdx,\trdx\nmov\tqword\trcx,\t%s\ndiv\trcx\n", instrx->unit->name);
 		}
 		else
@@ -442,7 +439,6 @@ void write_line(struct instrx_struct *instrx)
 		(void)fprintf(xcfile, "mov\t%s,\trdx\n", REG_TEMP);
 	}
 }
-
 void write_instrxs(struct instrx_struct **instrxs, int num_instrx)
 {
 	for (int i = 0; i < num_instrx; i++)
@@ -482,15 +478,14 @@ void write_xc(void)
 	(void)fprintf(xcfile, "ret\nSECTION .bss\nstaticdata:\tresb\t%d\n", 8);
 	fclose(xcfile);
 }
-
 void *clone_data(void *data, int data_size)
 {
-	
 	void *clone;
 	clone = malloc(data_size);
 	memcpy(clone, data, data_size);
 	return clone;
 }
+
 struct unit_struct *find_unit_from_list(struct unit_struct **unit_list, int unit_list_size, 
 										char *unit_name_chars, int unit_name_size)
 {
@@ -552,11 +547,10 @@ void handle_define_statement(struct unit_struct *defined_unit, struct unit_struc
 		num_f++;
 	}
 }
-
 struct unit_struct** instantiate_superunit(struct unit_struct *superunit, struct unit_struct *base)
 {
-	struct unit_struct** units = NULL;
-	units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
+	struct unit_struct** units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
+	
 	for (int i = 0; i < superunit->num_subunits; i++)
 	{
 		if (STRUCT == superunit->subunits[i]->mem_base)
@@ -591,6 +585,7 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 	{
 		instance->mem_offset += parent_ptr->mem_used;
 	}
+	
 	if (STRUCT == instance->type)
 	{
 		instance->subunits = instantiate_superunit(instance, base);
@@ -600,6 +595,7 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 	{
 		instance->subunits = instantiate_superunit(instance, instance);
 	}
+	
 	return instance;
 }
 void find_unit_in_parent(char *unit_name_chars, int unit_name_size, struct unit_struct *parent)
@@ -625,11 +621,11 @@ void handle_last_instrx()
 		}
 		else if ((DEFINE == instrx->oper) && (1 == parent_ptr->num_instrx))
 		{
-			
 			handle_inheritance(instrx->unit);
 		}
 		else
 		{
+			
 			if (!instrx->unit->mem_base)
 			{
 				if ((instrx->ptr_source != NULL) && DEF_NONE == instrx->ptr_source->type)
@@ -654,6 +650,12 @@ void handle_last_instrx()
 						{
 							instrx->unit->base = parent_ptr->base;
 						}
+					}
+					else if ((instrx->unit->do_unit != NULL) && (instrx->oper != DEFINE) && (new_instrx.oper != SUBUNIT))
+					{
+						instrx->unit->do_unit = instantiate_unit(instrx->unit->do_unit, NULL);
+						instrx->unit->do_unit->base = instrx->unit;
+						instrx->unit->do_unit->mem_offset += instrx->unit->mem_used;
 					}
 				}
 			}
@@ -695,9 +697,9 @@ void handle_new_instrx()
 			new_instrx.unit = parent_ptr->base->do_unit;
 			new_instrx.ptr_source = parent_ptr->base;
 		}
+		
 		instrxs[instrx_idx] = NULL;
 		instrxs[instrx_idx] = clone_data(&new_instrx, sizeof(struct instrx_struct));
-		
 		if ((INSERTION == new_instrx.oper) || (SUBUNIT == new_instrx.oper))
 		{
 			instrxs[instrx_idx - 1]->insertion_source = instrxs[instrx_idx];
@@ -726,7 +728,6 @@ void handle_unit(struct unit_struct *unit)
 }
 void handle_superunit()
 {
-	
 	if (NULL == parent_ptr)
 	{
 		set_error(UNMATCHED_END_BRACE, line_num, "}");
@@ -735,7 +736,6 @@ void handle_superunit()
 	handle_last_instrx();
 	parent_ptr->instrx_list = clone_data(&instrxs[instrx_idx - parent_ptr->num_instrx], 
 																(parent_ptr->num_instrx * sizeof(struct instrx_struct*)));
-	
 	instrx_idx = instrx_idx - parent_ptr->num_instrx;
 	
 	parent_ptr->subunits = clone_data(parent_ptr->subunits, (parent_ptr->num_subunits * sizeof(struct unit_struct*)));
@@ -801,14 +801,22 @@ void handle_char(int c)
 			break;
 		}
 	}
+	if (((';' == c) || ('$' == c)) && (new_instrx.oper != SUBUNIT))
+	{
+		handle_last_instrx();
+	}
+	
 	switch(c)
 	{
+	
 	case ';':
-		set_error(UNKNOWN_TOKEN, line_num, ";");
+		handle_unit(basic_units[DO]);
 		break;
 	case '{':
 		new_superunit();
 		break;
+		
+		
 	case '}':
 		handle_superunit();
 		break;
@@ -829,8 +837,6 @@ void handle_char(int c)
 		break;
 	}
 }
-
-
 void start_base_unit()
 {
 	parent_ptr = clone_data(basic_units[MAIN], sizeof(struct unit_struct));
@@ -853,7 +859,7 @@ void end_base_unit()
 }
 char *make_unit_name(char *unit_name_chars, int unit_name_size)
 {
-	char *new_unit_name = NULL;
+	char *new_unit_name;
 	new_unit_name = malloc(unit_name_size + 1);
 	(void)memcpy(new_unit_name, unit_name_chars, unit_name_size);
 	return new_unit_name;
@@ -907,7 +913,6 @@ void parse_file(char* file_name)
 		if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9'))
 		{
 			/* We're in the middle of a unit name - store char in buffer */
-			
 			if (unit_name_buffer_idx < UNIT_NAME_MAX_LEN)
 			{
 				unit_name_buffer[unit_name_buffer_idx] = c;
