@@ -549,8 +549,8 @@ void handle_define_statement(struct unit_struct *defined_unit, struct unit_struc
 }
 struct unit_struct** instantiate_superunit(struct unit_struct *superunit, struct unit_struct *base)
 {
-	struct unit_struct** units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
-	
+	struct unit_struct** units = NULL;
+	units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
 	for (int i = 0; i < superunit->num_subunits; i++)
 	{
 		if (STRUCT == superunit->subunits[i]->mem_base)
@@ -671,35 +671,33 @@ void handle_new_instrx()
 	if ((SUBUNIT == new_instrx.oper) 
 			&& ((new_instrx.unit->type != DO) || !instantiated_base || (strlen(new_instrx.unit->name) > 0)))
 	{
-		if ((DO == new_instrx.unit->type) && (strlen(new_instrx.unit->name) > 0))
-		{
-			new_instrx.ptr_source = instrxs[instrx_idx - 1]->unit;
-			instrxs[instrx_idx - 1]->unit = instrxs[instrx_idx - 1]->unit->do_unit;
-		}
-		else if (BASE == new_instrx.unit->type)
-		{
-			instrxs[instrx_idx - 1]->unit = instrxs[instrx_idx - 1]->unit->base;
-		}
-		else
-		{
-			instrxs[instrx_idx - 1]->unit = new_instrx.unit;
-		}
+		instrxs[instrx_idx - 1]->unit = new_instrx.unit;
 		instrxs[instrx_idx - 1]->ptr_source = new_instrx.ptr_source;
 	}
 	else
 	{
 		if (BASE == new_instrx.unit->type)
 		{
+			
 			new_instrx.unit = parent_ptr->base;
 		}
 		else if ((DO == new_instrx.unit->type) && (DO == parent_ptr->type) && (strlen(new_instrx.unit->name) > 0))
 		{
-			new_instrx.unit = parent_ptr->base->do_unit;
-			new_instrx.ptr_source = parent_ptr->base;
+			
+			if (strlen(parent_ptr->name) > 0)
+			{
+				new_instrx.unit = parent_ptr->base->base->do_unit;
+				new_instrx.ptr_source = parent_ptr->base->base;
+			}
+			else
+			{
+				new_instrx.unit = parent_ptr->base->do_unit;
+				new_instrx.ptr_source = parent_ptr->base;
+			}
 		}
 		
-		instrxs[instrx_idx] = NULL;
 		instrxs[instrx_idx] = clone_data(&new_instrx, sizeof(struct instrx_struct));
+		
 		if ((INSERTION == new_instrx.oper) || (SUBUNIT == new_instrx.oper))
 		{
 			instrxs[instrx_idx - 1]->insertion_source = instrxs[instrx_idx];
@@ -717,6 +715,8 @@ void handle_new_instrx()
 		parent_ptr->num_instrx++;
 	}
 	new_instrx.oper = NO_OPER;
+	
+	
 	new_instrx.ptr_source = NULL;
 	instrxs[instrx_idx - 1]->unit_line = line_num;
 }
