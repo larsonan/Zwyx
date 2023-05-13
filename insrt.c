@@ -41,7 +41,7 @@
 #define MAIN 1
 #define PTR 2
 #define INT 3
-#define BASE 4
+#define METHOD_PTR 4
 #define SYSRUN 5
 #define STRUCT 6
 #define INT_CONST 7
@@ -659,6 +659,11 @@ void handle_last_instrx()
 					}
 				}
 			}
+			else if (METHOD_PTR == instrx->unit->type)
+			{
+				instrx->unit = clone_data(instrx->unit, sizeof(struct unit_struct));
+				instrx->unit->mem_used = parent_ptr->mem_used;
+			}
 			if (DEFINE == instrx->oper)
 			{
 				handle_define_statement(instrxs[instrx_idx - 2]->unit, instrx->unit);
@@ -676,12 +681,7 @@ void handle_new_instrx()
 	}
 	else
 	{
-		if (BASE == new_instrx.unit->type)
-		{
-			
-			new_instrx.unit = parent_ptr->base;
-		}
-		else if ((DO == new_instrx.unit->type) && (DO == parent_ptr->type) && (strlen(new_instrx.unit->name) > 0))
+		if ((DO == new_instrx.unit->type) && (DO == parent_ptr->type) && (strlen(new_instrx.unit->name) > 0))
 		{
 			
 			if (strlen(parent_ptr->name) > 0)
@@ -825,7 +825,7 @@ void handle_char(int c)
 		line_num++;
 		break;
 	case '$':
-		handle_unit(basic_units[BASE]);
+		handle_unit(parent_ptr->base);
 		break;
 	case '@':
 		new_instrx.ptr_source = basic_units[DEF_NONE];
