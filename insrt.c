@@ -126,7 +126,7 @@ struct unit_struct
 	int num_instrx;
 };
 
-char* basic_unit_names[] = {"", "_main", "addr", "int", "", "sysrun", "", "", "", "do" };
+char* basic_unit_names[] = {"", "_main", "", "int", "method", "sysrun", "", "", "", "do" };
 char opers[] = {'\0', ':', '~', '.', '?', '=', '+', '/', ',', '!', '-', '<', '\0', '#', '*', '%', '>'};
 
 struct error_struct errors[MAX_ERRORS];
@@ -153,7 +153,7 @@ FILE* err_out;
 FILE* xcfile;
 int num_b = 0;
 int define_idx = -1;
-int num_f;
+int num_f = 1;
 int instantiated_base = 1;
 
 void dbg_out_str(char* msg, int msg_len)
@@ -222,8 +222,8 @@ void init(void)
 {
 	instrx_idx = 0;
 	start_idx = 0;
-	num_f = 1;
 	parent_ptr = NULL;
+	basic_unit_data[METHOD_PTR].mem_used = 1;
 	subunit_stack_idx = 0;
 	setup_basic_units();
 }
@@ -232,6 +232,11 @@ void write_unit(struct unit_struct *unit)
 	if (INT_CONST == unit->type)
 	{
 		(void)fprintf(xcfile, "%s", unit->name);
+	}
+	else if (DO == unit->type)
+	{
+		
+		(void)fprintf(xcfile, "f%d", unit->f_num);
 	}
 	else
 	{
@@ -277,8 +282,9 @@ void write_do(struct unit_struct *unit)
 		(void)fprintf(xcfile, "%s,\t", REG_BASE);
 		write_unit(unit->base);
 		(void)fprintf(xcfile, "\nsub\t%s,\t%d\n", REG_DEFAULT, (unit->mem_used - 1) * 8);
-		(void)fprintf(xcfile, "call\tf%d\n", unit->f_num);
-		(void)fprintf(xcfile, "add\t%s,\t%d\n", REG_DEFAULT, (unit->mem_used - 1) * 8);
+		(void)fprintf(xcfile, "call\t");
+		write_unit(unit);
+		(void)fprintf(xcfile, "\nadd\t%s,\t%d\n", REG_DEFAULT, (unit->mem_used - 1) * 8);
 		(void)fprintf(xcfile, "mov\t%s,\t[%s]\n", REG_BASE, REG_DEFAULT);
 	}
 }
@@ -356,7 +362,7 @@ void write_line(struct instrx_struct *instrx)
 		write_do(instrx->unit->do_unit);
 	}
 	
-	if (DO == instrx->unit->type)
+	if ((DO == instrx->unit->type) || (METHOD_PTR == instrx->unit->type))
 	{
 		int b_num = num_b;
 		if (COND == instrx->oper)
@@ -514,11 +520,11 @@ void find_unit_in_superunit(char *unit_name_chars, int unit_name_size, struct un
 		new_instrx.ptr_source = superunit;
 	}
 }
+
 void handle_inheritance(struct unit_struct *unit)
 {
 	parent_ptr->num_subunits = unit->num_subunits;
 	parent_ptr->mem_used = unit->mem_used;
-	
 	if (parent_ptr->num_subunits > 0)
 	{
 		memcpy(parent_ptr->subunits, unit->subunits, (unit->num_subunits * sizeof(struct unit_struct*)));
@@ -549,8 +555,8 @@ void handle_define_statement(struct unit_struct *defined_unit, struct unit_struc
 }
 struct unit_struct** instantiate_superunit(struct unit_struct *superunit, struct unit_struct *base)
 {
-	struct unit_struct** units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
-	
+	struct unit_struct** units = NULL;
+	units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
 	for (int i = 0; i < superunit->num_subunits; i++)
 	{
 		if (STRUCT == superunit->subunits[i]->mem_base)
@@ -671,6 +677,7 @@ void handle_last_instrx()
 		}
 	}
 }
+
 void handle_new_instrx()
 {
 	
@@ -683,7 +690,6 @@ void handle_new_instrx()
 	{
 		if ((DO == new_instrx.unit->type) && (DO == parent_ptr->type) && (strlen(new_instrx.unit->name) > 0))
 		{
-			
 			if (strlen(parent_ptr->name) > 0)
 			{
 				new_instrx.unit = parent_ptr->base->base->do_unit;
@@ -691,13 +697,9 @@ void handle_new_instrx()
 			else
 			{
 				new_instrx.unit = parent_ptr->base->do_unit;
-				
 			}
 		}
-		
-		
 		instrxs[instrx_idx] = clone_data(&new_instrx, sizeof(struct instrx_struct));
-		
 		if ((INSERTION == new_instrx.oper) || (SUBUNIT == new_instrx.oper))
 		{
 			instrxs[instrx_idx - 1]->insertion_source = instrxs[instrx_idx];
@@ -715,8 +717,6 @@ void handle_new_instrx()
 		parent_ptr->num_instrx++;
 	}
 	new_instrx.oper = NO_OPER;
-	
-	
 	new_instrx.ptr_source = NULL;
 	instrxs[instrx_idx - 1]->unit_line = line_num;
 }
