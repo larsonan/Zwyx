@@ -688,18 +688,29 @@ void handle_new_instrx()
 	}
 	else
 	{
-		if ((DO == new_instrx.unit->type) && (DO == parent_ptr->type) && (strlen(new_instrx.unit->name) > 0))
+		if ((DO == new_instrx.unit->type) && (strlen(new_instrx.unit->name) > 0))
 		{
-			if (strlen(parent_ptr->name) > 0)
+			if (DEFINE == new_instrx.oper)
 			{
-				new_instrx.unit = parent_ptr->base->base->do_unit;
+				new_instrx.unit = basic_units[METHOD_PTR];
 			}
-			else
+			else if (DO == parent_ptr->type)
 			{
-				new_instrx.unit = parent_ptr->base->do_unit;
+				if (strlen(parent_ptr->name) > 0)
+				{
+					new_instrx.unit = parent_ptr->base->base->do_unit;
+				}
+				else
+				{
+					new_instrx.unit = parent_ptr->base->do_unit;
+				}
 			}
 		}
+		
 		instrxs[instrx_idx] = clone_data(&new_instrx, sizeof(struct instrx_struct));
+		
+		
+		
 		if ((INSERTION == new_instrx.oper) || (SUBUNIT == new_instrx.oper))
 		{
 			instrxs[instrx_idx - 1]->insertion_source = instrxs[instrx_idx];
@@ -720,7 +731,6 @@ void handle_new_instrx()
 	new_instrx.ptr_source = NULL;
 	instrxs[instrx_idx - 1]->unit_line = line_num;
 }
-
 void handle_unit(struct unit_struct *unit)
 {
 	new_instrx.unit = unit;
@@ -737,7 +747,6 @@ void handle_superunit()
 	parent_ptr->instrx_list = clone_data(&instrxs[instrx_idx - parent_ptr->num_instrx], 
 																(parent_ptr->num_instrx * sizeof(struct instrx_struct*)));
 	instrx_idx = instrx_idx - parent_ptr->num_instrx;
-	
 	parent_ptr->subunits = clone_data(parent_ptr->subunits, (parent_ptr->num_subunits * sizeof(struct unit_struct*)));
 	start_idx = instrx_idx;
 	if (parent_ptr->parent != NULL)
@@ -745,7 +754,6 @@ void handle_superunit()
 		parent_ptr = parent_ptr->parent;
 	}
 }
-
 void new_superunit()
 {
 	struct unit_struct *unit = clone_data(basic_units[STRUCT], sizeof(struct unit_struct));
@@ -755,7 +763,6 @@ void new_superunit()
 		if (instantiated_base && (STRUCT == parent_ptr->type))
 		{
 			unit->base = clone_data(parent_ptr, sizeof(struct unit_struct));
-			
 			unit->base->mem_base = STRUCT;
 			if (instrxs[instrx_idx - 1]->unit->type != DO)
 			{
@@ -791,6 +798,7 @@ void new_superunit()
 	unit->parent = parent_ptr;
 	parent_ptr = unit;
 }
+
 void handle_char(int c)
 {
 	for (int i = 0; i < 17; i++)
@@ -812,6 +820,7 @@ void handle_char(int c)
 	case ';':
 		handle_unit(basic_units[DO]);
 		break;
+		
 	case '{':
 		new_superunit();
 		break;
@@ -821,10 +830,12 @@ void handle_char(int c)
 		handle_superunit();
 		break;
 		
+		
 	case '\n':
 		line_num++;
 		break;
 	case '$':
+		
 		handle_unit(parent_ptr->base);
 		break;
 	case '@':
@@ -864,8 +875,10 @@ char *make_unit_name(char *unit_name_chars, int unit_name_size)
 	(void)memcpy(new_unit_name, unit_name_chars, unit_name_size);
 	return new_unit_name;
 }
+
 void handle_unit_name(char *unit_name_chars, int unit_name_size)
 {
+	
 	new_instrx.unit = NULL;
 	if (new_instrx.oper != SUBUNIT)
 	{
@@ -902,6 +915,8 @@ void handle_unit_name(char *unit_name_chars, int unit_name_size)
 }
 void parse_file(char* file_name)
 {
+	
+	
 	FILE* zyfile = fopen(file_name, "r");
 	line_num = 1;
 	char unit_name_buffer[UNIT_NAME_MAX_LEN];
