@@ -356,14 +356,20 @@ void write_line(struct instrx_struct *instrx)
 	{
 		(void)fprintf(xcfile, "mov\t[%s-%d],\t%s\n", REG_DEFAULT, (instrx->unit->parent->mem_offset) * 8, REG_TEMP);
 	}
-	
 	if ((STRUCT == instrx->unit->type) && (instrx->unit->do_unit != NULL) && (instrx->unit->do_unit->mem_base))
 	{
 		write_do(instrx->unit->do_unit);
 	}
-	
-	if ((DO == instrx->unit->type) || (METHOD_PTR == instrx->unit->type))
+	else if ((DO == instrx->unit->type) || (METHOD_PTR == instrx->unit->type))
 	{
+		
+		
+		if ((instrx->ptr_source != NULL) && (DEF_NONE == instrx->ptr_source->type))
+		{
+			(void)fprintf(xcfile, "lea\t%s,\t[rel+f%d]\n", REG_TEMP, instrx->unit->f_num);
+			return;
+		}
+		
 		int b_num = num_b;
 		if (COND == instrx->oper)
 		{
@@ -601,7 +607,6 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 	{
 		instance->subunits = instantiate_superunit(instance, instance);
 	}
-	
 	return instance;
 }
 void find_unit_in_parent(char *unit_name_chars, int unit_name_size, struct unit_struct *parent)
@@ -711,6 +716,7 @@ void handle_new_instrx()
 		
 		
 		
+		
 		if ((INSERTION == new_instrx.oper) || (SUBUNIT == new_instrx.oper))
 		{
 			instrxs[instrx_idx - 1]->insertion_source = instrxs[instrx_idx];
@@ -727,9 +733,9 @@ void handle_new_instrx()
 		instrx_idx++;
 		parent_ptr->num_instrx++;
 	}
+	instrxs[instrx_idx - 1]->unit_line = line_num;
 	new_instrx.oper = NO_OPER;
 	new_instrx.ptr_source = NULL;
-	instrxs[instrx_idx - 1]->unit_line = line_num;
 }
 void handle_unit(struct unit_struct *unit)
 {
@@ -768,6 +774,8 @@ void new_superunit()
 			{
 				unit->base->type = PTR;
 				unit->mem_used++;
+				
+				
 				unit->base->subunits = instantiate_superunit(unit->base, unit->base);
 			}
 		}
@@ -780,17 +788,27 @@ void new_superunit()
 		unit->type = DO;
 		unit->mem_base = DO;
 		unit->mem_used = parent_ptr->mem_used;
+		handle_last_instrx();
 		if (SUBUNIT == new_instrx.oper)
 		{
-			handle_last_instrx();
 			unit->base = instrxs[instrx_idx - 1]->unit;
 			unit->mem_used += instrxs[instrx_idx - 1]->unit->mem_used;
 		}
 		else if (new_instrx.oper != BRANCH)
 		{
-			handle_last_instrx();
+			if ((new_instrx.ptr_source != NULL) && (DEF_NONE == new_instrx.ptr_source->type))
+			{
+				unit->base = clone_data(basic_units[INT], sizeof(struct unit_struct));
+				unit->base->mem_base = DO;
+				unit->mem_used = 0;
+				unit->mem_base = false;
+				unit->f_num = num_f;
+				funcs[num_f] = unit;
+				num_f++;
+			}
 			unit->mem_used++;
 		}
+		
 		handle_unit(unit);
 	}
 	instantiated_base = 1;
@@ -813,27 +831,21 @@ void handle_char(int c)
 	{
 		handle_last_instrx();
 	}
-	
 	switch(c)
 	{
-	
 	case ';':
 		handle_unit(basic_units[DO]);
 		break;
-		
 	case '{':
 		new_superunit();
 		break;
-		
-		
 	case '}':
 		handle_superunit();
 		break;
-		
-		
 	case '\n':
 		line_num++;
 		break;
+		
 	case '$':
 		
 		handle_unit(parent_ptr->base);
@@ -848,6 +860,7 @@ void handle_char(int c)
 		break;
 	}
 }
+
 void start_base_unit()
 {
 	parent_ptr = clone_data(basic_units[MAIN], sizeof(struct unit_struct));
@@ -872,13 +885,12 @@ char *make_unit_name(char *unit_name_chars, int unit_name_size)
 {
 	char *new_unit_name;
 	new_unit_name = malloc(unit_name_size + 1);
+	
 	(void)memcpy(new_unit_name, unit_name_chars, unit_name_size);
 	return new_unit_name;
 }
-
 void handle_unit_name(char *unit_name_chars, int unit_name_size)
 {
-	
 	new_instrx.unit = NULL;
 	if (new_instrx.oper != SUBUNIT)
 	{
@@ -904,6 +916,7 @@ void handle_unit_name(char *unit_name_chars, int unit_name_size)
 				find_unit_in_superunit(unit_name_chars, unit_name_size, instrxs[instrx_idx - 1]->unit);
 			}
 		}
+		
 		if (NULL == new_instrx.unit)
 		{
 			new_instrx.unit = malloc(sizeof(struct unit_struct));
@@ -915,8 +928,6 @@ void handle_unit_name(char *unit_name_chars, int unit_name_size)
 }
 void parse_file(char* file_name)
 {
-	
-	
 	FILE* zyfile = fopen(file_name, "r");
 	line_num = 1;
 	char unit_name_buffer[UNIT_NAME_MAX_LEN];
@@ -954,6 +965,7 @@ void parse_file(char* file_name)
 		handle_unit_name(unit_name_buffer, unit_name_buffer_idx);
 	}
 	fclose(zyfile);
+	
 	end_base_unit();
 }
 int main(void)
