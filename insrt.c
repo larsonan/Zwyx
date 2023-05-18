@@ -360,7 +360,7 @@ void write_line(struct instrx_struct *instrx)
 	{
 		write_do(instrx->unit->do_unit);
 	}
-	else if ((DO == instrx->unit->type) || (METHOD_PTR == instrx->unit->type))
+	else if (((DO == instrx->unit->type) || (METHOD_PTR == instrx->unit->type)) && (NULL == instrx->insertion_source))
 	{
 		
 		
@@ -465,18 +465,18 @@ void write_instrxs(struct instrx_struct **instrxs, int num_instrx)
 		}
 	}
 }
+
 void write_f(void)
 {
 	for (int i = 1; i < num_f; i++)
 	{
-		if (false == funcs[i]->mem_base)
-		{
-			(void)fprintf(xcfile, "f%d:\npush\t%s\n", funcs[i]->f_num, REG_BASE);
-			write_instrxs(funcs[i]->instrx_list, funcs[i]->num_instrx);
-			(void)fprintf(xcfile, "pop\t%s\nret\n", REG_BASE);
-		}
+
+		(void)fprintf(xcfile, "f%d:\npush\t%s\n", funcs[i]->f_num, REG_BASE);
+		write_instrxs(funcs[i]->instrx_list, funcs[i]->num_instrx);
+		(void)fprintf(xcfile, "pop\t%s\nret\n", REG_BASE);
 	}
 }
+
 
 void write_xc(void)
 {
@@ -796,17 +796,17 @@ void new_superunit()
 		}
 		else if (new_instrx.oper != BRANCH)
 		{
+			unit->base = parent_ptr->base;
+			unit->mem_used++;
 			if ((new_instrx.ptr_source != NULL) && (DEF_NONE == new_instrx.ptr_source->type))
 			{
 				unit->base = clone_data(basic_units[INT], sizeof(struct unit_struct));
 				unit->base->mem_base = DO;
-				unit->mem_used = 0;
-				unit->mem_base = false;
 				unit->f_num = num_f;
 				funcs[num_f] = unit;
 				num_f++;
+				unit->mem_used = 1;
 			}
-			unit->mem_used++;
 		}
 		
 		handle_unit(unit);
