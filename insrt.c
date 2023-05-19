@@ -725,17 +725,17 @@ void handle_new_instrx()
 		{
 			instrxs[instrx_idx - 1]->oper = COND;
 		}
-		else if ((new_instrx.oper != NO_OPER) && (new_instrx.oper != DEFINE) 
-						&& (instrxs[instrx_idx - parent_ptr->num_instrx]->unit->type != DO))
-		{
-			instrxs[instrx_idx - parent_ptr->num_instrx]->oper = LOAD;
-		}
 		instrx_idx++;
 		parent_ptr->num_instrx++;
 	}
-	instrxs[instrx_idx - 1]->unit_line = line_num;
 	new_instrx.oper = NO_OPER;
 	new_instrx.ptr_source = NULL;
+	instrxs[instrx_idx - 1]->unit_line = line_num;
+	if ((DO == instrxs[instrx_idx - 1]->unit->type) && (0 == strlen(instrxs[instrx_idx - 1]->unit->name))
+														&& (instrxs[instrx_idx - 1]->oper != SUBUNIT))
+	{
+		new_instrx.oper = LOAD;
+	}
 }
 void handle_unit(struct unit_struct *unit)
 {
