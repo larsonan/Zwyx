@@ -233,7 +233,7 @@ void write_unit(struct unit_struct *unit)
 	{
 		(void)fprintf(xcfile, "%s", unit->name);
 	}
-	else if (DO == unit->type)
+	else if ((DO == unit->type) && (strlen(unit->name) > 0))
 	{
 		
 		(void)fprintf(xcfile, "f%d", unit->f_num);
@@ -352,8 +352,10 @@ void write_line(struct instrx_struct *instrx)
 		}
 		(void)fprintf(xcfile, "\n");
 	}
-	if ((ADD == instrx->oper) && ((DO == instrx->unit->type) || (STRUCT == instrx->unit->type)))
+	if (((DO == instrx->unit->type) || (STRUCT == instrx->unit->type))
+		&& (instrx->oper != INSERTION) && (instrx->oper != SUBUNIT) && (instrx->oper != NO_OPER))
 	{
+		
 		(void)fprintf(xcfile, "mov\t[%s-%d],\t%s\n", REG_DEFAULT, (instrx->unit->parent->mem_offset) * 8, REG_TEMP);
 	}
 	if ((STRUCT == instrx->unit->type) && (instrx->unit->do_unit != NULL) && (instrx->unit->do_unit->mem_base))
@@ -362,8 +364,6 @@ void write_line(struct instrx_struct *instrx)
 	}
 	else if (((DO == instrx->unit->type) || (METHOD_PTR == instrx->unit->type)) && (NULL == instrx->insertion_source))
 	{
-		
-		
 		if ((instrx->ptr_source != NULL) && (DEF_NONE == instrx->ptr_source->type))
 		{
 			(void)fprintf(xcfile, "lea\t%s,\t[rel+f%d]\n", REG_TEMP, instrx->unit->f_num);
@@ -392,8 +392,10 @@ void write_line(struct instrx_struct *instrx)
 			instrx->oper = NO_OPER;
 		}
 	}
-	if ((ADD == instrx->oper) && ((DO == instrx->unit->type) || (STRUCT == instrx->unit->type)))
+	if (((DO == instrx->unit->type) || (STRUCT == instrx->unit->type))
+		&& (instrx->oper != INSERTION) && (instrx->oper != SUBUNIT) && (instrx->oper != NO_OPER))
 	{
+		
 		(void)fprintf(xcfile, "mov\t%s,\t[%s-%d]\n", REG_TEMP, REG_DEFAULT, (instrx->unit->parent->mem_offset) * 8);
 	}
 	switch (instrx->oper)
@@ -401,7 +403,6 @@ void write_line(struct instrx_struct *instrx)
 	case INSERTION:
 		if ((DO == instrx->unit->type) || (INT_CONST == instrx->unit->type))
 		{
-			
 			return;
 		}
 		else if ((instrx->ptr_source != NULL) && DEF_NONE == instrx->ptr_source->type)
@@ -413,11 +414,10 @@ void write_line(struct instrx_struct *instrx)
 			(void)fprintf(xcfile, "mov\t%s,\t", REG_TEMP);
 		}
 		break;
-	case DIVIDE:
 	case MODULUS:
+	case DIVIDE:
 		if (INT_CONST == instrx->unit->type)
 		{
-			
 			(void)fprintf(xcfile, "xor\trdx,\trdx\nmov\tqword\trcx,\t%s\ndiv\trcx\n", instrx->unit->name);
 		}
 		else
@@ -561,7 +561,7 @@ void handle_define_statement(struct unit_struct *defined_unit, struct unit_struc
 }
 struct unit_struct** instantiate_superunit(struct unit_struct *superunit, struct unit_struct *base)
 {
-	struct unit_struct** units;
+	struct unit_struct** units = NULL;
 	units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
 	for (int i = 0; i < superunit->num_subunits; i++)
 	{
@@ -798,6 +798,7 @@ void new_superunit()
 		{
 			unit->base = parent_ptr->base;
 			unit->mem_used++;
+			unit->mem_offset = unit->mem_used;
 			if ((new_instrx.ptr_source != NULL) && (DEF_NONE == new_instrx.ptr_source->type))
 			{
 				unit->base = clone_data(basic_units[INT], sizeof(struct unit_struct));
@@ -808,7 +809,6 @@ void new_superunit()
 				unit->mem_used = 1;
 			}
 		}
-		
 		handle_unit(unit);
 	}
 	instantiated_base = 1;
