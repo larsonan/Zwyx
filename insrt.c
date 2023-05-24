@@ -296,7 +296,7 @@ void write_do(struct unit_struct *unit)
 }
 void write_insertion(struct unit_struct *unit)
 {
-	if ((STRUCT == unit->type) && (unit->base != NULL))
+	if ((STRUCT == unit->type) && (unit->base != NULL) && (PTR == unit->base->type))
 	{
 		if (STRUCT == unit->mem_base)
 		{
@@ -564,8 +564,8 @@ void handle_define_statement(struct unit_struct *defined_unit, struct unit_struc
 }
 struct unit_struct** instantiate_superunit(struct unit_struct *superunit, struct unit_struct *base)
 {
-	struct unit_struct** units = NULL;
-	units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
+	struct unit_struct** units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
+	
 	for (int i = 0; i < superunit->num_subunits; i++)
 	{
 		if (STRUCT == superunit->subunits[i]->mem_base)
@@ -675,7 +675,7 @@ void handle_last_instrx()
 					{
 						instrx->unit->do_unit = instantiate_unit(instrx->unit->do_unit, NULL);
 						instrx->unit->do_unit->base = instrx->unit;
-						instrx->unit->do_unit->mem_used = instrx->unit->mem_offset + instrx->unit->mem_used - 1;
+						instrx->unit->do_unit->mem_used = instrx->unit->mem_offset + 1;
 					}
 				}
 			}
