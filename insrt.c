@@ -325,9 +325,9 @@ void write_line(struct instrx_struct *instrx)
 		{
 			(void)fprintf(xcfile, "mov\t%s,\t", REG_TEMP);
 		}
+		
 		write_unit(instrx->ptr_source);
-		(void)fprintf(xcfile, "\nmov\t[%s-%d],\t%s\n", REG_DEFAULT, 
-									(instrx->unit->mem_offset - instrx->unit->base->mem_offset) * 8, REG_TEMP);
+		(void)fprintf(xcfile, "\nmov\t[%s-%d],\t%s\n", REG_DEFAULT, instrx->unit->mem_offset * 8, REG_TEMP);
 	}
 	if (instrx->insertion_source != NULL)
 	{
@@ -359,7 +359,7 @@ void write_line(struct instrx_struct *instrx)
 		(void)fprintf(xcfile, "\n");
 	}
 	if (((DO == instrx->unit->type) || (STRUCT == instrx->unit->type))
-		&& (instrx->oper != INSERTION) && (instrx->oper != SUBUNIT) && (instrx->oper != NO_OPER))
+		&& ((ADD == instrx->oper) || (MODULUS == instrx->oper) || (SUBTRACT == instrx->oper) || (DIVIDE == instrx->oper)))
 	{
 		(void)fprintf(xcfile, "mov\t[%s-%d],\t%s\n", REG_DEFAULT, (instrx->unit->parent->mem_offset) * 8, REG_TEMP);
 	}
@@ -398,7 +398,7 @@ void write_line(struct instrx_struct *instrx)
 		}
 	}
 	if (((DO == instrx->unit->type) || (STRUCT == instrx->unit->type))
-		&& (instrx->oper != INSERTION) && (instrx->oper != SUBUNIT) && (instrx->oper != NO_OPER))
+		&& ((ADD == instrx->oper) || (MODULUS == instrx->oper) || (SUBTRACT == instrx->oper) || (DIVIDE == instrx->oper)))
 	{
 		(void)fprintf(xcfile, "mov\t%s,\t[%s-%d]\n", REG_TEMP, REG_DEFAULT, (instrx->unit->parent->mem_offset) * 8);
 	}
