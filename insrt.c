@@ -294,7 +294,7 @@ void write_do(struct unit_struct *unit)
 		(void)fprintf(xcfile, "mov\t%s,\t[%s]\n", REG_BASE, REG_DEFAULT);
 	}
 }
-void write_insertion(struct unit_struct *unit)
+void write_insertion_dst(struct unit_struct *unit)
 {
 	if ((STRUCT == unit->type) && (unit->base != NULL) && (PTR == unit->base->type))
 	{
@@ -313,50 +313,288 @@ void write_insertion(struct unit_struct *unit)
 		write_unit(unit);
 	}
 }
+
+
+
+
+
+
+
+
+
+void load_base(struct instrx_struct *instrx)
+{
+	if (STRUCT == instrx->ptr_source->type)
+	{
+		(void)fprintf(xcfile, "lea\t%s,\t", REG_TEMP);
+	}
+	else
+	{
+		(void)fprintf(xcfile, "mov\t%s,\t", REG_TEMP);
+	}
+	
+	write_unit(instrx->ptr_source);
+	(void)fprintf(xcfile, "\nmov\t[%s-%d],\t%s\n", REG_DEFAULT, instrx->unit->mem_offset * 8, REG_TEMP);
+}
+
+void load_pointer_base(struct unit_struct *base)
+{
+	(void)fprintf(xcfile, "mov\t%s,\t", REG_PTR);
+	write_unit(base);
+	(void)fprintf(xcfile, "\n");
+}
+
+void write_insertion(struct instrx_struct *instrx)
+{
+	(void)fprintf(xcfile, "mov\t");
+	if (INT_CONST == instrx->insertion_source->unit->type)
+	{
+		(void)fprintf(xcfile, "qword\t");
+	}
+	write_insertion_dst(instrx->unit);
+	(void)fprintf(xcfile, ",\t");
+	if (INT_CONST == instrx->insertion_source->unit->type)
+	{
+		(void)fprintf(xcfile, "%s", instrx->insertion_source->unit->name);
+	}
+	else
+	{
+		(void)fprintf(xcfile, "%s", REG_TEMP);
+	}
+	(void)fprintf(xcfile, "\n");
+}
+
+void write_method_instrx(struct instrx_struct *instrx)
+{
+	if ((instrx->ptr_source != NULL) && (DEF_NONE == instrx->ptr_source->type))
+	{
+		(void)fprintf(xcfile, "lea\t%s,\t[rel+f%d]\n", REG_TEMP, instrx->unit->f_num);
+	}
+	int b_num = num_b;
+	if (COND == instrx->oper)
+	{
+		num_b++;
+		(void)fprintf(xcfile, "b%d:\n", b_num);
+	}
+	if ((BRANCH == instrx->oper) || (WHILE == instrx->oper))
+	{
+		num_b++;
+		(void)fprintf(xcfile, "cmp\t%s,\t0\nje\tb%d\n", REG_TEMP, b_num);
+	}
+	write_do(instrx->unit);
+	if (WHILE == instrx->oper)
+	{
+		(void)fprintf(xcfile, "jmp\tb%d\n", b_num - 1);
+	}
+	if ((BRANCH == instrx->oper) || (WHILE == instrx->oper))
+	{
+		(void)fprintf(xcfile, "b%d:\n", b_num);
+		instrx->oper = NO_OPER;
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void write_line(struct instrx_struct *instrx)
 {
+	
 	if ((instrx->ptr_source != NULL) && instrx->ptr_source->mem_base && (instrx->unit->type != DO))
 	{
-		if (STRUCT == instrx->ptr_source->type)
-		{
-			(void)fprintf(xcfile, "lea\t%s,\t", REG_TEMP);
-		}
-		else
-		{
-			(void)fprintf(xcfile, "mov\t%s,\t", REG_TEMP);
-		}
-		
-		write_unit(instrx->ptr_source);
-		(void)fprintf(xcfile, "\nmov\t[%s-%d],\t%s\n", REG_DEFAULT, instrx->unit->mem_offset * 8, REG_TEMP);
+		load_base(instrx);
 	}
+	
 	if (instrx->insertion_source != NULL)
 	{
 		write_line(instrx->insertion_source);
 	}
 	if (PTR == instrx->unit->mem_base)
 	{
-		(void)fprintf(xcfile, "mov\t%s,\t", REG_PTR);
-		write_unit(instrx->unit->base);
-		(void)fprintf(xcfile, "\n");
+		load_pointer_base(instrx->unit->base);
 	}
 	if ((instrx->insertion_source != NULL) && (instrx->insertion_source->oper != SUBUNIT))
 	{
-		(void)fprintf(xcfile, "mov\t");
-		if (INT_CONST == instrx->insertion_source->unit->type)
-		{
-			(void)fprintf(xcfile, "qword\t");
-		}
-		write_insertion(instrx->unit);
-		(void)fprintf(xcfile, ",\t");
-		if (INT_CONST == instrx->insertion_source->unit->type)
-		{
-			(void)fprintf(xcfile, "%s", instrx->insertion_source->unit->name);
-		}
-		else
-		{
-			(void)fprintf(xcfile, "%s", REG_TEMP);
-		}
-		(void)fprintf(xcfile, "\n");
+		write_insertion(instrx);
 	}
 	if (((DO == instrx->unit->type) || (STRUCT == instrx->unit->type))
 		&& ((ADD == instrx->oper) || (MODULUS == instrx->oper) || (SUBTRACT == instrx->oper) || (DIVIDE == instrx->oper)))
@@ -365,37 +603,16 @@ void write_line(struct instrx_struct *instrx)
 	}
 	if ((STRUCT == instrx->unit->type) && (instrx->unit->do_unit != NULL) && (instrx->unit->do_unit->mem_base))
 	{
+		
 		write_do(instrx->unit->do_unit);
 	}
 	else if (((DO == instrx->unit->type) || (METHOD_PTR == instrx->unit->type)) && (NULL == instrx->insertion_source))
 	{
-		if ((instrx->ptr_source != NULL) && (DEF_NONE == instrx->ptr_source->type))
-		{
-			(void)fprintf(xcfile, "lea\t%s,\t[rel+f%d]\n", REG_TEMP, instrx->unit->f_num);
-			return;
-		}
-		int b_num = num_b;
-		if (COND == instrx->oper)
-		{
-			num_b++;
-			(void)fprintf(xcfile, "b%d:\n", b_num);
-		}
-		if ((BRANCH == instrx->oper) || (WHILE == instrx->oper))
-		{
-			num_b++;
-			(void)fprintf(xcfile, "cmp\t%s,\t0\nje\tb%d\n", REG_TEMP, b_num);
-		}
-		
-		write_do(instrx->unit);
-		if (WHILE == instrx->oper)
-		{
-			(void)fprintf(xcfile, "jmp\tb%d\n", b_num - 1);
-		}
-		if ((BRANCH == instrx->oper) || (WHILE == instrx->oper))
-		{
-			(void)fprintf(xcfile, "b%d:\n", b_num);
-			instrx->oper = NO_OPER;
-		}
+		write_method_instrx(instrx);
+	}
+	if ((METHOD_PTR == instrx->unit->type) && (instrx->ptr_source != NULL) && (DEF_NONE == instrx->ptr_source->type))
+	{
+		return;
 	}
 	if (((DO == instrx->unit->type) || (STRUCT == instrx->unit->type))
 		&& ((ADD == instrx->oper) || (MODULUS == instrx->oper) || (SUBTRACT == instrx->oper) || (DIVIDE == instrx->oper)))
@@ -404,6 +621,7 @@ void write_line(struct instrx_struct *instrx)
 	}
 	switch (instrx->oper)
 	{
+	
 	case INSERTION:
 		if ((DO == instrx->unit->type) || (INT_CONST == instrx->unit->type))
 		{
