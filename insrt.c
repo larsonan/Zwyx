@@ -363,13 +363,6 @@ void write_insertion(struct instrx_struct *instrx)
 }
 void write_method_instrx(struct instrx_struct *instrx)
 {
-	
-	if ((instrx->ptr_source != NULL) && (DEF_NONE == instrx->ptr_source->type))
-	{
-		(void)fprintf(xcfile, "lea\t%s,\t[rel+f%d]\n", REG_TEMP, instrx->unit->f_num);
-		return;
-	}
-	
 	int b_num = num_b;
 	if (COND == instrx->oper)
 	{
@@ -478,37 +471,55 @@ void write_superunit_instrx(struct instrx_struct *instrx)
 	}
 	if ((STRUCT == instrx->unit->type) && (instrx->unit->do_unit != NULL) && (instrx->unit->do_unit->mem_base))
 	{
-		
 		write_do(instrx->unit->do_unit);
 	}
 	else if (((DO == instrx->unit->type) || (METHOD_PTR == instrx->unit->type)) && (NULL == instrx->insertion_source))
 	{
-		write_method_instrx(instrx);
+		
+		if ((METHOD_PTR == instrx->unit->type) && (instrx->ptr_source != NULL) && (DEF_NONE == instrx->ptr_source->type))
+		{
+			(void)fprintf(xcfile, "lea\t%s,\t[rel+f%d]\n", REG_TEMP, instrx->unit->f_num);
+		}
+		else
+		{
+			write_do(instrx->unit);
+		}
 	}
-	
 	if (is_math_oper(instrx->oper))
 	{
 		get_stored_temp_reg(instrx);
 	}
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+void write_operation(struct instrx_struct *instrx)
+{
+	
+	if ((BRANCH == instrx->oper) || (COND == instrx->oper) || (WHILE == instrx->oper))
+	{
+		write_method_instrx(instrx);
+	}
+	else
+	{
+		
+		if ((STRUCT == instrx->unit->type) || (DO == instrx->unit->type) || (METHOD_PTR == instrx->unit->type))
+		{
+			write_superunit_instrx(instrx);
+		}
+		
+		
+		
+		
+		
+		
+		if ((METHOD_PTR == instrx->unit->type) && (instrx->ptr_source != NULL) && (DEF_NONE == instrx->ptr_source->type))
+		{
+			return;
+		}
+		
+	
+		write_math_instrx(instrx);
+	}
+}
 
 
 
@@ -658,19 +669,8 @@ void write_line(struct instrx_struct *instrx)
 	{
 		write_insertion(instrx);
 	}
-	
-	if ((STRUCT == instrx->unit->type) || (DO == instrx->unit->type))
-	{
-		write_superunit_instrx(instrx);
-	}
-	
-	if ((METHOD_PTR == instrx->unit->type) && (instrx->ptr_source != NULL) && (DEF_NONE == instrx->ptr_source->type))
-	{
-		return;
-	}
-	
-	write_math_instrx(instrx);
-	
+
+	write_operation(instrx);
 }
 
 void write_instrxs(struct instrx_struct **instrxs, int num_instrx)
