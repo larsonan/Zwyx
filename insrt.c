@@ -421,17 +421,10 @@ void write_superunit_instrx(struct instrx_struct *instrx)
 	{
 		write_do(instrx->unit->do_unit);
 	}
-	else if (((DO == instrx->unit->type) || (METHOD_PTR == instrx->unit->type)) && (NULL == instrx->insertion_source))
+	else if ((DO == instrx->unit->type) || ((METHOD_PTR == instrx->unit->type)
+											&& (NULL == instrx->insertion_source) && (instrx->oper != INSERTION)))
 	{
-		if ((METHOD_PTR == instrx->unit->type) && (instrx->ptr_source != NULL) && (DEF_NONE == instrx->ptr_source->type))
-		{
-			
-			(void)fprintf(xcfile, "lea\t%s,\t[rel+f%d]\n", REG_TEMP, instrx->unit->f_num);
-		}
-		else
-		{
-			write_do(instrx->unit);
-		}
+		write_do(instrx->unit);
 	}
 	
 	if (is_math_oper(instrx->oper))
@@ -439,6 +432,7 @@ void write_superunit_instrx(struct instrx_struct *instrx)
 		get_stored_temp_reg(instrx);
 	}
 }
+
 void write_math_instrx(struct instrx_struct *instrx)
 {
 	
@@ -446,10 +440,16 @@ void write_math_instrx(struct instrx_struct *instrx)
 	{
 		write_superunit_instrx(instrx);
 	}
+	
+	
+	
+	
 	if ((METHOD_PTR == instrx->unit->type) && (instrx->ptr_source != NULL) && (DEF_NONE == instrx->ptr_source->type))
 	{
+		(void)fprintf(xcfile, "lea\t%s,\t[rel+f%d]\n", REG_TEMP, instrx->unit->f_num);
 		return;
 	}
+	
 	
 	switch (instrx->oper)
 	{
