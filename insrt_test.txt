@@ -1,0 +1,90 @@
+bytes~{
+	ptr~int
+	size~int
+}
+
+
+system~{
+	
+	~sysrun
+	
+	
+	rax~int
+	rdx~int
+	rdi~int
+	rsi~int
+}
+print~{
+	
+	
+	ptr~int
+	size~int
+	;~{
+		
+		system.{
+			rax:0x2000004
+			rsi:ptr
+			rdi:1
+			rdx:size
+			;
+		}
+	}
+	d~{
+		in~int
+		;~{
+			
+			str~{c0~int c1~int c2~int c3~int c4~int}
+			intstr~str
+			
+			p~@str:@intstr
+			p:{p+32}
+			p.c0:{in%10+48}
+			in:{in/10}
+			size:8
+			
+			{in}#{
+				p:{p-8}
+				size:{size+8}
+				
+				p.c0:{in%10+48}
+				in:{in/10}
+			}
+			ptr:p
+			
+			;
+		}
+	}
+	c~{
+		
+		in~int
+		
+		;~{
+			ptr:@in
+			size:8
+			;
+		}
+	}
+	endl~{
+		
+		;~{
+			ch~int:10
+			ptr:@ch
+			size:8
+			;
+		}
+	}
+}
+
+
+print.{d:1749 c:102 d:0 c:90 endl}
+
+
+
+
+
+
+
+
+
+
+
