@@ -1,6 +1,6 @@
 bytes~{
-	ptr~int
-	size~int
+	c0~int c1~int c2~int c3~int c4~int c5~int
+	
 }
 
 
@@ -17,23 +17,23 @@ system~{
 print~{
 	
 	
-	ptr~int
-	size~int
+	bn~@bytes
+	
 	;~{
 		
 		system.{
 			rax:0x2000004
-			rsi:ptr
+			rsi:{bn+8}
 			rdi:1
-			rdx:size
+			rdx:bn.c0
 			;
 		}
 	}
 	c~{
 		in~int
 		;~{
-			ptr:@in
-			size:8
+			b~bytes.{c0:8 c1:in}
+			bn:@b
 			;
 		}
 	}
@@ -46,7 +46,7 @@ print~{
 		in~int
 		;~{
 			
-			str~{c0~int c1~int c2~int c3~int c4~int}
+			str~{c0~int c1~int c2~int c3~int c4~int c5~int}
 			intstr~str
 			p~@str:@intstr
 			p.c0:{in%10+48}
@@ -69,4 +69,10 @@ print~{
 		
 	}
 }
-print.{d:1749 c:102 d:0 c:90 endl}
+print.{
+	hello~bytes.{c0:40 c1:72 c2:69 c3:76 c4:76 c5:79}
+	$:@hello
+	;
+	d:1749 c:102 d:0 c:90 endl
+}
+
