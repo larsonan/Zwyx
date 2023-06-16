@@ -66,13 +66,25 @@ print~{
 				size:{size-8}
 			}
 		}
-		
 	}
 }
+str~{
+	b~@bytes
+	cap~{
+		;~{
+			p~@bytes:b
+			p.c1:{p.c1+32}
+		}
+	}
+}
+
 print.{
 	hello~bytes.{c0:40 c1:72 c2:69 c3:76 c4:76 c5:79}
-	$:@hello
+	st~str:@hello
+	st.cap
+	$:st
 	;
 	d:1749 c:102 d:0 c:90 endl
+	
 }
 
