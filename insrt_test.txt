@@ -80,9 +80,9 @@ str~{
 
 print.{
 	hello~bytes.{c0:40 c1:72 c2:69 c3:76 c4:76 c5:79}
-	st~str:@hello
-	st.cap
-	$:st
+	bn~str:@hello
+	bn.cap
+	$:bn
 	;
 	d:1749 c:102 d:0 c:90 endl
 	
