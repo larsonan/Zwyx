@@ -432,22 +432,22 @@ void write_superunit_instrx(struct instrx_struct *instrx)
 		get_stored_temp_reg(instrx);
 	}
 }
-
 void write_math_instrx(struct instrx_struct *instrx)
 {
-	
-	if ((DO == instrx->unit->type) || (STRUCT == instrx->unit->type) || (METHOD_PTR == instrx->unit->type))
+	if ((DO == instrx->unit->type) && (instrx->ptr_source != NULL) && (DEF_NONE == instrx->ptr_source->type))
 	{
-		write_superunit_instrx(instrx);
+		(void)fprintf(xcfile, "lea\t%s,\t[rel+f%d]\n", REG_TEMP, instrx->unit->f_num);
+		return;
 	}
 	
 	
 	
 	
-	if ((METHOD_PTR == instrx->unit->type) && (instrx->ptr_source != NULL) && (DEF_NONE == instrx->ptr_source->type))
+	
+	if ((DO == instrx->unit->type) || (STRUCT == instrx->unit->type) || (METHOD_PTR == instrx->unit->type))
 	{
-		(void)fprintf(xcfile, "lea\t%s,\t[rel+f%d]\n", REG_TEMP, instrx->unit->f_num);
-		return;
+		write_superunit_instrx(instrx);
+		
 	}
 	
 	

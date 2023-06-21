@@ -29,6 +29,15 @@ print~{
 			;
 		}
 	}
+	
+	s~{
+		b~@bytes
+		;~{
+			bn:b
+			;
+		}
+	}
+	
 	c~{
 		in~int
 		;~{
@@ -37,6 +46,7 @@ print~{
 			;
 		}
 	}
+	
 	endl~{
 		;~{
 			c:10
@@ -48,26 +58,24 @@ print~{
 			
 			intb~bytes
 			p~@bytes:@intb
+			p:{p+40}
 			p.c0:{in%10+48}
 			in:{in/10}
-			
+			p:{p-8}
 			size~int:8
 			{in}#{
-				p:{p+8}
-				size:{size+8}
-				
 				p.c0:{in%10+48}
 				in:{in/10}
-			}
-			{size}#{
-				c:p.c0
-				
 				p:{p-8}
-				size:{size-8}
+				size:{size+8}
 			}
+			p.c0:size
+			bn:p
+			;
 		}
 	}
 }
+
 str~{
 	b~@bytes
 	uncapfirstletter~{
@@ -78,17 +86,59 @@ str~{
 	}
 }
 
-print.{
-	hello~bytes.{c0:40 c1:72 c2:69 c3:76 c4:76 c5:79}
-	msg~str:@hello
-	$:msg ;
-	msg.uncapfirstletter
-	$:msg ;
-	d:1749 c:102 d:0 c:90 endl
-	
+list~{
+	b~@bytes
+	each~{
+		f~;
+		;~{
+			p~@bytes:b
+			remaining~int:p.c0
+			p:{p+8}
+			{remaining}#{
+				
+				mbr~@bytes:p.c0
+				
+				mbr.{f}
+				p:{p+8}
+				remaining:{remaining-1}
+			}
+		}
+	}
 }
 
+npair~{a~int b~int}
+
+
+b1~npair.{a:0 b:1}
+b2~npair.{a:2 b:5}
+b3~npair.{a:0 b:5}
+b4~npair.{a:2 b:7}
+b5~npair.{a:4 b:1}
 
 
 
 
+
+
+
+b0~bytes.{c0:5 c1:@b1 c2:@b2 c3:@b3 c4:@b4 c5:@b5}
+
+
+l~list:@b0
+
+l.each:@{
+	np~@npair:$
+	np.{
+		print.{d:{a+b}}
+	}
+}
+
+print.{
+	hello~bytes.{c0:40 c1:72 c2:69 c3:76 c4:76 c5:79}
+	
+	msg~str:@hello
+	s:msg
+	msg.uncapfirstletter
+	s:msg
+	d:1749 c:102 d:0 c:90 endl
+}
