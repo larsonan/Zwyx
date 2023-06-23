@@ -387,6 +387,23 @@ void write_method_instrx(struct instrx_struct *instrx)
 }
 
 
+void write_load_ptr(struct instrx_struct *instrx)
+{
+	if (DO == instrx->unit->type)
+	{
+		(void)fprintf(xcfile, "lea\t%s,\t", REG_TEMP);
+		(void)fprintf(xcfile, "[rel+f%d]\n", instrx->unit->f_num);
+	}
+	else
+	{
+		(void)fprintf(xcfile, "lea\t%s,\t", REG_TEMP);
+		
+		write_unit(instrx->unit);
+		(void)fprintf(xcfile, "\n");
+	}
+}
+
+
 void store_temp_reg(struct instrx_struct *instrx)
 {
 	(void)fprintf(xcfile, "mov\t[%s-%d],\t%s\n", REG_DEFAULT, (instrx->unit->parent->mem_offset) * 8, REG_TEMP);
@@ -398,6 +415,8 @@ void get_stored_temp_reg(struct instrx_struct *instrx)
 }
 
 
+
+
 bool is_math_oper(int oper)
 {
 	if ((ADD == oper) || (DIVIDE == oper) || (SUBTRACT == oper) || (MODULUS == oper))
@@ -405,7 +424,6 @@ bool is_math_oper(int oper)
 		return true;
 	}
 	return false;
-	
 }
 
 
@@ -416,58 +434,47 @@ void write_superunit_instrx(struct instrx_struct *instrx)
 		store_temp_reg(instrx);
 	}
 	
-	
 	if ((STRUCT == instrx->unit->type) && (instrx->unit->do_unit != NULL) && (instrx->unit->do_unit->mem_base))
 	{
 		write_do(instrx->unit->do_unit);
+		
 	}
 	else if ((DO == instrx->unit->type) || ((METHOD_PTR == instrx->unit->type)
 											&& (NULL == instrx->insertion_source) && (instrx->oper != INSERTION)))
 	{
 		write_do(instrx->unit);
 	}
-	
 	if (is_math_oper(instrx->oper))
 	{
 		get_stored_temp_reg(instrx);
 	}
 }
+
+
+void write_insertion_src(struct instrx_struct *instrx)
+{
+	if ((DO == instrx->unit->type) || (STRUCT == instrx->unit->type) || (METHOD_PTR == instrx->unit->type))
+	{
+		
+		write_superunit_instrx(instrx);
+	}
+	if ((instrx->unit->type != DO) && (instrx->unit->type != INT_CONST))
+	{
+		(void)fprintf(xcfile, "mov\t%s,\t", REG_TEMP);
+		write_unit(instrx->unit);
+		(void)fprintf(xcfile, "\n");
+	}
+}
+
 void write_math_instrx(struct instrx_struct *instrx)
 {
-	if ((DO == instrx->unit->type) && (instrx->ptr_source != NULL) && (DEF_NONE == instrx->ptr_source->type))
-	{
-		(void)fprintf(xcfile, "lea\t%s,\t[rel+f%d]\n", REG_TEMP, instrx->unit->f_num);
-		return;
-	}
-	
-	
-	
-	
-	
 	if ((DO == instrx->unit->type) || (STRUCT == instrx->unit->type) || (METHOD_PTR == instrx->unit->type))
 	{
 		write_superunit_instrx(instrx);
-		
 	}
-	
 	
 	switch (instrx->oper)
 	{
-	case INSERTION:
-		if ((DO == instrx->unit->type) || (INT_CONST == instrx->unit->type))
-		{
-			return;
-		}
-		else if ((instrx->ptr_source != NULL) && DEF_NONE == instrx->ptr_source->type)
-		{
-			(void)fprintf(xcfile, "lea\t%s,\t", REG_TEMP);
-		}
-		else
-		{
-			(void)fprintf(xcfile, "mov\t%s,\t", REG_TEMP);
-		}
-		break;
-		
 	case MODULUS:
 	case DIVIDE:
 		if (INT_CONST == instrx->unit->type)
@@ -497,13 +504,13 @@ void write_math_instrx(struct instrx_struct *instrx)
 		
 	}
 	
-	
 	if ((instrx->oper != NO_OPER) && (instrx->oper != COND) && (instrx->oper != DEFINE) && (instrx->oper != SUBUNIT) 
 		&& ((instrx->unit->type != INT_CONST) || ((instrx->oper != MODULUS) && (instrx->oper != DIVIDE))))
 	{
 		write_unit(instrx->unit);
 		(void)fprintf(xcfile, "\n");
 	}
+	
 	if (MODULUS == instrx->oper)
 	{
 		(void)fprintf(xcfile, "mov\t%s,\trdx\n", REG_TEMP);
@@ -514,32 +521,25 @@ void write_operation(struct instrx_struct *instrx)
 {
 	if ((BRANCH == instrx->oper) || (COND == instrx->oper) || (WHILE == instrx->oper))
 	{
+		
 		write_method_instrx(instrx);
+	}
+	else if ((instrx->ptr_source != NULL) && (DEF_NONE == instrx->ptr_source->type))
+	{
+		write_load_ptr(instrx);
+		
+	}
+	else if (INSERTION == instrx->oper)
+	{
+		write_insertion_src(instrx);
 		
 	}
 	else
 	{
+		
 		write_math_instrx(instrx);
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
