@@ -429,24 +429,15 @@ bool is_math_oper(int oper)
 
 void write_superunit_instrx(struct instrx_struct *instrx)
 {
-	if (is_math_oper(instrx->oper))
-	{
-		store_temp_reg(instrx);
-	}
-	
 	if ((STRUCT == instrx->unit->type) && (instrx->unit->do_unit != NULL) && (instrx->unit->do_unit->mem_base))
 	{
-		write_do(instrx->unit->do_unit);
 		
+		write_do(instrx->unit->do_unit);
 	}
 	else if ((DO == instrx->unit->type) || ((METHOD_PTR == instrx->unit->type)
 											&& (NULL == instrx->insertion_source) && (instrx->oper != INSERTION)))
 	{
 		write_do(instrx->unit);
-	}
-	if (is_math_oper(instrx->oper))
-	{
-		get_stored_temp_reg(instrx);
 	}
 }
 
@@ -458,7 +449,7 @@ void write_insertion_src(struct instrx_struct *instrx)
 		
 		write_superunit_instrx(instrx);
 	}
-	if ((instrx->unit->type != DO) && (instrx->unit->type != INT_CONST))
+	if ((LOAD == instrx->oper) || ((instrx->unit->type != DO) && (instrx->unit->type != INT_CONST)))
 	{
 		(void)fprintf(xcfile, "mov\t%s,\t", REG_TEMP);
 		write_unit(instrx->unit);
@@ -470,8 +461,20 @@ void write_math_instrx(struct instrx_struct *instrx)
 {
 	if ((DO == instrx->unit->type) || (STRUCT == instrx->unit->type) || (METHOD_PTR == instrx->unit->type))
 	{
+		if (is_math_oper(instrx->oper))
+		{
+			store_temp_reg(instrx);
+		}
+		
 		write_superunit_instrx(instrx);
+		if (is_math_oper(instrx->oper))
+		{
+			get_stored_temp_reg(instrx);
+		}
 	}
+	
+	
+	
 	
 	switch (instrx->oper)
 	{
@@ -487,12 +490,9 @@ void write_math_instrx(struct instrx_struct *instrx)
 		}
 		break;
 	case ADD:
+		
 		(void)fprintf(xcfile, "add\t%s,\t", REG_TEMP);
 		break;
-	case LOAD:
-		(void)fprintf(xcfile, "mov\t%s,\t", REG_TEMP);
-		break;
-		
 	case COMPARE:
 		(void)fprintf(xcfile, "cmp\t%s,\t", REG_TEMP);
 		break;
@@ -529,7 +529,7 @@ void write_operation(struct instrx_struct *instrx)
 		write_load_ptr(instrx);
 		
 	}
-	else if (INSERTION == instrx->oper)
+	else if ((INSERTION == instrx->oper) || (LOAD == instrx->oper))
 	{
 		write_insertion_src(instrx);
 		
