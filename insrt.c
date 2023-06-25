@@ -534,15 +534,15 @@ void write_operation(struct instrx_struct *instrx)
 		write_insertion_src(instrx);
 		
 	}
+	else if ((NO_OPER == instrx->oper) || (DEFINE == instrx->oper) || (SUBUNIT == instrx->oper))
+	{
+		write_superunit_instrx(instrx);
+	}
 	else
 	{
-		
 		write_math_instrx(instrx);
 	}
 }
-
-
-
 
 
 
