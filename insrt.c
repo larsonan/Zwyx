@@ -421,10 +421,69 @@ void get_stored_temp_reg(struct instrx_struct *instrx)
 
 
 
+void write_insertion_src(struct instrx_struct *instrx)
+{
+	(void)fprintf(xcfile, "mov\t%s,\t", REG_TEMP);
+	write_unit(instrx->unit);
+	(void)fprintf(xcfile, "\n");
+}
 
 
 
-
+void write_math_instrx(struct instrx_struct *instrx)
+{
+	int get_unit_from_reg = 0;
+	
+	if ((MODULUS == instrx->oper) || (DIVIDE == instrx->oper))
+	{
+		(void)fprintf(xcfile, "xor\trdx,\trdx\n");
+		if (INT_CONST == instrx->unit->type)
+		{
+			get_unit_from_reg = 1;
+			(void)fprintf(xcfile, "mov\tqword\trcx,\t%s\n", instrx->unit->name);
+		}
+	}
+	
+	switch (instrx->oper)
+	{
+	case MODULUS:
+	case DIVIDE:
+		(void)fprintf(xcfile, "div\t");
+		break;
+		
+	case ADD:
+		(void)fprintf(xcfile, "add\t%s,\t", REG_TEMP);
+		break;
+	case COMPARE:
+		
+		(void)fprintf(xcfile, "cmp\t%s,\t", REG_TEMP);
+		break;
+	case SUBTRACT:
+		(void)fprintf(xcfile, "sub\t%s,\t", REG_TEMP);
+		break;
+	default:
+		break;
+	}
+	
+	
+	if (get_unit_from_reg)
+	{
+		(void)fprintf(xcfile, "rcx\n");
+	}
+	else
+	{
+		write_unit(instrx->unit);
+		(void)fprintf(xcfile, "\n");
+	}
+	
+	
+	
+	
+	if (MODULUS == instrx->oper)
+	{
+		(void)fprintf(xcfile, "mov\t%s,\trdx\n", REG_TEMP);
+	}
+}
 
 
 void write_superunit_instrx(struct instrx_struct *instrx)
@@ -442,81 +501,22 @@ void write_superunit_instrx(struct instrx_struct *instrx)
 }
 
 
-void write_insertion_src(struct instrx_struct *instrx)
+
+
+void handle_instrx_default(struct instrx_struct *instrx)
 {
-	if ((DO == instrx->unit->type) || (STRUCT == instrx->unit->type) || (METHOD_PTR == instrx->unit->type))
+	
+	if (((STRUCT == instrx->unit->type) && (instrx->unit->do_unit != NULL)) 
+		|| (DO == instrx->unit->type) || (METHOD_PTR == instrx->unit->type))
 	{
-		
 		write_superunit_instrx(instrx);
 	}
-	if ((LOAD == instrx->oper) || ((instrx->unit->type != DO) && (instrx->unit->type != INT_CONST)))
+	else if ((instrx->unit->type != DO) && ((instrx->oper != NO_OPER) || (NULL == instrx->insertion_source))
+				&& ((instrx->oper != INSERTION) || (instrx->unit->type != INT_CONST)))
 	{
-		(void)fprintf(xcfile, "mov\t%s,\t", REG_TEMP);
-		write_unit(instrx->unit);
-		(void)fprintf(xcfile, "\n");
+		write_insertion_src(instrx);
 	}
 }
-
-
-
-
-
-
-
-
-void write_math_instrx(struct instrx_struct *instrx)
-{
-	int get_unit_from_reg = 0;
-	if ((MODULUS == instrx->oper) || (DIVIDE == instrx->oper))
-	{
-		(void)fprintf(xcfile, "xor\trdx,\trdx\n");
-		if (INT_CONST == instrx->unit->type)
-		{
-			get_unit_from_reg = 1;
-			(void)fprintf(xcfile, "mov\tqword\trcx,\t%s\n", instrx->unit->name);
-		}
-	}
-	switch (instrx->oper)
-	{
-	case MODULUS:
-	case DIVIDE:
-		(void)fprintf(xcfile, "div\t");
-		break;
-	case ADD:
-		
-		(void)fprintf(xcfile, "add\t%s,\t", REG_TEMP);
-		break;
-	case COMPARE:
-		(void)fprintf(xcfile, "cmp\t%s,\t", REG_TEMP);
-		break;
-	case SUBTRACT:
-		(void)fprintf(xcfile, "sub\t%s,\t", REG_TEMP);
-		break;
-	default:
-		break;
-	}
-	
-	if (get_unit_from_reg)
-	{
-		(void)fprintf(xcfile, "rcx\n");
-		
-	}
-	else
-	{
-		write_unit(instrx->unit);
-		(void)fprintf(xcfile, "\n");
-	}
-	
-	
-	
-	
-	
-	if (MODULUS == instrx->oper)
-	{
-		(void)fprintf(xcfile, "mov\t%s,\trdx\n", REG_TEMP);
-	}
-}
-
 void handle_math_oper(struct instrx_struct *instrx)
 {
 	if ((DO == instrx->unit->type) || (STRUCT == instrx->unit->type) || (METHOD_PTR == instrx->unit->type))
@@ -529,6 +529,8 @@ void handle_math_oper(struct instrx_struct *instrx)
 	write_math_instrx(instrx);
 	
 }
+
+
 void write_operation(struct instrx_struct *instrx)
 {
 	if ((BRANCH == instrx->oper) || (COND == instrx->oper) || (WHILE == instrx->oper))
@@ -539,19 +541,17 @@ void write_operation(struct instrx_struct *instrx)
 	else if ((instrx->ptr_source != NULL) && (DEF_NONE == instrx->ptr_source->type))
 	{
 		write_load_ptr(instrx);
-		
 	}
 	else if ((INSERTION == instrx->oper) || (LOAD == instrx->oper))
 	{
-		write_insertion_src(instrx);
-		
+		handle_instrx_default(instrx);
 	}
-	else if ((NO_OPER == instrx->oper) || (DEFINE == instrx->oper) || (SUBUNIT == instrx->oper))
+	else if ((NO_OPER == instrx->oper) || (SUBUNIT == instrx->oper))
 	{
 		
-		write_superunit_instrx(instrx);
+		handle_instrx_default(instrx);
 	}
-	else
+	else if (instrx->oper != DEFINE)
 	{
 		handle_math_oper(instrx);
 	}
@@ -782,8 +782,8 @@ void handle_define_statement(struct unit_struct *defined_unit, struct unit_struc
 }
 struct unit_struct** instantiate_superunit(struct unit_struct *superunit, struct unit_struct *base)
 {
-	struct unit_struct** units;
-	units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
+	struct unit_struct** units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
+	
 	for (int i = 0; i < superunit->num_subunits; i++)
 	{
 		if (STRUCT == superunit->subunits[i]->mem_base)
@@ -993,12 +993,12 @@ void new_superunit()
 				unit->base->type = PTR;
 				unit->mem_used++;
 				
-				
 				unit->base->subunits = instantiate_superunit(unit->base, unit->base);
 			}
 		}
 		handle_define_statement(instrxs[instrx_idx - 1]->unit, unit);
 		instrxs[instrx_idx - 1]->unit = basic_units[INT];
+		instrxs[instrx_idx - 1]->oper = SUBUNIT;
 		new_instrx.oper = NO_OPER;
 	}
 	else
