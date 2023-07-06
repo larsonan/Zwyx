@@ -713,19 +713,18 @@ void *clone_data(void *data, int data_size)
 {
 	void *clone;
 	clone = malloc(data_size);
-	
 	memcpy(clone, data, data_size);
 	return clone;
 }
-struct unit_struct *find_unit_from_list(struct unit_struct **unit_list, int unit_list_size, 
-										char *unit_name_chars, int unit_name_size)
+
+struct unit_struct *find_unit_from_list(struct unit_struct **unit_list, int unit_list_size, char* name)
 {
-	struct unit_struct *unit_match = NULL;
 	
+	
+	struct unit_struct *unit_match = NULL;
 	for (int i = 0; i < unit_list_size; i++)
 	{
-		if ((strlen(unit_list[i]->name) == unit_name_size) 
-					&& (0 == memcmp(unit_list[i]->name, unit_name_chars, unit_name_size)))
+		if (0 == strcmp(unit_list[i]->name, name))
 		{
 			unit_match = unit_list[i];
 			break;
@@ -734,9 +733,10 @@ struct unit_struct *find_unit_from_list(struct unit_struct **unit_list, int unit
 	return unit_match;
 }
 
-void find_unit_in_superunit(char *unit_name_chars, int unit_name_size, struct unit_struct *superunit)
+
+void find_unit_in_superunit(char *name, struct unit_struct *superunit)
 {
-	new_instrx.unit = find_unit_from_list(superunit->subunits, superunit->num_subunits, unit_name_chars, unit_name_size);
+	new_instrx.unit = find_unit_from_list(superunit->subunits, superunit->num_subunits, name);
 	if ((new_instrx.unit != NULL) && !superunit->mem_base && (STRUCT == new_instrx.unit->mem_base))
 	{
 		new_instrx.unit = NULL;
@@ -830,16 +830,16 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 	}
 	return instance;
 }
-void find_unit_in_parent(char *unit_name_chars, int unit_name_size, struct unit_struct *parent)
+void find_unit_in_parent(char *name, struct unit_struct *parent)
 {
-	find_unit_in_superunit(unit_name_chars, unit_name_size, parent);
+	find_unit_in_superunit(name, parent);
 	if ((NULL == new_instrx.unit) && (parent->parent != NULL) && (DO == parent->mem_base))
 	{
-		find_unit_in_parent(unit_name_chars, unit_name_size, parent->parent);
+		find_unit_in_parent(name, parent->parent);
 	}
 	if ((NULL == new_instrx.unit) && (parent->base != NULL))
 	{
-		find_unit_in_parent(unit_name_chars, unit_name_size, parent->base);
+		find_unit_in_parent(name, parent->base);
 	}
 }
 void handle_last_instrx()
@@ -847,15 +847,16 @@ void handle_last_instrx()
 	if ((parent_ptr->num_instrx > 0) && (new_instrx.oper != DEFINE))
 	{
 		struct instrx_struct *instrx = instrxs[instrx_idx - 1];
-		if (DEF_NONE == instrx->unit->type)
+		if ((DEF_NONE == instrx->unit->type) && (strlen(instrx->unit->name) > 0))
 		{
 			set_error(UNDEFINED_UNIT, instrx->unit_line, instrx->unit->name);
+			
 		}
 		else if ((DEFINE == instrx->oper) && (1 == parent_ptr->num_instrx))
 		{
 			handle_inheritance(instrx->unit);
 		}
-		else
+		else if (instrx->unit->type != DEF_NONE)
 		{
 			if ((METHOD_PTR == instrx->unit->type) && instrx->unit->mem_base)
 			{
@@ -933,8 +934,6 @@ void handle_new_instrx()
 			}
 		}
 		instrxs[instrx_idx] = clone_data(&new_instrx, sizeof(struct instrx_struct));
-		
-		
 		if ((INSERTION == new_instrx.oper) || (SUBUNIT == new_instrx.oper))
 		{
 			instrxs[instrx_idx - 1]->insertion_source = instrxs[instrx_idx];
@@ -946,6 +945,7 @@ void handle_new_instrx()
 		instrx_idx++;
 		parent_ptr->num_instrx++;
 	}
+	
 	new_instrx.oper = NO_OPER;
 	new_instrx.ptr_source = NULL;
 	instrxs[instrx_idx - 1]->unit_line = line_num;
@@ -997,8 +997,8 @@ void new_superunit()
 			}
 		}
 		handle_define_statement(instrxs[instrx_idx - 1]->unit, unit);
-		instrxs[instrx_idx - 1]->unit = basic_units[INT];
-		instrxs[instrx_idx - 1]->oper = SUBUNIT;
+		
+		instrxs[instrx_idx - 1]->unit = basic_units[DEF_NONE];
 		new_instrx.oper = NO_OPER;
 	}
 	else
@@ -1099,47 +1099,47 @@ void end_base_unit()
 		handle_superunit();
 	}
 }
-char *make_unit_name(char *unit_name_chars, int unit_name_size)
+char *make_unit_name(char *name)
 {
-	char *new_unit_name;
-	new_unit_name = malloc(unit_name_size + 1);
 	
-	(void)memcpy(new_unit_name, unit_name_chars, unit_name_size);
-	return new_unit_name;
+	return clone_data(name, strlen(name) + 1);
 }
-void handle_unit_name(char *unit_name_chars, int unit_name_size)
+
+
+void handle_unit_name(char *name)
 {
+	
 	new_instrx.unit = NULL;
 	if (new_instrx.oper != SUBUNIT)
 	{
 		handle_last_instrx();
 	}
-	if ((unit_name_chars[0] >= '0') && (unit_name_chars[0] <= '9'))
+	if ((name[0] >= '0') && (name[0] <= '9'))
 	{
+		
 		new_instrx.unit = malloc(sizeof(struct unit_struct));
 		new_instrx.unit->type = INT_CONST;
-		new_instrx.unit->name = make_unit_name(unit_name_chars, unit_name_size);
+		new_instrx.unit->name = make_unit_name(name);
 	}
 	else
 	{
-		new_instrx.unit = find_unit_from_list(basic_units, NUM_BASIC_UNITS, unit_name_chars, unit_name_size);
+		new_instrx.unit = find_unit_from_list(basic_units, NUM_BASIC_UNITS, name);
 		if (NULL == new_instrx.unit)
 		{
 			if (new_instrx.oper != SUBUNIT)
 			{
-				find_unit_in_parent(unit_name_chars, unit_name_size, parent_ptr);
+				find_unit_in_parent(name, parent_ptr);
 			}
 			else
 			{
-				find_unit_in_superunit(unit_name_chars, unit_name_size, instrxs[instrx_idx - 1]->unit);
+				find_unit_in_superunit(name, instrxs[instrx_idx - 1]->unit);
 			}
 		}
-		
 		if (NULL == new_instrx.unit)
 		{
 			new_instrx.unit = malloc(sizeof(struct unit_struct));
 			new_instrx.unit->type = DEF_NONE;
-			new_instrx.unit->name = make_unit_name(unit_name_chars, unit_name_size);
+			new_instrx.unit->name = make_unit_name(name);
 		}
 	}
 	handle_new_instrx();
@@ -1168,8 +1168,8 @@ void parse_file(char* file_name)
 			if (unit_name_buffer_idx > 0)
 			{
 				/* We've reached the end of a unit name */
-				handle_unit_name(unit_name_buffer, unit_name_buffer_idx);
-				
+				unit_name_buffer[unit_name_buffer_idx] = '\0';
+				handle_unit_name(unit_name_buffer);
 				/* Reset buffer_idx */
 				unit_name_buffer_idx = 0;
 			}
@@ -1180,10 +1180,10 @@ void parse_file(char* file_name)
 	if (unit_name_buffer_idx > 0)
 	{
 		/* Final unit name still unhandled */
-		handle_unit_name(unit_name_buffer, unit_name_buffer_idx);
+		unit_name_buffer[unit_name_buffer_idx] = '\0';
+		handle_unit_name(unit_name_buffer);
 	}
 	fclose(zyfile);
-	
 	end_base_unit();
 }
 int main(void)
