@@ -681,7 +681,7 @@ void write_instrxs(struct instrx_struct **instrxs, int num_instrx)
 		{
 			write_compare(instrxs[i], instrxs[i+1]);
 		}
-		if ((instrxs[i]->oper != INSERTION) && (instrxs[i]->oper != SUBUNIT) && (instrxs[i]->unit->mem_base != false))
+		if ((instrxs[i]->oper != INSERTION) && (instrxs[i]->oper != SUBUNIT) && (instrxs[i]->unit->type != DEF_NONE))
 		{
 			write_line(instrxs[i]);
 		}
@@ -782,8 +782,8 @@ void handle_define_statement(struct unit_struct *defined_unit, struct unit_struc
 }
 struct unit_struct** instantiate_superunit(struct unit_struct *superunit, struct unit_struct *base)
 {
-	struct unit_struct** units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
-	
+	struct unit_struct** units = NULL;
+	units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
 	for (int i = 0; i < superunit->num_subunits; i++)
 	{
 		if (STRUCT == superunit->subunits[i]->mem_base)
@@ -856,7 +856,7 @@ void handle_last_instrx()
 		{
 			handle_inheritance(instrx->unit);
 		}
-		else if (instrx->unit->type != DEF_NONE)
+		else if ((instrx->unit->type != DEF_NONE) && (instrx->unit->type != INT_CONST))
 		{
 			if ((METHOD_PTR == instrx->unit->type) && instrx->unit->mem_base)
 			{
