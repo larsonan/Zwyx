@@ -858,11 +858,21 @@ void handle_last_instrx()
 		}
 		else if ((instrx->unit->type != DEF_NONE) && (instrx->unit->type != INT_CONST))
 		{
-			if ((METHOD_PTR == instrx->unit->type) && instrx->unit->mem_base)
+			if (((METHOD_PTR == instrx->unit->type) && instrx->unit->mem_base)
+				|| ((DO == instrx->unit->type) && !instrx->unit->mem_base))
 			{
 				instrx->unit = clone_data(instrx->unit, sizeof(struct unit_struct));
 				instrx->unit->mem_used = parent_ptr->mem_used;
-				instrx->unit->base = parent_ptr->base;
+				
+				if ((DO == instrx->unit->type) && (strlen(parent_ptr->name) > 0))
+				{
+					instrx->unit->base = parent_ptr->base->base;
+				}
+				else
+				{
+					instrx->unit->base = parent_ptr->base;
+				}
+				
 			}
 			else if (!instrx->unit->mem_base)
 			{
@@ -877,26 +887,14 @@ void handle_last_instrx()
 				else
 				{
 					instrx->unit = instantiate_unit(instrx->unit, NULL);
-					if (DO == instrx->unit->type)
-					{
-						instrx->unit->mem_used = instrx->unit->mem_offset;
-						
-						if (strlen(parent_ptr->name) > 0)
-						{
-							instrx->unit->base = parent_ptr->base->base;
-						}
-						else
-						{
-							instrx->unit->base = parent_ptr->base;
-						}
-					}
-					else if ((instrx->unit->do_unit != NULL) && (instrx->oper != DEFINE) && (new_instrx.oper != SUBUNIT))
+					if ((instrx->unit->do_unit != NULL) && (instrx->oper != DEFINE) && (new_instrx.oper != SUBUNIT))
 					{
 						instrx->unit->do_unit = instantiate_unit(instrx->unit->do_unit, NULL);
 						instrx->unit->do_unit->base = instrx->unit;
 						instrx->unit->do_unit->mem_used = instrx->unit->mem_offset + 1;
 					}
 				}
+				
 			}
 			if (DEFINE == instrx->oper)
 			{
@@ -905,6 +903,8 @@ void handle_last_instrx()
 		}
 	}
 }
+
+
 
 void handle_new_instrx()
 {
