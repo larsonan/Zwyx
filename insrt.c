@@ -904,8 +904,26 @@ void handle_last_instrx()
 	}
 }
 
-
-
+struct unit_struct *get_correct_do_unit()
+{
+	if (DEFINE == new_instrx.oper)
+	{
+		
+		return basic_units[METHOD_PTR];
+	}
+	else if (DO == parent_ptr->type)
+	{
+		if (strlen(parent_ptr->name) > 0)
+		{
+			return parent_ptr->base->base->do_unit;
+		}
+		else
+		{
+			return parent_ptr->base->do_unit;
+		}
+	}
+	return basic_units[DO];
+}
 void handle_new_instrx()
 {
 	if ((SUBUNIT == new_instrx.oper) && (!instantiated_base || (new_instrx.unit->type != DO)))
@@ -915,24 +933,6 @@ void handle_new_instrx()
 	}
 	else
 	{
-		if ((DO == new_instrx.unit->type) && (strlen(new_instrx.unit->name) > 0))
-		{
-			if (DEFINE == new_instrx.oper)
-			{
-				new_instrx.unit = basic_units[METHOD_PTR];
-			}
-			else if (DO == parent_ptr->type)
-			{
-				if (strlen(parent_ptr->name) > 0)
-				{
-					new_instrx.unit = parent_ptr->base->base->do_unit;
-				}
-				else
-				{
-					new_instrx.unit = parent_ptr->base->do_unit;
-				}
-			}
-		}
 		instrxs[instrx_idx] = clone_data(&new_instrx, sizeof(struct instrx_struct));
 		if ((INSERTION == new_instrx.oper) || (SUBUNIT == new_instrx.oper))
 		{
@@ -1052,7 +1052,7 @@ void handle_char(int c)
 	switch(c)
 	{
 	case ';':
-		handle_unit(basic_units[DO]);
+		handle_unit(get_correct_do_unit());
 		break;
 	case '{':
 		new_superunit();
