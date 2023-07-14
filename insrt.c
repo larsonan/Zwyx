@@ -596,29 +596,19 @@ void write_operation(struct instrx_struct *instrx)
 
 
 
-
-
-
-
-
-
-
-
-
-
 void write_line(struct instrx_struct *instrx)
 {
-	
 	int b_num;
 	if (is_control_instrx(instrx))
 	{
 		b_num = write_control_start(instrx);
 	}
+	
 	if ((instrx->ptr_source != NULL) && instrx->ptr_source->mem_base && (instrx->unit->type != DO))
 	{
-		
 		load_base(instrx);
 	}
+	
 	if (instrx->insertion_source != NULL)
 	{
 		write_line(instrx->insertion_source);
@@ -627,13 +617,13 @@ void write_line(struct instrx_struct *instrx)
 	if (PTR == instrx->unit->mem_base)
 	{
 		load_pointer_base(instrx->unit->base);
+		
 	}
-	
 	if ((instrx->insertion_source != NULL) && (instrx->insertion_source->oper != SUBUNIT))
 	{
 		write_insertion(instrx);
 	}
-
+	
 	write_operation(instrx);
 	
 	if (is_control_instrx(instrx))
@@ -673,9 +663,10 @@ void write_xc(void)
 	write_instrxs(parent_ptr->instrx_list, parent_ptr->num_instrx);
 	(void)fprintf(xcfile, "ret\n");
 	write_f();
-	(void)fprintf(xcfile, "f0:\nmov\trax,\t[rbx+0]\nmov\trdx,\t[rbx+8]\nmov\trdi,\t[rbx+16]\n");
-	(void)fprintf(xcfile, "mov\trsi,\t[rbx+24]\nsyscall\n");
 	
+	(void)fprintf(xcfile, "f0:\nmov\trax,\t[rbx+0]\nmov\trdx,\t[rbx+8]\nmov\trdi,\t[rbx+16]\n");
+	
+	(void)fprintf(xcfile, "mov\trsi,\t[rbx+24]\nsyscall\n");
 	(void)fprintf(xcfile, "ret\nSECTION .bss\nstaticdata:\tresb\t%d\n", 8);
 	fclose(xcfile);
 }
@@ -684,8 +675,10 @@ void *clone_data(void *data, int data_size)
 	void *clone;
 	clone = malloc(data_size);
 	memcpy(clone, data, data_size);
+	
 	return clone;
 }
+
 struct unit_struct *find_unit_from_list(struct unit_struct **unit_list, int unit_list_size, char* name)
 {
 	struct unit_struct *unit_match = NULL;
@@ -702,6 +695,7 @@ struct unit_struct *find_unit_from_list(struct unit_struct **unit_list, int unit
 void find_unit_in_superunit(char *name, struct unit_struct *superunit)
 {
 	new_instrx.unit = find_unit_from_list(superunit->subunits, superunit->num_subunits, name);
+	
 	if ((new_instrx.unit != NULL) && !superunit->mem_base && (STRUCT == new_instrx.unit->mem_base))
 	{
 		new_instrx.unit = NULL;
@@ -714,6 +708,7 @@ void find_unit_in_superunit(char *name, struct unit_struct *superunit)
 }
 void handle_inheritance(struct unit_struct *unit)
 {
+	
 	parent_ptr->num_subunits = unit->num_subunits;
 	parent_ptr->mem_used = unit->mem_used;
 	if (parent_ptr->num_subunits > 0)
@@ -764,29 +759,26 @@ struct unit_struct** instantiate_subunits(struct unit_struct *superunit, struct 
 struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struct *parent)
 {
 	struct unit_struct *instance = clone_data(unit, sizeof(struct unit_struct));
-	instance->mem_base = parent_ptr->type;
-	if (parent != NULL)
+	instance->mem_base = parent->type;
+	if (PTR == parent->type)
 	{
-		if (STRUCT == parent->type)
-		{
-			instance->mem_offset = parent->mem_offset - instance->mem_offset;
-		}
-		else
-		{
-			instance->mem_base = PTR;
-		}
-		
 		instance->base = parent;
 	}
-	else if ((STRUCT == instance->type) && (DO == parent_ptr->type))
+	else if ((STRUCT == parent->type) && (DO == parent->mem_base))
 	{
+		instance->mem_base = DO;
+		instance->mem_offset = parent->mem_offset - instance->mem_offset;
+	}
+	else if ((STRUCT == instance->type) && (DO == parent->type))
+	{
+		instance->mem_offset = parent->mem_used + instance->mem_used - 1;
+		
 		parent = instance;
-		instance->mem_offset = parent_ptr->mem_used + instance->mem_used - 1;
+		
 	}
 	else
 	{
-		
-		instance->mem_offset += parent_ptr->mem_used;
+		instance->mem_offset += parent->mem_used;
 	}
 	
 	
@@ -801,11 +793,11 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 	
 	return instance;
 }
-struct unit_struct *instantiate_do_unit(struct unit_struct *unit, struct unit_struct *parent)
+
+struct unit_struct *instantiate_do_unit(struct unit_struct *unit, struct unit_struct *temp_instrx_parent)
 {
-	
 	unit = clone_data(unit, sizeof(struct unit_struct));
-	if (NULL == parent)
+	if (NULL == temp_instrx_parent)
 	{
 		unit->mem_used = parent_ptr->mem_used;
 		
@@ -819,19 +811,25 @@ struct unit_struct *instantiate_do_unit(struct unit_struct *unit, struct unit_st
 			
 			unit->base = parent_ptr->base;
 		}
-		
 	}
 	else
 	{
-		unit->mem_used = parent->mem_offset + 1;
-		unit->base = parent;
+		unit->mem_used = temp_instrx_parent->mem_offset + 1;
+		unit->base = temp_instrx_parent;
 		unit->mem_base = DO;
 	}
 	
 	return unit;
 }
+struct unit_struct* instantiate_as_ptr(struct unit_struct *unit)
+{
+	struct unit_struct *new_ptr = instantiate_unit(basic_units[PTR], parent_ptr);
+	new_ptr->subunits = instantiate_subunits(unit, new_ptr);
+	new_ptr->num_subunits = unit->num_subunits;
+	return new_ptr;
+}
 
-void instantiate_instrx(struct instrx_struct *instrx)
+void handle_instantiation(struct instrx_struct *instrx)
 {
 	if (((METHOD_PTR == instrx->unit->type) && instrx->unit->mem_base)
 		|| ((DO == instrx->unit->type) && !instrx->unit->mem_base))
@@ -843,15 +841,12 @@ void instantiate_instrx(struct instrx_struct *instrx)
 		if ((instrx->ptr_source != NULL) && DEF_NONE == instrx->ptr_source->type)
 		{
 			instrx->ptr_source = NULL;
-			struct unit_struct *unit = instrx->unit;
-			instrx->unit = instantiate_unit(basic_units[PTR], NULL);
-			
-			instrx->unit->num_subunits = unit->num_subunits;
-			instrx->unit->subunits = instantiate_subunits(unit, instrx->unit);
+			instrx->unit = instantiate_as_ptr(instrx->unit);
 		}
 		else
 		{
-			instrx->unit = instantiate_unit(instrx->unit, NULL);
+			
+			instrx->unit = instantiate_unit(instrx->unit, parent_ptr);
 			if ((instrx->unit->do_unit != NULL) && (instrx->oper != DEFINE) && (new_instrx.oper != SUBUNIT))
 			{
 				instrx->unit->do_unit = instantiate_do_unit(instrx->unit->do_unit, instrx->unit);
@@ -880,6 +875,7 @@ void handle_last_instrx()
 		
 		if ((DEF_NONE == instrx->unit->type) && (strlen(instrx->unit->name) > 0))
 		{
+			
 			set_error(UNDEFINED_UNIT, instrx->unit_line, instrx->unit->name);
 		}
 		else if ((DEFINE == instrx->oper) && (1 == parent_ptr->num_instrx))
@@ -888,7 +884,7 @@ void handle_last_instrx()
 		}
 		else if ((instrx->unit->type != DEF_NONE) && (instrx->unit->type != INT_CONST))
 		{
-			instantiate_instrx(instrx);
+			handle_instantiation(instrx);
 			
 			if (DEFINE == instrx->oper)
 			{
@@ -897,6 +893,10 @@ void handle_last_instrx()
 		}
 	}
 }
+
+
+
+
 
 struct unit_struct *get_correct_do_unit()
 {
@@ -963,7 +963,6 @@ void handle_unit(struct unit_struct *unit)
 	new_instrx.unit = unit;
 	handle_new_instrx();
 }
-
 void handle_superunit()
 {
 	if (NULL == parent_ptr)
@@ -996,6 +995,7 @@ void new_superunit()
 			{
 				unit->base->type = PTR;
 				unit->mem_used++;
+				
 				unit->base->subunits = instantiate_subunits(unit->base, unit->base);
 			}
 		}
