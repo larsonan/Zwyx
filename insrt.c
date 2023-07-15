@@ -532,14 +532,14 @@ void handle_math_oper(struct instrx_struct *instrx)
 
 
 
-int is_control_instrx(struct instrx_struct *instrx)
+bool is_control_instrx(struct instrx_struct *instrx)
 {
-	if ((WHILE == instrx->oper) || (COND == instrx->oper) || (BRANCH == instrx->oper))
-	{
-		return 1;
-	}
-	return 0;
+	return ((WHILE == instrx->oper) || (COND == instrx->oper) || (BRANCH == instrx->oper));
 }
+
+
+
+
 
 
 
