@@ -743,7 +743,7 @@ void handle_define_statement(struct unit_struct *defined_unit, struct unit_struc
 
 struct unit_struct** instantiate_subunits(struct unit_struct *superunit, struct unit_struct *parent)
 {
-	struct unit_struct** units = NULL;
+	struct unit_struct** units;
 	units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
 	
 	for (int i = 0; i < superunit->num_subunits; i++)
@@ -950,6 +950,7 @@ void handle_new_instrx()
 	new_instrx.is_ptr = 0;
 	new_instrx.ptr_source = NULL;
 	instrxs[instrx_idx - 1]->unit_line = line_num;
+	
 	if ((DO == instrxs[instrx_idx - 1]->unit->type) && (0 == strlen(instrxs[instrx_idx - 1]->unit->name))
 														&& (instrxs[instrx_idx - 1]->oper != SUBUNIT))
 	{
