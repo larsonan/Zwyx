@@ -84,8 +84,8 @@ struct instrx_struct
 {
 	struct unit_struct *unit;
 	int oper;
+	int is_ptr;
 	int unit_line;
-	int instrx_num;
 	struct unit_struct *ptr_source;
 	struct instrx_struct *insertion_source;
 };
@@ -502,7 +502,7 @@ void write_do_instrx(struct instrx_struct *instrx)
 void handle_instrx_default(struct instrx_struct *instrx)
 {
 	
-	if ((instrx->ptr_source != NULL) && (DEF_NONE == instrx->ptr_source->type))
+	if (instrx->is_ptr)
 	{
 		write_load_ptr(instrx);
 	}
@@ -838,7 +838,7 @@ void handle_instantiation(struct instrx_struct *instrx)
 	}
 	else if (!instrx->unit->mem_base)
 	{
-		if ((instrx->ptr_source != NULL) && DEF_NONE == instrx->ptr_source->type)
+		if (instrx->is_ptr)
 		{
 			instrx->ptr_source = NULL;
 			instrx->unit = instantiate_as_ptr(instrx->unit);
@@ -924,9 +924,6 @@ struct unit_struct *get_correct_do_unit()
 }
 
 
-
-
-
 void handle_new_instrx()
 {
 	if ((SUBUNIT == new_instrx.oper) && (!instantiated_base || (new_instrx.unit->type != DO)))
@@ -937,7 +934,6 @@ void handle_new_instrx()
 	else
 	{
 		instrxs[instrx_idx] = clone_data(&new_instrx, sizeof(struct instrx_struct));
-		
 		if ((INSERTION == new_instrx.oper) || (SUBUNIT == new_instrx.oper))
 		{
 			instrxs[instrx_idx - 1]->insertion_source = instrxs[instrx_idx];
@@ -949,7 +945,9 @@ void handle_new_instrx()
 		instrx_idx++;
 		parent_ptr->num_instrx++;
 	}
+	
 	new_instrx.oper = NO_OPER;
+	new_instrx.is_ptr = 0;
 	new_instrx.ptr_source = NULL;
 	instrxs[instrx_idx - 1]->unit_line = line_num;
 	if ((DO == instrxs[instrx_idx - 1]->unit->type) && (0 == strlen(instrxs[instrx_idx - 1]->unit->name))
@@ -958,6 +956,7 @@ void handle_new_instrx()
 		new_instrx.oper = LOAD;
 	}
 }
+
 void handle_unit(struct unit_struct *unit)
 {
 	new_instrx.unit = unit;
@@ -1020,7 +1019,7 @@ void new_superunit()
 			unit->base = parent_ptr->base;
 			unit->mem_used++;
 			unit->mem_offset = unit->mem_used;
-			if ((new_instrx.ptr_source != NULL) && (DEF_NONE == new_instrx.ptr_source->type))
+			if (new_instrx.is_ptr)
 			{
 				unit->base = clone_data(basic_units[INT], sizeof(struct unit_struct));
 				unit->base->mem_base = DO;
@@ -1071,7 +1070,7 @@ void handle_char(int c)
 		handle_unit(parent_ptr->base);
 		break;
 	case '@':
-		new_instrx.ptr_source = basic_units[DEF_NONE];
+		new_instrx.is_ptr = 1;
 		break;
 	case '\\':
 		instantiated_base = 0;
