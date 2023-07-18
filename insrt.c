@@ -154,7 +154,7 @@ FILE* xcfile;
 int num_b = 0;
 int define_idx = -1;
 int num_f = 1;
-int instantiated_base = 1;
+
 
 void dbg_out_str(char* msg, int msg_len)
 {
@@ -743,8 +743,8 @@ void handle_define_statement(struct unit_struct *defined_unit, struct unit_struc
 
 struct unit_struct** instantiate_subunits(struct unit_struct *superunit, struct unit_struct *parent)
 {
-	struct unit_struct** units;
-	units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
+	struct unit_struct** units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
+	
 	
 	for (int i = 0; i < superunit->num_subunits; i++)
 	{
@@ -926,7 +926,7 @@ struct unit_struct *get_correct_do_unit()
 
 void handle_new_instrx()
 {
-	if ((SUBUNIT == new_instrx.oper) && (!instantiated_base || (new_instrx.unit->type != DO)))
+	if ((SUBUNIT == new_instrx.oper) && (new_instrx.unit->type != DO))
 	{
 		instrxs[instrx_idx - 1]->unit = new_instrx.unit;
 		instrxs[instrx_idx - 1]->ptr_source = new_instrx.ptr_source;
@@ -987,7 +987,7 @@ void new_superunit()
 	if (DEFINE == new_instrx.oper)
 	{
 		unit->base = parent_ptr;
-		if (instantiated_base && (STRUCT == parent_ptr->type))
+		if (STRUCT == parent_ptr->type)
 		{
 			unit->base = clone_data(parent_ptr, sizeof(struct unit_struct));
 			unit->base->mem_base = STRUCT;
@@ -1032,7 +1032,7 @@ void new_superunit()
 		}
 		handle_unit(unit);
 	}
-	instantiated_base = 1;
+	
 	unit->subunits = &parent_ptr->subunits[parent_ptr->num_subunits];
 	unit->parent = parent_ptr;
 	parent_ptr = unit;
@@ -1073,9 +1073,9 @@ void handle_char(int c)
 	case '@':
 		new_instrx.is_ptr = 1;
 		break;
-	case '\\':
-		instantiated_base = 0;
-		break;
+		
+		
+		
 	default:
 		break;
 	}
