@@ -741,8 +741,8 @@ void handle_define_statement(struct unit_struct *defined_unit, struct unit_struc
 }
 struct unit_struct** instantiate_subunits(struct unit_struct *superunit, struct unit_struct *parent)
 {
-	struct unit_struct** units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
-	
+	struct unit_struct** units;
+	units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
 	
 	for (int i = 0; i < superunit->num_subunits; i++)
 	{
@@ -1014,28 +1014,28 @@ void new_superunit()
 		}
 		else if (new_instrx.oper != BRANCH)
 		{
-			unit->base = parent_ptr->base;
-			
-			
-			unit->mem_used++;
-			unit->mem_offset = unit->mem_used;
 			if (new_instrx.is_ptr)
 			{
+				
 				unit->base = clone_data(basic_units[INT], sizeof(struct unit_struct));
 				unit->base->mem_base = DO;
 				handle_new_method(unit);
+				
 				unit->mem_used = 1;
+			}
+			else
+			{
+				unit->base = parent_ptr->base;
+				unit->mem_used++;
+				unit->mem_offset = unit->mem_used;
 			}
 		}
 		handle_unit(unit);
 	}
-	
 	unit->subunits = &parent_ptr->subunits[parent_ptr->num_subunits];
 	unit->parent = parent_ptr;
-	
 	parent_ptr = unit;
 }
-
 
 void handle_char(int c)
 {
