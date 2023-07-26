@@ -954,7 +954,7 @@ void handle_unit(struct unit_struct *unit)
 	new_instrx.unit = unit;
 	handle_new_instrx();
 }
-void handle_superunit()
+void handle_end_superunit()
 {
 	if (NULL == parent_ptr)
 	{
@@ -973,7 +973,7 @@ void handle_superunit()
 		parent_ptr = parent_ptr->parent;
 	}
 }
-void new_superunit()
+void handle_new_superunit()
 {
 	struct unit_struct *unit = clone_data(basic_units[STRUCT], sizeof(struct unit_struct));
 	if (DEFINE == new_instrx.oper)
@@ -1057,10 +1057,10 @@ void handle_char(int c)
 		handle_unit(get_correct_do_unit());
 		break;
 	case '{':
-		new_superunit();
+		handle_new_superunit();
 		break;
 	case '}':
-		handle_superunit();
+		handle_end_superunit();
 		break;
 	case '\n':
 		line_num++;
@@ -1098,7 +1098,7 @@ void end_base_unit()
 	}
 	if (NULL == parent_ptr->parent)
 	{
-		handle_superunit();
+		handle_end_superunit();
 	}
 }
 char *make_unit_name(char *name)
