@@ -292,7 +292,7 @@ void write_do(struct unit_struct *unit)
 
 void write_insertion_dst(struct unit_struct *unit)
 {
-	if ((STRUCT == unit->type) && (unit->base != NULL) && (PTR == unit->base->type))
+	if ((STRUCT == unit->type) && (unit->base != NULL) && (unit->base->type != DO))
 	{
 		if (STRUCT == unit->mem_base)
 		{
