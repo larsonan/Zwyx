@@ -547,7 +547,7 @@ bool is_control_instrx(struct instrx_struct *instrx)
 void write_operation(struct instrx_struct *instrx)
 {
 	if ((INSERTION == instrx->oper) || (is_control_instrx(instrx))
-		|| (SUBUNIT == instrx->oper) || (LOAD == instrx->oper) || (NO_OPER == instrx->oper) || (COND == instrx->oper))
+		|| (SUBUNIT == instrx->oper) || (NO_OPER == instrx->oper) || (COND == instrx->oper))
 	{
 		handle_instrx_default(instrx);
 	}
@@ -741,7 +741,7 @@ void handle_define_statement(struct unit_struct *defined_unit, struct unit_struc
 }
 struct unit_struct** instantiate_subunits(struct unit_struct *superunit, struct unit_struct *parent)
 {
-	struct unit_struct** units;
+	struct unit_struct** units = NULL;
 	units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
 	
 	for (int i = 0; i < superunit->num_subunits; i++)
@@ -914,7 +914,7 @@ struct unit_struct *get_correct_do_unit()
 
 void handle_new_instrx()
 {
-	if ((SUBUNIT == new_instrx.oper) && (new_instrx.unit->type != DO))
+	if ((SUBUNIT == new_instrx.oper) && ((new_instrx.unit->type != DO) || (instrxs[instrx_idx - 1]->oper != DEFINE)))
 	{
 		
 		
@@ -940,13 +940,13 @@ void handle_new_instrx()
 	new_instrx.is_ptr = 0;
 	new_instrx.ptr_source = NULL;
 	instrxs[instrx_idx - 1]->unit_line = line_num;
-	
-	if ((DO == instrxs[instrx_idx - 1]->unit->type) && (0 == strlen(instrxs[instrx_idx - 1]->unit->name))
-														&& (instrxs[instrx_idx - 1]->oper != SUBUNIT))
-	{
-		new_instrx.oper = LOAD;
-	}
 }
+
+
+
+
+
+
 
 
 void handle_unit(struct unit_struct *unit)
