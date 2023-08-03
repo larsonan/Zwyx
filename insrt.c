@@ -917,13 +917,15 @@ void handle_new_instrx()
 	if ((SUBUNIT == new_instrx.oper) && ((new_instrx.unit->type != DO) || (instrxs[instrx_idx - 1]->oper != DEFINE)))
 	{
 		
-		
+		handle_instantiation(instrxs[instrx_idx - 1]);
+		struct unit_struct *unit = instrxs[instrx_idx - 1]->unit;
+		instrxs[instrx_idx - 1]->ptr_source = unit;
 		instrxs[instrx_idx - 1]->unit = new_instrx.unit;
-		instrxs[instrx_idx - 1]->ptr_source = new_instrx.ptr_source;
 	}
 	else
 	{
 		instrxs[instrx_idx] = clone_data(&new_instrx, sizeof(struct instrx_struct));
+		
 		if ((INSERTION == new_instrx.oper) || (SUBUNIT == new_instrx.oper))
 		{
 			instrxs[instrx_idx - 1]->insertion_source = instrxs[instrx_idx];
@@ -933,6 +935,7 @@ void handle_new_instrx()
 			instrxs[instrx_idx - 1]->oper = COND;
 		}
 		instrx_idx++;
+		
 		parent_ptr->num_instrx++;
 	}
 	
@@ -941,9 +944,6 @@ void handle_new_instrx()
 	new_instrx.ptr_source = NULL;
 	instrxs[instrx_idx - 1]->unit_line = line_num;
 }
-
-
-
 
 
 
