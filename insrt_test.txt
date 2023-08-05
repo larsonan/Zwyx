@@ -129,7 +129,7 @@ l~list:@b0
 l.each:@{
 	np~@npair:$
 	np.{
-		print.{d:{a+b}}
+		print.d:{a+b}
 	}
 }
 
