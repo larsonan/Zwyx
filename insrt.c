@@ -556,11 +556,13 @@ void write_operation(struct instrx_struct *instrx)
 		handle_math_oper(instrx);
 	}
 }
-
-
-
-
-
+void initialize_unit(struct unit_struct *unit)
+{
+	if ((STRUCT == unit->type) && (unit->base != NULL) && unit->base->mem_base)
+	{
+		load_base(unit);
+	}
+}
 
 
 
@@ -599,15 +601,13 @@ void write_operation(struct instrx_struct *instrx)
 void write_line(struct instrx_struct *instrx)
 {
 	int b_num;
+	
 	if (is_control_instrx(instrx))
 	{
 		b_num = write_control_start(instrx);
 	}
 	
-	if ((STRUCT == instrx->unit->type) && (instrx->unit->base != NULL) && instrx->unit->base->mem_base)
-	{
-		load_base(instrx->unit);
-	}
+	initialize_unit(instrx->unit);
 	
 	if (instrx->insertion_source != NULL)
 	{
@@ -616,8 +616,8 @@ void write_line(struct instrx_struct *instrx)
 	
 	if (PTR == instrx->unit->mem_base)
 	{
-		load_pointer_base(instrx->unit->base);
 		
+		load_pointer_base(instrx->unit->base);
 	}
 	if ((instrx->insertion_source != NULL) && (instrx->insertion_source->oper != SUBUNIT))
 	{
@@ -788,8 +788,8 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 }
 struct unit_struct** instantiate_subunits(struct unit_struct *superunit, struct unit_struct *parent)
 {
-	struct unit_struct** units = NULL;
-	units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
+	struct unit_struct** units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
+	
 	for (int i = 0; i < superunit->num_subunits; i++)
 	{
 		if (STRUCT == superunit->subunits[i]->mem_base)
