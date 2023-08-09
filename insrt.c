@@ -558,13 +558,13 @@ void write_operation(struct instrx_struct *instrx)
 }
 void initialize_unit(struct unit_struct *unit)
 {
-	if ((unit->base != NULL) && unit->base->mem_base && (strlen(unit->name) > 0))
+	if ((unit->base != NULL) && unit->base->mem_base)
 	{
 		if (STRUCT == unit->type)
 		{
 			load_base(unit);
+			initialize_unit(unit->base);
 		}
-		initialize_unit(unit->base);
 	}
 }
 
@@ -788,8 +788,8 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 }
 struct unit_struct** instantiate_subunits(struct unit_struct *superunit, struct unit_struct *parent)
 {
-	struct unit_struct** units = NULL;
-	units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
+	struct unit_struct** units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
+	
 	for (int i = 0; i < superunit->num_subunits; i++)
 	{
 		if (STRUCT == superunit->subunits[i]->mem_base)
