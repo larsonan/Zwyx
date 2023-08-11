@@ -142,3 +142,24 @@ print.{
 	s:msg
 	d:1749 c:102 d:0 c:90 endl
 }
+factorial~{
+	in~int
+	;~{
+		out~int:1
+		{in}?{
+			{in-1}?{
+				out:{factorial:{in-1}*in}
+			}
+		}
+		out
+	}
+}
+
+
+print.{fact~int:factorial:7 d:fact endl}
+
+
+
+
+
+

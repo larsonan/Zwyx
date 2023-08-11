@@ -421,7 +421,7 @@ void write_math_instrx(struct instrx_struct *instrx)
 {
 	int get_unit_from_reg = 0;
 	
-	if ((MODULUS == instrx->oper) || (DIVIDE == instrx->oper))
+	if ((MULTIPLY == instrx->oper) || (DIVIDE == instrx->oper) || (MODULUS == instrx->oper))
 	{
 		(void)fprintf(xcfile, "xor\trdx,\trdx\n");
 		if (INT_CONST == instrx->unit->type)
@@ -442,18 +442,18 @@ void write_math_instrx(struct instrx_struct *instrx)
 		break;
 		
 		
-	case COMPARE:
-		
-		(void)fprintf(xcfile, "cmp\t%s,\t", REG_TEMP);
-		break;
 	case SUBTRACT:
+		
 		(void)fprintf(xcfile, "sub\t%s,\t", REG_TEMP);
 		break;
+	case MULTIPLY:
+		(void)fprintf(xcfile, "mul\tqword\t");
+		break;
+		
+		
 	default:
 		break;
 	}
-	
-	
 	if (get_unit_from_reg)
 	{
 		(void)fprintf(xcfile, "rcx\n");
@@ -788,7 +788,7 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 }
 struct unit_struct** instantiate_subunits(struct unit_struct *superunit, struct unit_struct *parent)
 {
-	struct unit_struct** units = NULL;
+	struct unit_struct** units;
 	units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
 	for (int i = 0; i < superunit->num_subunits; i++)
 	{
