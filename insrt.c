@@ -601,18 +601,18 @@ void initialize_unit(struct unit_struct *unit)
 void write_line(struct instrx_struct *instrx)
 {
 	int b_num;
-	
 	if (is_control_instrx(instrx))
 	{
 		b_num = write_control_start(instrx);
 	}
 	
-	initialize_unit(instrx->unit);
 	
 	if (instrx->insertion_source != NULL)
 	{
+		
 		write_line(instrx->insertion_source);
 	}
+	
 	
 	if (PTR == instrx->unit->mem_base)
 	{
@@ -623,7 +623,7 @@ void write_line(struct instrx_struct *instrx)
 	{
 		write_insertion(instrx);
 	}
-	
+	initialize_unit(instrx->unit);
 	write_operation(instrx);
 	
 	if (is_control_instrx(instrx))

@@ -156,7 +156,7 @@ factorial~{
 }
 
 
-print.{fact~int:factorial:7 d:fact endl}
+print.{d:factorial:7 endl}
 
 
 
