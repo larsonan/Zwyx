@@ -148,7 +148,7 @@ factorial~{
 		out~int:1
 		{in}?{
 			{in-1}?{
-				out:{factorial:{in-1}*in}
+				out:{in * factorial:{in-1}}
 			}
 		}
 		out
