@@ -1031,12 +1031,13 @@ void handle_new_superunit()
 			}
 		}
 		handle_unit(unit);
+		unit->mem_used += temp_reg_mem;
 	}
 	unit->subunits = &parent_ptr->subunits[parent_ptr->num_subunits];
 	unit->parent = parent_ptr;
+	
 	parent_ptr = unit;
 }
-
 void handle_char(int c)
 {
 	for (int i = 0; i < 17; i++)
@@ -1047,12 +1048,14 @@ void handle_char(int c)
 			break;
 		}
 	}
+	
 	if (((';' == c) || ('$' == c)) && (new_instrx.oper != SUBUNIT))
 	{
 		handle_last_instrx();
 	}
 	switch(c)
 	{
+	
 	case ';':
 		handle_unit(get_correct_do_unit());
 		break;
@@ -1062,25 +1065,22 @@ void handle_char(int c)
 	case '}':
 		handle_end_superunit();
 		break;
+		
 	case '\n':
 		line_num++;
 		break;
-		
 	case '$':
-		
 		handle_unit(parent_ptr->base);
 		break;
 	case '@':
 		new_instrx.is_ptr = 1;
 		break;
 		
-		
-		
 	default:
+		
 		break;
 	}
 }
-
 void start_base_unit()
 {
 	parent_ptr = clone_data(basic_units[MAIN], sizeof(struct unit_struct));
