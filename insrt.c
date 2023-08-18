@@ -549,7 +549,7 @@ void write_operation(struct instrx_struct *instrx)
 void initialize_unit(struct unit_struct *unit)
 {
 	
-	if ((unit->base != NULL) && unit->base->mem_base && (STRUCT == unit->type) && (0 == unit->f_num))
+	if ((unit->base != NULL) && unit->base->mem_base && (STRUCT == unit->type))
 	{
 		if (STRUCT == unit->type)
 		{
