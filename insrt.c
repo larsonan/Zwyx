@@ -549,16 +549,16 @@ void write_operation(struct instrx_struct *instrx)
 void initialize_unit(struct unit_struct *unit)
 {
 	
-	if ((unit->base != NULL) && unit->base->mem_base && (STRUCT == unit->type))
+	if ((unit->base != NULL) && unit->base->mem_base)
 	{
-		if (STRUCT == unit->type)
+		if (-1 == unit->f_num)
 		{
 			load_base(unit);
-			initialize_unit(unit->base);
+			unit->f_num = 0;
 		}
+		initialize_unit(unit->base);
 	}
 }
-
 
 
 
@@ -608,8 +608,8 @@ void write_line(struct instrx_struct *instrx)
 	{
 		write_control_end(instrx, b_num);
 	}
-	
 }
+
 
 
 
@@ -735,14 +735,12 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 {
 	struct unit_struct *instance = clone_data(unit, sizeof(struct unit_struct));
 	instance->mem_base = parent->type;
-	
 	if (PTR == parent->type)
 	{
 		instance->base = parent;
 	}
 	else if ((STRUCT == parent->type) && (DO == parent->mem_base))
 	{
-		
 		instance->mem_base = DO;
 		instance->mem_offset = parent->mem_offset - instance->mem_offset;
 	}
@@ -756,6 +754,8 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 		{
 			instance->mem_offset = temp_reg_mem + parent->mem_used + instance->mem_used - 1;
 		}
+		instance->f_num = -1;
+		
 		parent = instance;
 	}
 	else

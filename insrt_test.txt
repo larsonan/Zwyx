@@ -78,14 +78,16 @@ print~{
 
 str~{
 	b~@bytes
-	uncapfirstletter~{
+	setchar~{
+		set~int
+		
+		char~int
 		;~{
-			p~@bytes:b
-			p.c1:{p.c1+32}
+			p~@bytes:{8*set+b}
+			p.c1:char
 		}
 	}
 }
-
 list~{
 	b~@bytes
 	each~{
@@ -93,11 +95,10 @@ list~{
 		;~{
 			p~@bytes:b
 			remaining~int:p.c0
+			
 			p:{p+8}
 			{remaining}#{
-				
 				mbr~@bytes:p.c0
-				
 				mbr.{f}
 				p:{p+8}
 				remaining:{remaining-1}
@@ -105,7 +106,6 @@ list~{
 		}
 	}
 }
-
 npair~{a~int b~int}
 
 
@@ -138,7 +138,7 @@ print.{
 	
 	msg~str:@hello
 	s:msg
-	msg.uncapfirstletter
+	msg.setchar.{char:70 set:1 ; set:2 ; set:3 ; set:4 ;}
 	s:msg
 	d:1749 c:102 d:0 c:90 endl
 }
