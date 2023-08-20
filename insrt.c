@@ -396,18 +396,18 @@ void write_load_ptr(struct instrx_struct *instrx)
 		(void)fprintf(xcfile, "\n");
 	}
 }
-void store_temp_reg(struct instrx_struct *instrx)
+void store_temp_reg(int mem_offset)
 {
-	(void)fprintf(xcfile, "mov\t[%s-%d],\t%s\n", REG_DEFAULT, 
-						(instrx->unit->mem_offset - instrx->unit->mem_used) * 8, REG_TEMP);
+	(void)fprintf(xcfile, "mov\t[%s-%d],\t%s\n", REG_DEFAULT, mem_offset, REG_TEMP);
 }
-void get_stored_temp_reg(struct instrx_struct *instrx)
+
+void get_temp_reg(int mem_offset)
 {
-	(void)fprintf(xcfile, "mov\t[%s-%d],\t%s\n", REG_DEFAULT, 
-						instrx->unit->mem_offset * 8, REG_TEMP);
 	
-	(void)fprintf(xcfile, "mov\t%s,\t[%s-%d]\n", REG_TEMP, REG_DEFAULT,
-						(instrx->unit->mem_offset - instrx->unit->mem_used) * 8);
+	
+	
+	(void)fprintf(xcfile, "mov\t%s,\t[%s-%d]\n", REG_TEMP, REG_DEFAULT, mem_offset);
+	
 	
 }
 void write_insertion_src(struct instrx_struct *instrx)
@@ -513,8 +513,8 @@ void handle_math_oper(struct instrx_struct *instrx)
 	{
 		write_do_instrx(instrx);
 		
-		get_stored_temp_reg(instrx);
-		
+		store_temp_reg(instrx->unit->mem_offset * 8);
+		get_temp_reg((instrx->unit->mem_offset - instrx->unit->mem_used) * 8);
 	}
 	
 	write_math_instrx(instrx);
@@ -586,7 +586,7 @@ void write_line(struct instrx_struct *instrx)
 	if (!is_default_instrx(instrx) && (instrx->oper != DEFINE)
 					&& ((DO == instrx->unit->type) || (STRUCT == instrx->unit->type) || (METHOD_PTR == instrx->unit->type)))
 	{
-		store_temp_reg(instrx);
+		store_temp_reg((instrx->unit->mem_offset - instrx->unit->mem_used) * 8);
 	}
 	if (instrx->insertion_source != NULL)
 	{
