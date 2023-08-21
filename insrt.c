@@ -396,12 +396,12 @@ void write_load_ptr(struct instrx_struct *instrx)
 		(void)fprintf(xcfile, "\n");
 	}
 }
-void store_temp_reg(int mem_offset)
+void store_temp(int mem_offset)
 {
 	(void)fprintf(xcfile, "mov\t[%s-%d],\t%s\n", REG_DEFAULT, mem_offset, REG_TEMP);
 }
 
-void get_temp_reg(int mem_offset)
+void get_stored_temp(int mem_offset)
 {
 	
 	
@@ -507,16 +507,35 @@ void handle_instrx_default(struct instrx_struct *instrx)
 		write_insertion_src(instrx);
 	}
 }
+
+
+int get_temp_offset(struct unit_struct *unit)
+{
+	int result;
+	if (STRUCT == unit->type)
+	{
+		result = unit->mem_offset - unit->mem_used;
+	}
+	else if (DO == unit->type)
+	{
+		result = unit->mem_offset - 1;
+	}
+	else
+	{
+		result = unit->mem_used - 1;
+	}
+	return result * 8;
+}
 void handle_math_oper(struct instrx_struct *instrx)
 {
+	
 	if ((DO == instrx->unit->type) || (STRUCT == instrx->unit->type) || (METHOD_PTR == instrx->unit->type))
 	{
 		write_do_instrx(instrx);
-		
-		store_temp_reg(instrx->unit->mem_offset * 8);
-		get_temp_reg((instrx->unit->mem_offset - instrx->unit->mem_used) * 8);
+		int temp_offset = get_temp_offset(instrx->unit);
+		store_temp(temp_offset + 8);
+		get_stored_temp(temp_offset);
 	}
-	
 	write_math_instrx(instrx);
 }
 bool is_control_instrx(struct instrx_struct *instrx)
@@ -524,31 +543,27 @@ bool is_control_instrx(struct instrx_struct *instrx)
 	return ((WHILE == instrx->oper) || (COND == instrx->oper) || (BRANCH == instrx->oper));
 }
 
+
 bool is_default_instrx(struct instrx_struct *instrx)
 {
 	return ((INSERTION == instrx->oper) || (is_control_instrx(instrx))
 			|| (SUBUNIT == instrx->oper) || (NO_OPER == instrx->oper));
 }
-
-
 void write_operation(struct instrx_struct *instrx)
 {
-	
 	if (is_default_instrx(instrx))
 	{
 		handle_instrx_default(instrx);
+		
 	}
 	else if (instrx->oper != DEFINE)
 	{
 		handle_math_oper(instrx);
 	}
-	
 }
-
 
 void initialize_unit(struct unit_struct *unit)
 {
-	
 	if ((unit->base != NULL) && unit->base->mem_base)
 	{
 		if (-1 == unit->f_num)
@@ -561,21 +576,6 @@ void initialize_unit(struct unit_struct *unit)
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void write_line(struct instrx_struct *instrx)
 {
 	int b_num;
@@ -586,7 +586,7 @@ void write_line(struct instrx_struct *instrx)
 	if (!is_default_instrx(instrx) && (instrx->oper != DEFINE)
 					&& ((DO == instrx->unit->type) || (STRUCT == instrx->unit->type) || (METHOD_PTR == instrx->unit->type)))
 	{
-		store_temp_reg((instrx->unit->mem_offset - instrx->unit->mem_used) * 8);
+		store_temp(get_temp_offset(instrx->unit));
 	}
 	if (instrx->insertion_source != NULL)
 	{
@@ -608,8 +608,8 @@ void write_line(struct instrx_struct *instrx)
 	{
 		write_control_end(instrx, b_num);
 	}
-	
 }
+
 
 
 
@@ -780,8 +780,8 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 }
 struct unit_struct** instantiate_subunits(struct unit_struct *superunit, struct unit_struct *parent)
 {
-	struct unit_struct** units;
-	units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
+	struct unit_struct** units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
+	
 	for (int i = 0; i < superunit->num_subunits; i++)
 	{
 		if (STRUCT == superunit->subunits[i]->mem_base)
