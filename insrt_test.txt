@@ -83,7 +83,7 @@ str~{
 		
 		char~int
 		;~{
-			p~@bytes:{8*set+b}
+			p~@bytes:{b+{set*8}}
 			p.c1:char
 		}
 	}

@@ -571,19 +571,19 @@ void initialize_unit(struct unit_struct *unit)
 		if ((-1 == unit->f_num) || (-2 == unit->f_num))
 		{
 			load_base(unit);
-			unit->f_num = 0;
 		}
 		initialize_unit(unit->base);
 	}
-	
 	if (-2 == unit->f_num)
 	{
 		load_base_to_reg(unit->mem_offset * 8);
+		
 		write_instrxs(unit->instrx_list, unit->num_instrx);
 		restore_base_to_reg();
-		unit->f_num = 0;
 	}
+	unit->f_num = 0;
 }
+
 void write_line(struct instrx_struct *instrx)
 {
 	int b_num;
@@ -625,9 +625,9 @@ void write_line(struct instrx_struct *instrx)
 
 void write_instrxs(struct instrx_struct **instrxs, int num_instrx)
 {
+	
 	for (int i = 0; i < num_instrx; i++)
 	{
-		
 		if ((i < num_instrx - 1) && (COMPARE == instrxs[i+1]->oper))
 		{
 			write_compare(instrxs[i], instrxs[i+1]);
@@ -780,8 +780,8 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 }
 struct unit_struct** instantiate_subunits(struct unit_struct *superunit, struct unit_struct *parent)
 {
-	struct unit_struct** units;
-	units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
+	struct unit_struct** units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
+	
 	for (int i = 0; i < superunit->num_subunits; i++)
 	{
 		if (STRUCT == superunit->subunits[i]->mem_base)
@@ -1027,11 +1027,11 @@ void handle_new_superunit()
 			{
 				
 				unit->base = parent_ptr->base;
-				unit->mem_offset = unit->mem_used;
 			}
 		}
 		handle_unit(unit);
 		unit->mem_used += temp_reg_mem;
+		unit->mem_offset = unit->mem_used;
 	}
 	unit->subunits = &parent_ptr->subunits[parent_ptr->num_subunits];
 	unit->parent = parent_ptr;
