@@ -581,9 +581,11 @@ void initialize_unit(struct unit_struct *unit)
 		write_instrxs(unit->instrx_list, unit->num_instrx);
 		restore_base_to_reg();
 	}
-	unit->f_num = 0;
+	if (unit->f_num < 0)
+	{
+		unit->f_num = 0;
+	}
 }
-
 void write_line(struct instrx_struct *instrx)
 {
 	int b_num;
@@ -603,25 +605,23 @@ void write_line(struct instrx_struct *instrx)
 	if (PTR == instrx->unit->mem_base)
 	{
 		load_pointer_base(instrx->unit->base);
+		
 	}
 	if ((instrx->insertion_source != NULL) && (instrx->insertion_source->oper != SUBUNIT))
 	{
 		write_insertion(instrx);
+		
 	}
-	
 	initialize_unit(instrx->unit);
+	
 	write_operation(instrx);
+	
+	
 	if (is_control_instrx(instrx))
 	{
 		write_control_end(instrx, b_num);
 	}
 }
-
-
-
-
-
-
 
 void write_instrxs(struct instrx_struct **instrxs, int num_instrx)
 {
@@ -688,10 +688,10 @@ void find_unit_in_superunit(char *name, struct unit_struct *superunit)
 {
 	new_instrx.unit = find_unit_from_list(superunit->subunits, superunit->num_subunits, name);
 	
-	if ((new_instrx.unit != NULL) && !superunit->mem_base && (STRUCT == new_instrx.unit->mem_base))
-	{
-		new_instrx.unit = NULL;
-	}
+	
+	
+	
+	
 	if ((new_instrx.unit != NULL) && !new_instrx.unit->mem_base 
 							&& (new_instrx.unit->base != NULL) && new_instrx.unit->base->mem_base && superunit->mem_base)
 	{
@@ -780,8 +780,8 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 }
 struct unit_struct** instantiate_subunits(struct unit_struct *superunit, struct unit_struct *parent)
 {
-	struct unit_struct** units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
-	
+	struct unit_struct** units;
+	units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
 	for (int i = 0; i < superunit->num_subunits; i++)
 	{
 		if (STRUCT == superunit->subunits[i]->mem_base)

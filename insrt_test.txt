@@ -14,10 +14,17 @@ system~{
 	rdi~int
 	rsi~int
 }
+writeff~{
+
+
+	write~{
+		bn~@bytes
+		fn~;
+	}
+}
 print~{
+	~writeff.write
 	
-	
-	bn~@bytes
 	
 	;~{
 		
@@ -29,7 +36,6 @@ print~{
 			;
 		}
 	}
-	
 	s~{
 		b~@bytes
 		;~{
@@ -37,16 +43,15 @@ print~{
 			;
 		}
 	}
-	
 	c~{
 		in~int
+		
 		;~{
 			b~bytes.{c0:8 c1:in}
 			bn:@b
 			;
 		}
 	}
-	
 	endl~{
 		;~{
 			c:10
@@ -55,7 +60,6 @@ print~{
 	d~{
 		in~int
 		;~{
-			
 			intb~bytes
 			p~@bytes:@intb
 			p:{p+40}
@@ -71,6 +75,7 @@ print~{
 			}
 			p.c0:size
 			bn:p
+			
 			;
 		}
 	}
@@ -88,6 +93,7 @@ str~{
 		}
 	}
 }
+
 list~{
 	b~@bytes
 	each~{
@@ -95,7 +101,6 @@ list~{
 		;~{
 			p~@bytes:b
 			remaining~int:p.c0
-			
 			p:{p+8}
 			{remaining}#{
 				mbr~@bytes:p.c0
@@ -105,8 +110,16 @@ list~{
 			}
 		}
 	}
+	
 }
+
+
 npair~{a~int b~int}
+
+
+
+
+
 
 
 b1~npair.{a:0 b:1}
@@ -114,15 +127,7 @@ b2~npair.{a:2 b:5}
 b3~npair.{a:0 b:5}
 b4~npair.{a:2 b:7}
 b5~npair.{a:4 b:1}
-
-
-
-
-
-
-
 b0~bytes.{c0:5 c1:@b1 c2:@b2 c3:@b3 c4:@b4 c5:@b5}
-
 
 l~list:@b0
 
@@ -135,13 +140,14 @@ l.each:@{
 
 print.{
 	hello~bytes.{c0:40 c1:72 c2:69 c3:76 c4:76 c5:79}
-	
 	msg~str:@hello
 	s:msg
 	msg.setchar.{char:70 set:1 ; set:2 ; set:3 ; set:4 ;}
 	s:msg
 	d:1749 c:102 d:0 c:90 endl
 }
+
+
 factorial~{
 	in~int
 	;~{
@@ -157,7 +163,6 @@ factorial~{
 
 
 print.{d:factorial:7 endl}
-
 
 
 
