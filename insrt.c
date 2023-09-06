@@ -566,23 +566,23 @@ void write_operation(struct instrx_struct *instrx)
 }
 void initialize_unit(struct unit_struct *unit)
 {
-	if ((unit->base != NULL) && unit->base->mem_base)
+	if ((STRUCT == unit->type) || ((DO == unit->type) && (unit->f_num <= 0)))
 	{
-		if ((-1 == unit->f_num) || (-2 == unit->f_num))
+		if ((unit->base != NULL) && unit->base->mem_base)
 		{
-			load_base(unit);
+			if ((-1 == unit->f_num) || (-2 == unit->f_num))
+			{
+				load_base(unit);
+			}
+			initialize_unit(unit->base);
 		}
-		initialize_unit(unit->base);
-	}
-	if (-2 == unit->f_num)
-	{
-		load_base_to_reg(unit->mem_offset * 8);
-		
-		write_instrxs(unit->instrx_list, unit->num_instrx);
-		restore_base_to_reg();
-	}
-	if (unit->f_num < 0)
-	{
+		if (-2 == unit->f_num)
+		{
+			load_base_to_reg(unit->mem_offset * 8);
+			write_instrxs(unit->instrx_list, unit->num_instrx);
+			
+			restore_base_to_reg();
+		}
 		unit->f_num = 0;
 	}
 }

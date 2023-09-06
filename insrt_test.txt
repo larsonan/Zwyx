@@ -14,28 +14,12 @@ system~{
 	rdi~int
 	rsi~int
 }
-writeff~{
+writenf~{
 
 
-	write~{
-		bn~@bytes
-		fn~;
-	}
-}
-print~{
-	~writeff.write
-	
-	
-	;~{
-		
-		system.{
-			rax:0x2000004
-			rsi:{bn+8}
-			rdi:1
-			rdx:bn.c0
-			;
-		}
-	}
+	bn~@bytes
+	fn~;
+	;~{fn}
 	s~{
 		b~@bytes
 		;~{
@@ -67,6 +51,7 @@ print~{
 			in:{in/10}
 			p:{p-8}
 			size~int:8
+			
 			{in}#{
 				p.c0:{in%10+48}
 				in:{in/10}
@@ -81,6 +66,21 @@ print~{
 	}
 }
 
+print~{
+	~writenf
+	fn:@{
+		wr~@writenf:$
+		b~@bytes:wr.bn
+		system.{
+			rax:0x2000004
+			rsi:{b+8}
+			rdi:1
+			rdx:b.c0
+			;
+		}
+	}
+	
+}
 str~{
 	b~@bytes
 	setchar~{
@@ -112,7 +112,6 @@ list~{
 	}
 	
 }
-
 
 npair~{a~int b~int}
 
@@ -161,8 +160,9 @@ factorial~{
 	}
 }
 
-
 print.{d:factorial:7 endl}
+
+
 
 
 
