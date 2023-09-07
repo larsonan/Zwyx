@@ -1,23 +1,22 @@
 bytes~{
-	c0~int c1~int c2~int c3~int c4~int c5~int
+	c0~int:0 c1~int c2~int c3~int c4~int c5~int
 	
 }
 
-
 system~{
-	
 	~sysrun
-	
 	
 	rax~int
 	rdx~int
+	
 	rdi~int
 	rsi~int
 }
 writenf~{
-
-
+	ignore~int
 	bn~@bytes
+	
+	
 	fn~;
 	;~{fn}
 	s~{
@@ -27,15 +26,16 @@ writenf~{
 			;
 		}
 	}
+	
 	c~{
 		in~int
-		
 		;~{
-			b~bytes.{c0:8 c1:in}
+			b~bytes.{c0:1 c1:in}
 			bn:@b
 			;
 		}
 	}
+	
 	endl~{
 		;~{
 			c:10
@@ -50,13 +50,13 @@ writenf~{
 			p.c0:{in%10+48}
 			in:{in/10}
 			p:{p-8}
-			size~int:8
+			size~int:1
 			
 			{in}#{
 				p.c0:{in%10+48}
 				in:{in/10}
 				p:{p-8}
-				size:{size+8}
+				size:{size+1}
 			}
 			p.c0:size
 			bn:p
@@ -75,7 +75,7 @@ print~{
 			rax:0x2000004
 			rsi:{b+8}
 			rdi:1
-			rdx:b.c0
+			rdx:{b.c0*8}
 			;
 		}
 	}
@@ -92,6 +92,31 @@ str~{
 			p.c1:char
 		}
 	}
+	write~{
+		~writenf
+		fn:@{
+			
+			wr~@writenf
+			wr:$
+			base~@str:wr.ignore
+			in~@bytes:wr.bn
+			self~@bytes:base.b
+			countin~int:in.c0
+			countself~int:self.c0
+			self.c0:{countself+countin}
+			self:{self+8+{countself*8}}
+			
+			in:{in+8}
+			
+			
+			{countin}#{
+				self.c0:in.c0
+				self:{self+8}
+				in:{in+8}
+				countin:{countin-1}
+			}
+		}
+	}
 }
 
 list~{
@@ -100,6 +125,7 @@ list~{
 		f~;
 		;~{
 			p~@bytes:b
+			
 			remaining~int:p.c0
 			p:{p+8}
 			{remaining}#{
@@ -110,40 +136,45 @@ list~{
 			}
 		}
 	}
-	
 }
 
 npair~{a~int b~int}
-
-
-
-
-
-
 
 b1~npair.{a:0 b:1}
 b2~npair.{a:2 b:5}
 b3~npair.{a:0 b:5}
 b4~npair.{a:2 b:7}
 b5~npair.{a:4 b:1}
+
 b0~bytes.{c0:5 c1:@b1 c2:@b2 c3:@b3 c4:@b4 c5:@b5}
 
 l~list:@b0
+
 
 l.each:@{
 	np~@npair:$
 	np.{
 		print.d:{a+b}
 	}
+	
+}
+
+getmsg~{
+	write~@writenf
+	;~{
+		write.{c:72 c:69 c:76 c:76 c:79}
+	}
 }
 
 print.{
-	hello~bytes.{c0:40 c1:72 c2:69 c3:76 c4:76 c5:79}
+	hello~bytes
 	msg~str:@hello
-	s:msg
+	msg.write.{getmsg:@$}
+	getmsg:@$
 	msg.setchar.{char:70 set:1 ; set:2 ; set:3 ; set:4 ;}
 	s:msg
 	d:1749 c:102 d:0 c:90 endl
+	
 }
 
 
@@ -161,10 +192,4 @@ factorial~{
 }
 
 print.{d:factorial:7 endl}
-
-
-
-
-
-
 
