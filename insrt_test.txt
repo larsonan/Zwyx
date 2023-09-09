@@ -83,6 +83,16 @@ print~{
 
 list~{
 	b~@bytes
+	
+	set~{
+		
+		at~int
+		char~int
+		;~{
+			p~@bytes:{b+{at*8}}
+			p.c1:char
+		}
+	}
 	each~{
 		f~;
 		
@@ -100,32 +110,24 @@ list~{
 			}
 		}
 	}
+	
 }
+
+
+
+
+
+
+
+
+
+
 str~{
 	~list
-	setchar~{
-		set~int
-		
-		char~int
-		
-		
-		;~{
-			p~@bytes:{b+{set*8}}
-			p.c1:char
-		}
-	}
-	
-	
-	
-	
-	
-	
-	
 	write~{
 		
 		~writenf
 		fn:@{
-			
 			wr~@writenf
 			wr:$
 			base~@str:wr.ignore
@@ -133,9 +135,9 @@ str~{
 			self~@bytes:base.b
 			countin~int:in.c0
 			countself~int:self.c0
+			
 			self.c0:{countself+countin}
 			self:{self+8+{countself*8}}
-			
 			in:{in+8}
 			{countin}#{
 				self.c0:in.c0
@@ -164,8 +166,6 @@ l.each:@{
 		print.d:{a+b}
 	}
 }
-
-
 getmsg~{
 	write~@writenf
 	;~{
@@ -173,19 +173,21 @@ getmsg~{
 	}
 }
 
+
+
+
 print.{
 	hello~bytes
 	msg~str:@hello
 	msg.write.{getmsg:@$}
 	getmsg:@$
-	msg.setchar.{char:70 set:1 ; set:2 ; set:3 ; set:4 ;}
+	msg.set.{char:70 at:1 ; at:2 ; at:3 ; at:4 ;}
 	s:msg
 	
 	d:1749 c:102 d:0 c:90 endl
 }
 
 factorial~{
-	
 	in~int
 	;~{
 		out~int:1
@@ -199,5 +201,3 @@ factorial~{
 }
 
 print.{d:factorial:7 endl}
-
-
