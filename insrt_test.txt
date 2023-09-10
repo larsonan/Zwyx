@@ -12,13 +12,18 @@ system~{
 	rdi~int
 	rsi~int
 }
-writenf~{
+
+interface~{
 	ignore~int
-	bn~@bytes
 	
 	
 	fn~;
 	;~{fn}
+}
+
+writenf~{
+	~interface
+	bn~@bytes
 	s~{
 		b~@bytes
 		;~{
@@ -26,11 +31,11 @@ writenf~{
 			;
 		}
 	}
-	
 	c~{
 		in~int
 		;~{
 			b~bytes.{c0:1 c1:in}
+			
 			bn:@b
 			;
 		}
@@ -50,6 +55,7 @@ writenf~{
 			p.c0:{in%10+48}
 			in:{in/10}
 			p:{p-8}
+			
 			size~int:1
 			
 			{in}#{
@@ -59,8 +65,8 @@ writenf~{
 				size:{size+1}
 			}
 			p.c0:size
-			bn:p
 			
+			bn:p
 			;
 		}
 	}
@@ -80,12 +86,9 @@ print~{
 		}
 	}
 }
-
 list~{
 	b~@bytes
-	
 	set~{
-		
 		at~int
 		char~int
 		;~{
@@ -94,8 +97,8 @@ list~{
 		}
 	}
 	each~{
-		f~;
 		
+		f~;
 		;~{
 			p~@bytes:b
 			remaining~int
@@ -104,15 +107,14 @@ list~{
 			{remaining}#{
 				mbr~@bytes:p.c0
 				mbr.{f}
-				p:{p+8}
 				
+				
+				p:{p+8}
 				remaining:{remaining-1}
 			}
 		}
 	}
-	
 }
-
 
 
 
@@ -123,9 +125,9 @@ list~{
 
 
 str~{
+	
 	~list
 	write~{
-		
 		~writenf
 		fn:@{
 			wr~@writenf
@@ -133,9 +135,9 @@ str~{
 			base~@str:wr.ignore
 			in~@bytes:wr.bn
 			self~@bytes:base.b
+			
 			countin~int:in.c0
 			countself~int:self.c0
-			
 			self.c0:{countself+countin}
 			self:{self+8+{countself*8}}
 			in:{in+8}
@@ -143,14 +145,13 @@ str~{
 				self.c0:in.c0
 				self:{self+8}
 				in:{in+8}
+				
 				countin:{countin-1}
 			}
 		}
 	}
 }
-
 npair~{a~int b~int}
-
 b1~npair.{a:0 b:1}
 b2~npair.{a:2 b:5}
 b3~npair.{a:0 b:5}
@@ -171,9 +172,8 @@ getmsg~{
 	;~{
 		write.{c:72 c:69 c:76 c:76 c:79}
 	}
+	
 }
-
-
 
 
 print.{
