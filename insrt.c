@@ -130,7 +130,7 @@ char* basic_unit_names[] = {"", "_main", "", "int", "method", "sysrun", "", "", 
 char opers[] = {'\0', ':', '~', '.', '?', '=', '+', '/', ',', '!', '-', '<', '\0', '#', '*', '%', '>'};
 
 struct error_struct errors[MAX_ERRORS];
-int num_errors = 0;
+int num_errors;
 
 struct unit_struct *parent_ptr;
 
@@ -144,15 +144,15 @@ struct instrx_struct *instrxs[MAX_UNIT_CHAIN_LEN];
 int instrx_idx;
 
 struct unit_struct *funcs[MAX_METHOD_UNITS];
-int start_idx;
 
-int poss_double_oper = -1;
+
 int line_num;
+
 struct instrx_struct new_instrx;
 FILE* err_out;
 FILE* xcfile;
 int num_b = 0;
-int define_idx = -1;
+
 int num_f = 1;
 int temp_reg_mem;
 
@@ -220,7 +220,7 @@ void setup_basic_units(void)
 void init(void)
 {
 	instrx_idx = 0;
-	start_idx = 0;
+	num_errors = 0;
 	parent_ptr = NULL;
 	basic_unit_data[METHOD_PTR].mem_used = 1;
 	subunit_stack_idx = 0;
@@ -967,7 +967,7 @@ void handle_end_superunit()
 	instrx_idx = instrx_idx - parent_ptr->num_instrx;
 	
 	parent_ptr->subunits = clone_data(parent_ptr->subunits, (parent_ptr->num_subunits * sizeof(struct unit_struct*)));
-	start_idx = instrx_idx;
+	
 	if (parent_ptr->parent != NULL)
 	{
 		parent_ptr = parent_ptr->parent;
