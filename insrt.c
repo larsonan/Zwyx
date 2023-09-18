@@ -126,7 +126,7 @@ struct unit_struct
 	int num_instrx;
 };
 
-char* basic_unit_names[] = {"", "_main", "", "int", "method", "sysrun", "", "", "", "do" };
+char* basic_unit_names[] = {"", "", "", "int", "method", "sysrun", "", "", "", "do" };
 char opers[] = {'\0', ':', '~', '.', '?', '=', '+', '/', ',', '!', '-', '<', '\0', '#', '*', '%', '>'};
 
 struct error_struct errors[MAX_ERRORS];
