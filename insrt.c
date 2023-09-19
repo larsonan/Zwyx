@@ -983,6 +983,7 @@ void handle_new_superunit()
 		{
 			unit->base = clone_data(parent_ptr, sizeof(struct unit_struct));
 			unit->base->mem_base = STRUCT;
+			unit->base->f_num = 0;
 			unit->mem_used++;
 			if (METHOD == instrxs[instrx_idx - 1]->unit->type)
 			{
@@ -996,6 +997,7 @@ void handle_new_superunit()
 				unit->base->subunits = instantiate_subunits(unit->base, unit->base);
 			}
 		}
+		
 		handle_define_statement(instrxs[instrx_idx - 1]->unit, unit);
 		instrxs[instrx_idx - 1]->unit = basic_units[DEF_NONE];
 		new_instrx.oper = NO_OPER;
@@ -1005,8 +1007,8 @@ void handle_new_superunit()
 		unit->type = METHOD;
 		unit->mem_base = METHOD;
 		unit->mem_used = parent_ptr->mem_used;
-		
 		handle_last_instrx();
+		
 		if (SUBUNIT == new_instrx.oper)
 		{
 			unit->base = instrxs[instrx_idx - 1]->unit;
@@ -1014,18 +1016,17 @@ void handle_new_superunit()
 		}
 		else if (new_instrx.oper != BRANCH)
 		{
+			
 			if (new_instrx.is_ptr)
 			{
-				
 				unit->base = clone_data(basic_units[INT], sizeof(struct unit_struct));
+				
 				unit->base->mem_base = METHOD;
 				handle_new_method(unit);
-				
 				unit->mem_used = 1;
 			}
 			else
 			{
-				
 				unit->base = parent_ptr->base;
 			}
 		}
@@ -1035,7 +1036,6 @@ void handle_new_superunit()
 	}
 	unit->subunits = &parent_ptr->subunits[parent_ptr->num_subunits];
 	unit->parent = parent_ptr;
-	
 	parent_ptr = unit;
 }
 void handle_char(int c)
