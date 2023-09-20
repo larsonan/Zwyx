@@ -234,9 +234,9 @@ void write_unit(struct unit_struct *unit)
 	}
 	else
 	{
-		if (STRUCT == unit->mem_base)
+		if (METHOD == unit->mem_base)
 		{
-			(void)fprintf(xcfile, "[%s+%d]", REG_BASE, unit->mem_offset * 8);
+			(void)fprintf(xcfile, "[%s-%d]", REG_DEFAULT, unit->mem_offset * 8);
 		}
 		else if (PTR == unit->mem_base)
 		{
@@ -244,7 +244,7 @@ void write_unit(struct unit_struct *unit)
 		}
 		else
 		{
-			(void)fprintf(xcfile, "[%s-%d]", REG_DEFAULT, unit->mem_offset * 8);
+			(void)fprintf(xcfile, "[%s+%d]", REG_BASE, unit->mem_offset * 8);
 		}
 	}
 }
@@ -568,7 +568,7 @@ void initialize_unit(struct unit_struct *unit)
 {
 	if ((STRUCT == unit->type) || ((METHOD == unit->type) && (unit->f_num <= 0)))
 	{
-		if ((unit->base != NULL) && unit->base->mem_base)
+		if ((unit->base != NULL) && ((unit->base->mem_base) || (PTR == unit->base->type)))
 		{
 			if ((-1 == unit->f_num) || (-2 == unit->f_num))
 			{
@@ -692,12 +692,12 @@ void find_unit_in_superunit(char *name, struct unit_struct *superunit)
 	
 	
 	
-	if ((new_instrx.unit != NULL) && !new_instrx.unit->mem_base 
-							&& (new_instrx.unit->base != NULL) && new_instrx.unit->base->mem_base && superunit->mem_base)
+	if ((new_instrx.unit != NULL) && !new_instrx.unit->mem_base && (new_instrx.unit->base != NULL))
 	{
 		new_instrx.ptr_source = superunit;
 	}
 }
+
 void handle_inheritance(struct unit_struct *unit)
 {
 	parent_ptr->num_subunits = unit->num_subunits;
@@ -981,10 +981,9 @@ void handle_new_superunit()
 		unit->base = parent_ptr;
 		if (STRUCT == parent_ptr->type)
 		{
-			unit->base = clone_data(parent_ptr, sizeof(struct unit_struct));
-			unit->base->mem_base = STRUCT;
-			unit->base->f_num = 0;
 			unit->mem_used++;
+			
+			
 			if (METHOD == instrxs[instrx_idx - 1]->unit->type)
 			{
 				unit->type = METHOD;
@@ -993,6 +992,7 @@ void handle_new_superunit()
 			}
 			else
 			{
+				unit->base = clone_data(unit->base, sizeof(struct unit_struct));
 				unit->base->type = PTR;
 				unit->base->subunits = instantiate_subunits(unit->base, unit->base);
 			}
