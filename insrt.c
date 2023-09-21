@@ -780,7 +780,7 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 }
 struct unit_struct** instantiate_subunits(struct unit_struct *superunit, struct unit_struct *parent)
 {
-	struct unit_struct** units;
+	struct unit_struct** units = NULL;
 	units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
 	for (int i = 0; i < superunit->num_subunits; i++)
 	{
@@ -799,7 +799,7 @@ struct unit_struct *instantiate_method(struct unit_struct *unit, struct unit_str
 	if (NULL == temp_instrx_parent)
 	{
 		unit->mem_used = parent_ptr->mem_used;
-		if ((METHOD == unit->type) && (strlen(parent_ptr->name) > 0))
+		if ((METHOD == unit->type) && (!parent_ptr->base->mem_base))
 		{
 			
 			unit->base = parent_ptr->base->base;
@@ -894,7 +894,7 @@ struct unit_struct *get_correct_method_type()
 	}
 	else if (METHOD == parent_ptr->type)
 	{
-		if (strlen(parent_ptr->name) > 0)
+		if (!parent_ptr->base->mem_base)
 		{
 			return parent_ptr->base->base->method;
 		}
