@@ -49,9 +49,9 @@
 #define METHOD 9
 
 #define NUM_BASIC_UNITS 10
-
+#define STRUCT_UNINITIALIZED -2
+#define BASE_UNLOADED -1
 #define UNIT_NAME_MAX_LEN 20
-#define INT_CONST_MAX_LEN 5
 #define MAX_SUBUNITS 100
 #define MAX_SUPERUNIT_STACK 10
 #define MAX_UNIT_CHAIN_LEN 100
@@ -570,13 +570,13 @@ void initialize_unit(struct unit_struct *unit)
 	{
 		if ((unit->base != NULL) && ((unit->base->mem_base) || (PTR == unit->base->type)))
 		{
-			if ((-1 == unit->f_num) || (-2 == unit->f_num))
+			if ((BASE_UNLOADED == unit->f_num) || (STRUCT_UNINITIALIZED == unit->f_num))
 			{
 				load_base(unit);
 			}
 			initialize_unit(unit->base);
 		}
-		if (-2 == unit->f_num)
+		if (STRUCT_UNINITIALIZED == unit->f_num)
 		{
 			load_base_to_reg(unit->mem_offset * 8);
 			write_instrxs(unit->instrx_list, unit->num_instrx);
@@ -756,7 +756,7 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 		}
 		if (0 == instance->f_num)
 		{
-			instance->f_num = -1;
+			instance->f_num = BASE_UNLOADED;
 		}
 		parent = instance;
 	}
@@ -930,7 +930,7 @@ void handle_new_instrx()
 		}
 		if ((INSERTION == new_instrx.oper) && (STRUCT == parent_ptr->type))
 		{
-			parent_ptr->f_num = -2;
+			parent_ptr->f_num = STRUCT_UNINITIALIZED;
 		}
 		if (!is_default_instrx(&new_instrx) && new_instrx.oper != DEFINE)
 		{
