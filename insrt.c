@@ -684,7 +684,7 @@ struct unit_struct *find_unit_from_list(struct unit_struct **unit_list, int unit
 	}
 	return unit_match;
 }
-void find_unit_in_superunit(char *name, struct unit_struct *superunit)
+void find_unit_and_ptr_source(char *name, struct unit_struct *superunit)
 {
 	new_instrx.unit = find_unit_from_list(superunit->subunits, superunit->num_subunits, name);
 	
@@ -851,16 +851,16 @@ void handle_instantiation(struct instrx_struct *instrx)
 		}
 	}
 }
-void find_unit_in_parent(char *name, struct unit_struct *parent)
+void find_unit_in_superunit(char *name, struct unit_struct *parent)
 {
-	find_unit_in_superunit(name, parent);
+	find_unit_and_ptr_source(name, parent);
 	if ((NULL == new_instrx.unit) && (parent->parent != NULL) && (METHOD == parent->mem_base))
 	{
-		find_unit_in_parent(name, parent->parent);
+		find_unit_in_superunit(name, parent->parent);
 	}
 	if ((NULL == new_instrx.unit) && (parent->base != NULL))
 	{
-		find_unit_in_parent(name, parent->base);
+		find_unit_in_superunit(name, parent->base);
 	}
 }
 void handle_last_instrx()
@@ -1128,11 +1128,11 @@ void handle_unit_name(char *name)
 		{
 			if (new_instrx.oper != SUBUNIT)
 			{
-				find_unit_in_parent(name, parent_ptr);
+				find_unit_in_superunit(name, parent_ptr);
 			}
 			else
 			{
-				find_unit_in_superunit(name, instrxs[instrx_idx - 1]->unit);
+				find_unit_and_ptr_source(name, instrxs[instrx_idx - 1]->unit);
 			}
 		}
 		if (NULL == new_instrx.unit)
