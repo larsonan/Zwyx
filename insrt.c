@@ -684,20 +684,14 @@ struct unit_struct *find_unit_from_list(struct unit_struct **unit_list, int unit
 	}
 	return unit_match;
 }
-void find_unit_and_ptr_source(char *name, struct unit_struct *superunit)
+void find_unit_in_superunit(char *name, struct unit_struct *superunit)
 {
 	new_instrx.unit = find_unit_from_list(superunit->subunits, superunit->num_subunits, name);
-	
-	
-	
-	
-	
 	if ((new_instrx.unit != NULL) && !new_instrx.unit->mem_base && (new_instrx.unit->base != NULL))
 	{
 		new_instrx.ptr_source = superunit;
 	}
 }
-
 void handle_inheritance(struct unit_struct *unit)
 {
 	parent_ptr->num_subunits = unit->num_subunits;
@@ -705,12 +699,10 @@ void handle_inheritance(struct unit_struct *unit)
 	if (parent_ptr->num_subunits > 0)
 	{
 		memcpy(parent_ptr->subunits, unit->subunits, (unit->num_subunits * sizeof(struct unit_struct*)));
-		
 	}
 	if (unit->method != NULL)
 	{
 		parent_ptr->method = unit->method;
-		
 	}
 }
 
@@ -789,19 +781,17 @@ struct unit_struct** instantiate_subunits(struct unit_struct *superunit, struct 
 			units[i] = instantiate_unit(superunit->subunits[i], NULL, parent);
 		}
 	}
-	
 	return units;
 }
 struct unit_struct *instantiate_method(struct unit_struct *unit, struct unit_struct *temp_instrx_parent)
 {
-	unit = clone_data(unit, sizeof(struct unit_struct));
 	
+	unit = clone_data(unit, sizeof(struct unit_struct));
 	if (NULL == temp_instrx_parent)
 	{
 		unit->mem_used = parent_ptr->mem_used;
 		if ((METHOD == unit->type) && (!parent_ptr->base->mem_base))
 		{
-			
 			unit->base = parent_ptr->base->base;
 		}
 		else
@@ -812,13 +802,13 @@ struct unit_struct *instantiate_method(struct unit_struct *unit, struct unit_str
 	else
 	{
 		unit->mem_used = temp_instrx_parent->mem_offset + 1;
-		
 		unit->base = temp_instrx_parent;
 		unit->mem_base = METHOD;
 	}
 	
 	return unit;
 }
+
 struct unit_struct* instantiate_as_ptr(struct unit_struct *unit)
 {
 	struct unit_struct *new_ptr = instantiate_unit(basic_units[PTR], NULL, parent_ptr);
@@ -826,6 +816,7 @@ struct unit_struct* instantiate_as_ptr(struct unit_struct *unit)
 	new_ptr->num_subunits = unit->num_subunits;
 	return new_ptr;
 }
+
 void handle_instantiation(struct instrx_struct *instrx)
 {
 	if (((METHOD_PTR == instrx->unit->type) && instrx->unit->mem_base)
@@ -835,7 +826,6 @@ void handle_instantiation(struct instrx_struct *instrx)
 	}
 	else if (!instrx->unit->mem_base)
 	{
-		
 		if (instrx->is_ptr)
 		{
 			instrx->unit = instantiate_as_ptr(instrx->unit);
@@ -851,20 +841,32 @@ void handle_instantiation(struct instrx_struct *instrx)
 		}
 	}
 }
-void find_unit_in_superunit(char *name, struct unit_struct *parent)
+void id_unit(char *name)
 {
-	find_unit_and_ptr_source(name, parent);
-	if ((NULL == new_instrx.unit) && (parent->parent != NULL) && (METHOD == parent->mem_base))
+	struct unit_struct *superunit = parent_ptr;
+	while ((NULL == new_instrx.unit) && (superunit != NULL) && (METHOD == superunit->mem_base))
 	{
-		find_unit_in_superunit(name, parent->parent);
+		find_unit_in_superunit(name, superunit);
+		superunit = superunit->parent;
 	}
-	if ((NULL == new_instrx.unit) && (parent->base != NULL))
+	while ((NULL == new_instrx.unit) && (superunit != NULL))
 	{
-		find_unit_in_superunit(name, parent->base);
+		find_unit_in_superunit(name, superunit);
+		superunit = superunit->base;
+	}
+	superunit = parent_ptr;
+	
+	while ((NULL == new_instrx.unit) && (superunit != NULL) && (METHOD == superunit->mem_base))
+	{
+		find_unit_in_superunit(name, superunit->base);
+		superunit = superunit->parent;
 	}
 }
+
+
 void handle_last_instrx()
 {
+	
 	if ((parent_ptr->num_instrx > 0) && (new_instrx.oper != DEFINE))
 	{
 		struct instrx_struct *instrx = instrxs[instrx_idx - 1];
@@ -905,10 +907,8 @@ struct unit_struct *get_correct_method_type()
 	}
 	return basic_units[METHOD];
 }
-
 void handle_new_instrx()
 {
-	
 	if ((SUBUNIT == new_instrx.oper) && ((new_instrx.unit->type != METHOD) || (instrxs[instrx_idx - 1]->oper != DEFINE)))
 	{
 		handle_instantiation(instrxs[instrx_idx - 1]);
@@ -1128,11 +1128,11 @@ void handle_unit_name(char *name)
 		{
 			if (new_instrx.oper != SUBUNIT)
 			{
-				find_unit_in_superunit(name, parent_ptr);
+				id_unit(name);
 			}
 			else
 			{
-				find_unit_and_ptr_source(name, instrxs[instrx_idx - 1]->unit);
+				find_unit_in_superunit(name, instrxs[instrx_idx - 1]->unit);
 			}
 		}
 		if (NULL == new_instrx.unit)
