@@ -51,9 +51,9 @@
 #define NUM_BASIC_UNITS 10
 #define STRUCT_UNINITIALIZED -2
 #define BASE_UNLOADED -1
+#define WORD_SIZE 8
 #define UNIT_NAME_MAX_LEN 20
 #define MAX_SUBUNITS 100
-#define MAX_SUPERUNIT_STACK 10
 #define MAX_UNIT_CHAIN_LEN 100
 #define MAX_ERRORS 100
 #define MAX_METHOD_UNITS 100
@@ -213,8 +213,8 @@ void setup_basic_units(void)
 		basic_units[i]->mem_base = false;
 		basic_units[i]->name = basic_unit_names[i];
 	}
-	basic_units[PTR]->mem_used = 1;
-	basic_units[INT]->mem_used = 1;
+	basic_units[PTR]->mem_used = WORD_SIZE;
+	basic_units[INT]->mem_used = WORD_SIZE;
 	basic_units[SYSRUN]->method = basic_units[METHOD];
 }
 void init(void)
@@ -222,7 +222,7 @@ void init(void)
 	instrx_idx = 0;
 	num_errors = 0;
 	parent_ptr = NULL;
-	basic_unit_data[METHOD_PTR].mem_used = 1;
+	basic_unit_data[METHOD_PTR].mem_used = WORD_SIZE;
 	subunit_stack_idx = 0;
 	setup_basic_units();
 }
@@ -236,15 +236,15 @@ void write_unit(struct unit_struct *unit)
 	{
 		if (METHOD == unit->mem_base)
 		{
-			(void)fprintf(xcfile, "[%s-%d]", REG_DEFAULT, unit->mem_offset * 8);
+			(void)fprintf(xcfile, "[%s-%d]", REG_DEFAULT, unit->mem_offset);
 		}
 		else if (PTR == unit->mem_base)
 		{
-			(void)fprintf(xcfile, "[%s+%d]", REG_PTR, unit->mem_offset * 8);
+			(void)fprintf(xcfile, "[%s+%d]", REG_PTR, unit->mem_offset);
 		}
 		else
 		{
-			(void)fprintf(xcfile, "[%s+%d]", REG_BASE, unit->mem_offset * 8);
+			(void)fprintf(xcfile, "[%s+%d]", REG_BASE, unit->mem_offset);
 		}
 	}
 }
@@ -274,7 +274,7 @@ void write_do(struct unit_struct *unit)
 	}
 	(void)fprintf(xcfile, "%s,\t", REG_BASE);
 	write_unit(unit->base);
-	(void)fprintf(xcfile, "\nsub\t%s,\t%d\n", REG_DEFAULT, (unit->mem_used - 1) * 8);
+	(void)fprintf(xcfile, "\nsub\t%s,\t%d\n", REG_DEFAULT, unit->mem_used - WORD_SIZE);
 	
 	if (METHOD_PTR == unit->type)
 	{
@@ -286,7 +286,7 @@ void write_do(struct unit_struct *unit)
 		(void)fprintf(xcfile, "call\tf%d\n", unit->f_num);
 	}
 	
-	(void)fprintf(xcfile, "add\t%s,\t%d\n", REG_DEFAULT, (unit->mem_used - 1) * 8);
+	(void)fprintf(xcfile, "add\t%s,\t%d\n", REG_DEFAULT, unit->mem_used - WORD_SIZE);
 	(void)fprintf(xcfile, "mov\t%s,\t[%s]\n", REG_BASE, REG_DEFAULT);
 }
 
@@ -296,11 +296,11 @@ void write_insertion_dst(struct unit_struct *unit)
 	{
 		if (STRUCT == unit->mem_base)
 		{
-			(void)fprintf(xcfile, "[%s+%d]", REG_BASE, (unit->mem_offset + 1) * 8);
+			(void)fprintf(xcfile, "[%s+%d]", REG_BASE, unit->mem_offset + WORD_SIZE);
 		}
 		else
 		{
-			(void)fprintf(xcfile, "[%s-%d]", REG_DEFAULT, (unit->mem_offset - 1) * 8);
+			(void)fprintf(xcfile, "[%s-%d]", REG_DEFAULT, unit->mem_offset - WORD_SIZE);
 		}
 	}
 	else
@@ -322,7 +322,7 @@ void load_base(struct unit_struct *unit)
 		(void)fprintf(xcfile, "mov\t%s,\t", REG_TEMP);
 	}
 	write_unit(unit->base);
-	(void)fprintf(xcfile, "\nmov\t[%s-%d],\t%s\n", REG_DEFAULT, unit->mem_offset * 8, REG_TEMP);
+	(void)fprintf(xcfile, "\nmov\t[%s-%d],\t%s\n", REG_DEFAULT, unit->mem_offset, REG_TEMP);
 }
 void load_pointer_base(struct unit_struct *base)
 {
@@ -519,14 +519,14 @@ int get_temp_offset(struct unit_struct *unit)
 	}
 	else if (METHOD == unit->type)
 	{
-		result = unit->mem_offset - 1;
+		result = unit->mem_offset - WORD_SIZE;
 	}
 	else
 	{
-		result = unit->mem_used - 1;
+		result = unit->mem_used - WORD_SIZE;
 	}
 	
-	return result * 8;
+	return result;
 }
 void handle_math_oper(struct instrx_struct *instrx)
 {
@@ -536,7 +536,7 @@ void handle_math_oper(struct instrx_struct *instrx)
 		write_do_instrx(instrx);
 		int temp_offset = get_temp_offset(instrx->unit);
 		
-		store_temp(temp_offset + 8);
+		store_temp(temp_offset + WORD_SIZE);
 		get_stored_temp(temp_offset);
 	}
 	write_math_instrx(instrx);
@@ -578,7 +578,7 @@ void initialize_unit(struct unit_struct *unit)
 		}
 		if (STRUCT_UNINITIALIZED == unit->f_num)
 		{
-			load_base_to_reg(unit->mem_offset * 8);
+			load_base_to_reg(unit->mem_offset);
 			write_instrxs(unit->instrx_list, unit->num_instrx);
 			
 			restore_base_to_reg();
@@ -744,7 +744,7 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 		}
 		else
 		{
-			instance->mem_offset = temp_reg_mem + parent->mem_used + instance->mem_used - 1;
+			instance->mem_offset = temp_reg_mem + parent->mem_used + instance->mem_used - WORD_SIZE;
 		}
 		if (0 == instance->f_num)
 		{
@@ -772,7 +772,7 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 }
 struct unit_struct** instantiate_subunits(struct unit_struct *superunit, struct unit_struct *parent)
 {
-	struct unit_struct** units = NULL;
+	struct unit_struct** units;
 	units = clone_data(superunit->subunits, superunit->num_subunits * sizeof(struct unit_struct*));
 	for (int i = 0; i < superunit->num_subunits; i++)
 	{
@@ -801,7 +801,7 @@ struct unit_struct *instantiate_method(struct unit_struct *unit, struct unit_str
 	}
 	else
 	{
-		unit->mem_used = temp_instrx_parent->mem_offset + 1;
+		unit->mem_used = temp_instrx_parent->mem_offset + WORD_SIZE;
 		unit->base = temp_instrx_parent;
 		unit->mem_base = METHOD;
 	}
@@ -934,7 +934,7 @@ void handle_new_instrx()
 		}
 		if (!is_default_instrx(&new_instrx) && new_instrx.oper != DEFINE)
 		{
-			temp_reg_mem = 1;
+			temp_reg_mem = WORD_SIZE;
 		}
 		else
 		{
@@ -981,7 +981,7 @@ void handle_new_superunit()
 		unit->base = parent_ptr;
 		if (STRUCT == parent_ptr->type)
 		{
-			unit->mem_used++;
+			unit->mem_used += WORD_SIZE;
 			
 			
 			if (METHOD == instrxs[instrx_idx - 1]->unit->type)
@@ -1023,7 +1023,7 @@ void handle_new_superunit()
 				
 				unit->base->mem_base = METHOD;
 				handle_new_method(unit);
-				unit->mem_used = 1;
+				unit->mem_used = WORD_SIZE;
 			}
 			else
 			{
@@ -1086,7 +1086,7 @@ void start_base_unit()
 	parent_ptr = clone_data(basic_units[MAIN], sizeof(struct unit_struct));
 	parent_ptr->parent = NULL;
 	parent_ptr->type = METHOD;
-	parent_ptr->mem_used += 1;
+	parent_ptr->mem_used += WORD_SIZE;
 	parent_ptr->subunits = subunit_stack;
 	parent_ptr->base = NULL;
 }
