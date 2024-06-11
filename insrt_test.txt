@@ -3,16 +3,6 @@ bytes~{
 	
 }
 
-system~{
-	~sysrun
-	
-	rax~int
-	rdx~int
-	
-	rdi~int
-	rsi~int
-}
-
 interface~{
 	ignore~int
 	
@@ -77,7 +67,7 @@ print~{
 	fn:@{
 		wr~@writenf:$
 		b~@bytes:wr.bn
-		system.{
+		_system.{
 			rax:0x2000004
 			rsi:{b+8}
 			rdi:1
