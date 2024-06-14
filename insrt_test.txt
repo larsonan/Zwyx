@@ -67,13 +67,7 @@ print~{
 	fn:@{
 		wr~@writenf:$
 		b~@bytes:wr.bn
-		_system.{
-			rax:0x2000004
-			rsi:{b+8}
-			rdi:1
-			rdx:{b.c0*8}
-			;
-		}
+		_console_write:b
 	}
 }
 list~{

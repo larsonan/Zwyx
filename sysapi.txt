@@ -1,0 +1,16 @@
+_system~{
+	rax~int
+	rdx~int
+	rdi~int
+	rsi~int
+	;~{}
+}
+
+0_START_INSTRXS
+f0:
+mov	rax,	[rbx+0]
+mov	rdx,	[rbx+8]
+mov	rdi,	[rbx+16]
+mov	rsi,	[rbx+24]
+syscall
+ret

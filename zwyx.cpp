@@ -137,7 +137,7 @@ struct unit_struct *parent_ptr;
 struct unit_struct *subunit_stack[MAX_SUBUNITS];
 
 int subunit_stack_idx;
-
+#define FORMAT "elf64"
 struct unit_struct basic_unit_data[NUM_BASIC_UNITS];
 vector<struct unit_struct*> basic_units;
 struct instrx_struct *instrxs[MAX_UNIT_CHAIN_LEN];
@@ -159,7 +159,7 @@ int temp_reg_mem;
 void dbg_out_str(string msg)
 {
 	FILE *test_f = fopen("output.txt", "a");
-	(void)fprintf(test_f, msg.c_str());
+	(void)fprintf(test_f, "%s", msg.c_str());
 	(void)fprintf(test_f, "\n");
 	fclose(test_f);
 }
@@ -648,28 +648,37 @@ void write_f(void)
 	}
 }
 
-void write_xc(void)
+void write_xc(string format)
 {
 	xcfile = fopen("xc.asm", "w");
-	(void)fprintf(xcfile, "global\t_main\n_main:\n");
+	
+	if (format == "macho64")
+	{
+	        (void)fprintf(xcfile, "global\t_main\n_main:\n");
+	}
+	else
+	{
+	        (void)fprintf(xcfile, "global\t_start\n_start:\n");
+	}
+	
 	write_instrxs(parent_ptr->instrx_list, parent_ptr->num_instrx);
-	(void)fprintf(xcfile, "ret\n");
+	
+	if (format == "macho64")
+	{
+	        (void)fprintf(xcfile, "ret\n");
+	}
+	else
+	{
+	        (void)fprintf(xcfile, "mov\trax,\t60\nmov\trdi,\t0\nsyscall\n");
+	}
+	
 	write_f();
 	
-	(void)fprintf(xcfile, compiled_instrxs.c_str());
-	
+	(void)fprintf(xcfile, "%s", compiled_instrxs.c_str());
 	
 	(void)fprintf(xcfile, "SECTION .bss\nstaticdata:\tresb\t%d\n", 8);
 	fclose(xcfile);
 }
-
-
-
-
-
-
-
-
 
 struct unit_struct *find_unit_from_list(vector<struct unit_struct*> unit_list, string name)
 {
@@ -1208,7 +1217,9 @@ int main(int argc, char** argv)
 	
 	init();
 	start_base_unit();
-	parse_file("sysapi_unix.txt");
+	parse_file("sysapi.txt");
+	parse_file(string("sysapi_")+FORMAT+".txt");
+	
 	parse_file(argv[1]);
 	end_base_unit();
 	if (num_errors > 0)
@@ -1218,8 +1229,9 @@ int main(int argc, char** argv)
 	}
 	else
 	{
-		write_xc();
+		write_xc(FORMAT);
 	}
 	
 	return 0;
 }
+
