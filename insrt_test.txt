@@ -48,7 +48,7 @@ writenf~{
 			
 			size~int:1
 			
-			{in}#{
+			{in > 0}#{
 				p.c0:{in%10+48}
 				in:{in/10}
 				p:{p-8}
@@ -88,7 +88,7 @@ list~{
 			remaining~int
 			remaining:p.c0
 			p:{p+8}
-			{remaining}#{
+			{remaining > 0}#{
 				mbr~@bytes:p.c0
 				mbr.{f}
 				
@@ -125,7 +125,7 @@ str~{
 			self.c0:{countself+countin}
 			self:{self+8+{countself*8}}
 			in:{in+8}
-			{countin}#{
+			{countin > 0}#{
 				self.c0:in.c0
 				self:{self+8}
 				in:{in+8}
@@ -175,10 +175,8 @@ factorial~{
 	in~int
 	;~{
 		out~int:1
-		{in}?{
-			{in-1}?{
-				out:{in * factorial:{in-1}}
-			}
+		{in > 1}?{
+			out:{in * factorial:{in-1}}
 		}
 		out
 	}

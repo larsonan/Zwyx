@@ -122,7 +122,7 @@ struct unit_struct
 	int f_num;
 	struct unit_struct *method;
 	struct unit_struct *parent;
-	struct instrx_struct **instrx_list;
+	vector<struct instrx_struct*> instrx_list;
 	int num_instrx;
 };
 
@@ -140,7 +140,7 @@ int subunit_stack_idx;
 #define FORMAT "elf64"
 struct unit_struct basic_unit_data[NUM_BASIC_UNITS];
 vector<struct unit_struct*> basic_units;
-struct instrx_struct *instrxs[MAX_UNIT_CHAIN_LEN];
+
 int instrx_idx;
 
 vector<struct unit_struct*> funcs;
@@ -199,8 +199,8 @@ void print_errors(void)
 }
 
 vector<struct unit_struct*> instantiate_subunits(struct unit_struct *superunit, struct unit_struct *parent);
-void write_instrxs(struct instrx_struct **instrx, int num_instrx);
 
+void write_instrxs(vector<struct instrx_struct*> instrx);
 
 
 void setup_basic_units(void)
@@ -223,7 +223,7 @@ void init(void)
 	num_errors = 0;
 	parent_ptr = NULL;
 	basic_unit_data[METHOD_PTR].mem_used = WORD_SIZE;
-	subunit_stack_idx = 0;
+	
 	setup_basic_units();
 }
 void write_unit(struct unit_struct *unit)
@@ -248,14 +248,7 @@ void write_unit(struct unit_struct *unit)
 		}
 	}
 }
-void write_compare(struct instrx_struct *left_instrx, struct instrx_struct *right_instrx)
-{
-	(void)fprintf(xcfile, "cmp\t");
-	write_unit(left_instrx->unit);
-	(void)fprintf(xcfile, ",\t");
-	write_unit(right_instrx->unit);
-	(void)fprintf(xcfile, "\n");
-}
+
 void write_do(struct unit_struct *unit)
 {
 	if (METHOD_PTR == unit->type)
@@ -351,33 +344,6 @@ void write_insertion(struct instrx_struct *instrx)
 	(void)fprintf(xcfile, "\n");
 }
 
-int write_control_start(struct instrx_struct *instrx)
-{
-	int b_num = num_b;
-	if (COND == instrx->oper)
-	{
-		num_b++;
-		(void)fprintf(xcfile, "b%d:\n", b_num);
-	}
-	if ((BRANCH == instrx->oper) || (WHILE == instrx->oper))
-	{
-		num_b++;
-		(void)fprintf(xcfile, "cmp\t%s,\t0\nje\tb%d\n", REG_TEMP, b_num);
-	}
-	return b_num;
-}
-void write_control_end(struct instrx_struct *instrx, int b_num)
-{
-	if (WHILE == instrx->oper)
-	{
-		(void)fprintf(xcfile, "jmp\tb%d\n", b_num - 1);
-	}
-	if ((BRANCH == instrx->oper) || (WHILE == instrx->oper))
-	{
-		(void)fprintf(xcfile, "b%d:\n", b_num);
-		instrx->oper = NO_OPER;
-	}
-}
 void write_load_ptr(struct instrx_struct *instrx)
 {
 	
@@ -452,6 +418,12 @@ void write_math_instrx(struct instrx_struct *instrx)
 		
 		(void)fprintf(xcfile, "mul\tqword\t");
 		break;
+	case COMPARE:
+	case COMPARE_NOT:
+	case GREATER_THAN:
+	case LESS_THAN:
+	        (void)fprintf(xcfile, "cmp\t%s,\t", REG_TEMP);
+	        break;
 	default:
 		break;
 	}
@@ -466,9 +438,25 @@ void write_math_instrx(struct instrx_struct *instrx)
 		(void)fprintf(xcfile, "\n");
 	}
 	
-	if (MODULUS == instrx->oper)
+	switch (instrx->oper)
 	{
-		(void)fprintf(xcfile, "mov\t%s,\trdx\n", REG_TEMP);
+	        case MODULUS:
+		        (void)fprintf(xcfile, "mov\t%s,\trdx\n", REG_TEMP);
+		        break;
+		case COMPARE:
+		        (void)fprintf(xcfile, "setg\tal\nmovzx\t%s,\tal\n", REG_TEMP);
+		        break;
+		case COMPARE_NOT:
+		        (void)fprintf(xcfile, "setne\tal\nmovzx\t%s,\tal\n", REG_TEMP);
+		        break;
+		case GREATER_THAN:
+		        (void)fprintf(xcfile, "setg\tal\nmovzx\t%s,\tal\n", REG_TEMP);
+		        break;
+		case LESS_THAN:
+		        (void)fprintf(xcfile, "setl\tal\nmovzx\t%s,\tal\n", REG_TEMP);
+		        break;
+		default:
+		        break;
 	}
 }
 void write_do_instrx(struct instrx_struct *instrx)
@@ -478,7 +466,7 @@ void write_do_instrx(struct instrx_struct *instrx)
 	{
 		if ((METHOD == instrx->unit->type) && (0 == instrx->unit->name.length()))
 		{
-			write_instrxs(instrx->unit->instrx_list, instrx->unit->num_instrx);
+			write_instrxs(instrx->unit->instrx_list);
 		}
 		else
 		{
@@ -579,7 +567,7 @@ void initialize_unit(struct unit_struct *unit)
 		if (STRUCT_UNINITIALIZED == unit->f_num)
 		{
 			load_base_to_reg(unit->mem_offset);
-			write_instrxs(unit->instrx_list, unit->num_instrx);
+			write_instrxs(unit->instrx_list);
 			
 			restore_base_to_reg();
 		}
@@ -588,17 +576,12 @@ void initialize_unit(struct unit_struct *unit)
 }
 void write_line(struct instrx_struct *instrx)
 {
-	int b_num;
-	if (is_control_instrx(instrx))
-	{
-		b_num = write_control_start(instrx);
-	}
 	if (!is_default_instrx(instrx) && (instrx->oper != DEFINE)
 				&& ((METHOD == instrx->unit->type) || (STRUCT == instrx->unit->type) || (METHOD_PTR == instrx->unit->type)))
 	{
 		store_temp(get_temp_offset(instrx->unit));
 	}
-	if (instrx->insertion_source != NULL)
+	if ((instrx->insertion_source != NULL) && (instrx->insertion_source->oper != WHILE))
 	{
 		write_line(instrx->insertion_source);
 	}
@@ -607,34 +590,63 @@ void write_line(struct instrx_struct *instrx)
 		load_pointer_base(instrx->unit->base);
 		
 	}
-	if ((instrx->insertion_source != NULL) && (instrx->insertion_source->oper != SUBUNIT))
+	if ((instrx->insertion_source != NULL) && (instrx->insertion_source->oper != SUBUNIT)
+	              && instrx->insertion_source->oper != WHILE)
 	{
 		write_insertion(instrx);
 		
 	}
 	initialize_unit(instrx->unit);
-	
 	write_operation(instrx);
-	
-	
-	if (is_control_instrx(instrx))
-	{
-		write_control_end(instrx, b_num);
-	}
 }
 
-void write_instrxs(struct instrx_struct **instrxs, int num_instrx)
+void write_line_with_if(struct instrx_struct* instrx)
 {
-	
-	for (int i = 0; i < num_instrx; i++)
+        int b_num = num_b;
+        num_b++;
+        (void)fprintf(xcfile, "cmp\t%s,\t0\nje\tb%d\n", REG_TEMP, b_num);
+        write_line(instrx);
+        (void)fprintf(xcfile, "b%d:\n", b_num);
+}
+
+void write_line_with_while(struct instrx_struct* instrx)
+{
+        int b_num = num_b;
+        num_b++;
+        (void)fprintf(xcfile, "b%d:\n", b_num);
+        write_line(instrx);
+        int b_num2 = num_b;
+        num_b++;
+        (void)fprintf(xcfile, "cmp\t%s,\t0\nje\tb%d\n", REG_TEMP, b_num2);
+        write_line(instrx->insertion_source);
+        (void)fprintf(xcfile, "jmp\tb%d\n", b_num);
+        (void)fprintf(xcfile, "b%d:\n", b_num2);
+}
+
+void write_line_with_control(struct instrx_struct* instrx)
+{
+        if ((instrx->insertion_source != NULL) && (WHILE == instrx->insertion_source->oper))
+        {
+                write_line_with_while(instrx);
+        }
+        else if (BRANCH == instrx->oper)
+        {
+                write_line_with_if(instrx);
+        }
+        else
+        {
+                write_line(instrx);
+        }
+}
+
+void write_instrxs(vector<struct instrx_struct*> instrxs)
+{
+        
+	for (int i = 0; i < instrxs.size(); i++)
 	{
-		if ((i < num_instrx - 1) && (COMPARE == instrxs[i+1]->oper))
+		if ((instrxs[i]->oper != INSERTION) && (instrxs[i]->oper != SUBUNIT) && (instrxs[i]->unit->type != DEF_NONE) && (instrxs[i]->oper != WHILE))
 		{
-			write_compare(instrxs[i], instrxs[i+1]);
-		}
-		if ((instrxs[i]->oper != INSERTION) && (instrxs[i]->oper != SUBUNIT) && (instrxs[i]->unit->type != DEF_NONE))
-		{
-			write_line(instrxs[i]);
+			write_line_with_control(instrxs[i]);
 		}
 	}
 }
@@ -643,7 +655,7 @@ void write_f(void)
 	for (int i = 0; i < funcs.size(); i++)
 	{
 		(void)fprintf(xcfile, "f%d:\npush\t%s\n", funcs[i]->f_num, REG_BASE);
-		write_instrxs(funcs[i]->instrx_list, funcs[i]->num_instrx);
+		write_instrxs(funcs[i]->instrx_list);
 		(void)fprintf(xcfile, "pop\t%s\nret\n", REG_BASE);
 	}
 }
@@ -661,7 +673,7 @@ void write_xc(string format)
 	        (void)fprintf(xcfile, "global\t_start\n_start:\n");
 	}
 	
-	write_instrxs(parent_ptr->instrx_list, parent_ptr->num_instrx);
+	write_instrxs(parent_ptr->instrx_list);
 	
 	if (format == "macho64")
 	{
@@ -878,7 +890,7 @@ void handle_last_instrx()
 	
 	if ((parent_ptr->num_instrx > 0) && (new_instrx.oper != DEFINE))
 	{
-		struct instrx_struct *instrx = instrxs[instrx_idx - 1];
+		struct instrx_struct *instrx = parent_ptr->instrx_list.back();
 		if ((DEF_NONE == instrx->unit->type) && (0 == instrx->unit->name.length()))
 		{
 			set_error(UNDEFINED_UNIT, instrx->unit_line, instrx->unit->name);
@@ -892,7 +904,7 @@ void handle_last_instrx()
 			handle_instantiation(instrx);
 			if (DEFINE == instrx->oper)
 			{
-				handle_define_statement(instrxs[instrx_idx - 2]->unit, instrx->unit);
+				handle_define_statement(parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2]->unit, instrx->unit);
 			}
 		}
 	}
@@ -918,29 +930,28 @@ struct unit_struct *get_correct_method_type()
 }
 void handle_new_instrx()
 {
-	if ((SUBUNIT == new_instrx.oper) && ((new_instrx.unit->type != METHOD) || (instrxs[instrx_idx - 1]->oper != DEFINE)))
+	if ((SUBUNIT == new_instrx.oper) && ((new_instrx.unit->type != METHOD) || (parent_ptr->instrx_list.back()->oper != DEFINE)))
 	{
-		handle_instantiation(instrxs[instrx_idx - 1]);
-		struct unit_struct *unit = instrxs[instrx_idx - 1]->unit;
-		instrxs[instrx_idx - 1]->ptr_source = unit;
-		instrxs[instrx_idx - 1]->unit = new_instrx.unit;
+		handle_instantiation(parent_ptr->instrx_list.back());
+		struct unit_struct *unit = parent_ptr->instrx_list.back()->unit;
+		parent_ptr->instrx_list.back()->ptr_source = unit;
+		parent_ptr->instrx_list.back()->unit = new_instrx.unit;
 	}
 	else
 	{
-		instrxs[instrx_idx] = new instrx_struct;
-		*instrxs[instrx_idx] = new_instrx;
-		if ((INSERTION == new_instrx.oper) || (SUBUNIT == new_instrx.oper))
+	        struct instrx_struct *temp = new instrx_struct(new_instrx);
+	        
+		
+		if ((INSERTION == new_instrx.oper) || (SUBUNIT == new_instrx.oper) || (WHILE == new_instrx.oper))
 		{
-			instrxs[instrx_idx - 1]->insertion_source = instrxs[instrx_idx];
+			parent_ptr->instrx_list.back()->insertion_source = temp;
 		}
-		else if (WHILE == new_instrx.oper)
-		{
-			instrxs[instrx_idx - 1]->oper = COND;
-		}
+		
 		if ((INSERTION == new_instrx.oper) && (STRUCT == parent_ptr->type))
 		{
 			parent_ptr->f_num = STRUCT_UNINITIALIZED;
 		}
+		
 		if (!is_default_instrx(&new_instrx) && new_instrx.oper != DEFINE)
 		{
 			temp_reg_mem = WORD_SIZE;
@@ -949,14 +960,14 @@ void handle_new_instrx()
 		{
 			temp_reg_mem = 0;
 		}
+		parent_ptr->instrx_list.push_back(temp);
 		instrx_idx++;
 		parent_ptr->num_instrx++;
 	}
 	new_instrx.oper = NO_OPER;
 	new_instrx.is_ptr = 0;
-	
 	new_instrx.ptr_source = NULL;
-	instrxs[instrx_idx - 1]->unit_line = line_num;
+	parent_ptr->instrx_list.back()->unit_line = line_num;
 }
 void handle_unit(struct unit_struct *unit)
 {
@@ -971,11 +982,6 @@ void handle_end_superunit()
 		return;
 	}
 	handle_last_instrx();
-	parent_ptr->instrx_list = new instrx_struct*[parent_ptr->num_instrx];
-	for (int i = 0; i < parent_ptr->num_instrx; i++)
-	{
-		parent_ptr->instrx_list[i] = instrxs[instrx_idx - parent_ptr->num_instrx + i];
-	}
 	instrx_idx = instrx_idx - parent_ptr->num_instrx;
 	if (parent_ptr->parent != NULL)
 	{
@@ -993,7 +999,7 @@ void handle_new_superunit()
 		if (STRUCT == parent_ptr->type)
 		{
 			unit->mem_used += WORD_SIZE;
-			if (METHOD == instrxs[instrx_idx - 1]->unit->type)
+			if (METHOD == parent_ptr->instrx_list.back()->unit->type)
 			{
 				unit->type = METHOD;
 				handle_new_method(unit);
@@ -1008,8 +1014,8 @@ void handle_new_superunit()
 				unit->base->subunits = instantiate_subunits(unit->base, unit->base);
 			}
 		}
-		handle_define_statement(instrxs[instrx_idx - 1]->unit, unit);
-		instrxs[instrx_idx - 1]->unit = basic_units[DEF_NONE];
+		handle_define_statement(parent_ptr->instrx_list.back()->unit, unit);
+		parent_ptr->instrx_list.back()->unit = basic_units[DEF_NONE];
 		new_instrx.oper = NO_OPER;
 	}
 	else
@@ -1020,8 +1026,8 @@ void handle_new_superunit()
 		handle_last_instrx();
 		if (SUBUNIT == new_instrx.oper)
 		{
-			unit->base = instrxs[instrx_idx - 1]->unit;
-			unit->mem_used += instrxs[instrx_idx - 1]->unit->mem_used;
+			unit->base = parent_ptr->instrx_list.back()->unit;
+			unit->mem_used += parent_ptr->instrx_list.back()->unit->mem_used;
 		}
 		else if (new_instrx.oper != BRANCH)
 		{
@@ -1140,7 +1146,7 @@ void handle_unit_name(string name)
 			}
 			else
 			{
-				find_unit_in_superunit(name, instrxs[instrx_idx - 1]->unit);
+				find_unit_in_superunit(name, parent_ptr->instrx_list.back()->unit);
 			}
 		}
 		if (NULL == new_instrx.unit)
