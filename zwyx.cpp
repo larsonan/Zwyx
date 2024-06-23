@@ -31,7 +31,7 @@ using namespace std;
 #define LOAD 9
 #define SUBTRACT 10
 #define LESS_THAN 11
-#define COND 12
+#define ELSE 12
 #define WHILE 13
 #define MULTIPLY 14
 #define MODULUS 15
@@ -127,7 +127,7 @@ struct unit_struct
 };
 
 string basic_unit_names[] = {"none", "", "", "int", "method", "sysrun", "", "", "", "do" };
-char opers[] = {'\0', ':', '~', '.', '?', '=', '+', '/', ',', '!', '-', '<', '\0', '#', '*', '%', '>'};
+char opers[] = {'\0', ':', '~', '.', '?', '=', '+', '/', ',', '\0', '-', '<', '!', '#', '*', '%', '>'};
 
 struct error_struct errors[MAX_ERRORS];
 int num_errors;
@@ -459,6 +459,18 @@ void write_math_instrx(struct instrx_struct *instrx)
 		        break;
 	}
 }
+void write_jump_unconditional(int b_num)
+{
+        (void)fprintf(xcfile, "jmp\tb%d\n", b_num);
+}
+void write_label_no(int b_num)
+{
+        (void)fprintf(xcfile, "b%d:\n", b_num);
+}
+void write_jump_conditional(int b_num)
+{
+        (void)fprintf(xcfile, "cmp\t%s,\t0\nje\tb%d\n", REG_TEMP, b_num);
+}
 void write_do_instrx(struct instrx_struct *instrx)
 {
 	if ((METHOD == instrx->unit->type) || ((METHOD_PTR == instrx->unit->type)
@@ -529,29 +541,13 @@ void handle_math_oper(struct instrx_struct *instrx)
 	}
 	write_math_instrx(instrx);
 }
-bool is_control_instrx(struct instrx_struct *instrx)
-{
-	return ((WHILE == instrx->oper) || (COND == instrx->oper) || (BRANCH == instrx->oper));
-}
-
 
 bool is_default_instrx(struct instrx_struct *instrx)
 {
-	return ((INSERTION == instrx->oper) || (is_control_instrx(instrx))
-			|| (SUBUNIT == instrx->oper) || (NO_OPER == instrx->oper));
+	return ((INSERTION == instrx->oper) || (NO_OPER == instrx->oper) || (SUBUNIT == instrx->oper)
+	      || (WHILE == instrx->oper) || (ELSE == instrx->oper) || (BRANCH == instrx->oper));
 }
 
-void write_operation(struct instrx_struct *instrx)
-{
-	if (is_default_instrx(instrx))
-	{
-		handle_instrx_default(instrx);
-	}
-	else if (instrx->oper != DEFINE)
-	{
-		handle_math_oper(instrx);
-	}
-}
 void initialize_unit(struct unit_struct *unit)
 {
 	if ((STRUCT == unit->type) || ((METHOD == unit->type) && (unit->f_num <= 0)))
@@ -581,57 +577,79 @@ void write_line(struct instrx_struct *instrx)
 	{
 		store_temp(get_temp_offset(instrx->unit));
 	}
-	if ((instrx->insertion_source != NULL) && (instrx->insertion_source->oper != WHILE))
+	if ((instrx->insertion_source != NULL) 
+	  && ((INSERTION == instrx->insertion_source->oper) || (SUBUNIT == instrx->insertion_source->oper)))
 	{
 		write_line(instrx->insertion_source);
 	}
 	if (PTR == instrx->unit->mem_base)
 	{
 		load_pointer_base(instrx->unit->base);
-		
 	}
-	if ((instrx->insertion_source != NULL) && (instrx->insertion_source->oper != SUBUNIT)
-	              && instrx->insertion_source->oper != WHILE)
+	if ((instrx->insertion_source != NULL) && (INSERTION == instrx->insertion_source->oper))
 	{
 		write_insertion(instrx);
-		
 	}
+	
 	initialize_unit(instrx->unit);
-	write_operation(instrx);
+	
+	if (is_default_instrx(instrx))
+	{
+		handle_instrx_default(instrx);
+	}
+	else if (instrx->oper != DEFINE)
+	{
+		handle_math_oper(instrx);
+	}
 }
 
-void write_line_with_if(struct instrx_struct* instrx)
+
+void write_line_with_branch(struct instrx_struct* instrx)
 {
+        write_line(instrx);
+        instrx = instrx->insertion_source;
         int b_num = num_b;
         num_b++;
-        (void)fprintf(xcfile, "cmp\t%s,\t0\nje\tb%d\n", REG_TEMP, b_num);
+        write_jump_conditional(b_num);
         write_line(instrx);
-        (void)fprintf(xcfile, "b%d:\n", b_num);
+        if ((instrx->insertion_source != NULL) && (ELSE == instrx->insertion_source->oper))
+        {
+                int b_num2 = num_b;
+                num_b++;
+                write_jump_unconditional(b_num2);
+                write_label_no(b_num);
+                write_line(instrx->insertion_source);
+                write_label_no(b_num2);
+        }
+        else
+        {
+                write_label_no(b_num);
+        }
 }
 
 void write_line_with_while(struct instrx_struct* instrx)
 {
         int b_num = num_b;
         num_b++;
-        (void)fprintf(xcfile, "b%d:\n", b_num);
+        write_label_no(b_num);
         write_line(instrx);
         int b_num2 = num_b;
         num_b++;
-        (void)fprintf(xcfile, "cmp\t%s,\t0\nje\tb%d\n", REG_TEMP, b_num2);
+        write_jump_conditional(b_num2);
         write_line(instrx->insertion_source);
-        (void)fprintf(xcfile, "jmp\tb%d\n", b_num);
-        (void)fprintf(xcfile, "b%d:\n", b_num2);
+        write_jump_unconditional(b_num);
+        write_label_no(b_num2);
 }
 
 void write_line_with_control(struct instrx_struct* instrx)
 {
-        if ((instrx->insertion_source != NULL) && (WHILE == instrx->insertion_source->oper))
+        if ((instrx->insertion_source != NULL) && (BRANCH == instrx->insertion_source->oper))
+        {
+                write_line_with_branch(instrx);
+        }
+        else if ((instrx->insertion_source != NULL) && (WHILE == instrx->insertion_source->oper))
         {
                 write_line_with_while(instrx);
-        }
-        else if (BRANCH == instrx->oper)
-        {
-                write_line_with_if(instrx);
         }
         else
         {
@@ -644,7 +662,7 @@ void write_instrxs(vector<struct instrx_struct*> instrxs)
         
 	for (int i = 0; i < instrxs.size(); i++)
 	{
-		if ((instrxs[i]->oper != INSERTION) && (instrxs[i]->oper != SUBUNIT) && (instrxs[i]->unit->type != DEF_NONE) && (instrxs[i]->oper != WHILE))
+		if ((instrxs[i]->oper != INSERTION) && (instrxs[i]->oper != SUBUNIT) && (instrxs[i]->unit->type != DEF_NONE) && (instrxs[i]->oper != WHILE) && (instrxs[i]->oper != ELSE) && (instrxs[i]->oper != BRANCH))
 		{
 			write_line_with_control(instrxs[i]);
 		}
@@ -942,7 +960,8 @@ void handle_new_instrx()
 	        struct instrx_struct *temp = new instrx_struct(new_instrx);
 	        
 		
-		if ((INSERTION == new_instrx.oper) || (SUBUNIT == new_instrx.oper) || (WHILE == new_instrx.oper))
+		if ((INSERTION == new_instrx.oper) || (SUBUNIT == new_instrx.oper)
+		    || (WHILE == new_instrx.oper) || (ELSE == new_instrx.oper) || (BRANCH == new_instrx.oper))
 		{
 			parent_ptr->instrx_list.back()->insertion_source = temp;
 		}

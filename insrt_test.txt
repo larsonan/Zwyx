@@ -174,11 +174,7 @@ print.{
 factorial~{
 	in~int
 	;~{
-		out~int:1
-		{in > 1}?{
-			out:{in * factorial:{in-1}}
-		}
-		out
+		{in < 2} ? 1 ! {in * factorial:{in-1}}
 	}
 }
 
