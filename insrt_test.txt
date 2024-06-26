@@ -179,3 +179,50 @@ factorial~{
 }
 
 print.{d:factorial:7 endl}
+
+enum~{
+	val~int
+	op~{
+		op_val~int
+		is~{
+			;~{val=op_val}
+		}
+		set~{
+			;~{val:op_val}
+		}
+	}
+}
+
+color~{
+	~enum
+	red~{~op op_val:0}
+	green~{~op op_val:1}
+	orange~{~op op_val:2}
+	yellow~{~op op_val:3}
+	blue~{~op op_val:4}
+}
+
+color_a~color
+color_a.blue.set
+print.{d:color_a.blue.is endl d:color_a.orange.is endl}
+
+write_color~{
+	write~@writenf
+	colrw~color
+	;~{
+		write.{
+			colrw.{
+				red.is ? {c:82 c:69 c:68}
+				! green.is ? {c:71 c:82 c:69 c:69 c:78}
+				! orange.is ? {c:79 c:82 c:65 c:78 c:71 c:69}
+				! yellow.is ? {c:89 c:69 c:76 c:76 c:79 c:87}
+				! blue.is ? {c:66 c:76 c:85 c:69}
+			}
+			endl
+		}
+	}
+}
+
+printer~print
+write_color.{write:@printer colrw:color_a ; color_a.orange.set colrw:color_a ;}
+

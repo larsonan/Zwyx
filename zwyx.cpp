@@ -199,9 +199,9 @@ void print_errors(void)
 }
 
 vector<struct unit_struct*> instantiate_subunits(struct unit_struct *superunit, struct unit_struct *parent);
-
+struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struct *base, struct unit_struct *parent);
 void write_instrxs(vector<struct instrx_struct*> instrx);
-
+void write_line_with_control(struct instrx_struct *instrx);
 
 void setup_basic_units(void)
 {
@@ -319,6 +319,10 @@ void load_base(struct unit_struct *unit)
 }
 void load_pointer_base(struct unit_struct *base)
 {
+        if (PTR == base->mem_base)
+        {
+                load_pointer_base(base->base);
+        }
 	(void)fprintf(xcfile, "mov\t%s,\t", REG_PTR);
 	write_unit(base);
 	(void)fprintf(xcfile, "\n");
@@ -444,7 +448,7 @@ void write_math_instrx(struct instrx_struct *instrx)
 		        (void)fprintf(xcfile, "mov\t%s,\trdx\n", REG_TEMP);
 		        break;
 		case COMPARE:
-		        (void)fprintf(xcfile, "setg\tal\nmovzx\t%s,\tal\n", REG_TEMP);
+		        (void)fprintf(xcfile, "sete\tal\nmovzx\t%s,\tal\n", REG_TEMP);
 		        break;
 		case COMPARE_NOT:
 		        (void)fprintf(xcfile, "setne\tal\nmovzx\t%s,\tal\n", REG_TEMP);
@@ -470,6 +474,10 @@ void write_label_no(int b_num)
 void write_jump_conditional(int b_num)
 {
         (void)fprintf(xcfile, "cmp\t%s,\t0\nje\tb%d\n", REG_TEMP, b_num);
+}
+void decrease_base_level()
+{
+        (void)fprintf(xcfile, "mov\t%s,\t[%s]\n", REG_PTR, REG_PTR);
 }
 void write_do_instrx(struct instrx_struct *instrx)
 {
@@ -584,7 +592,14 @@ void write_line(struct instrx_struct *instrx)
 	}
 	if (PTR == instrx->unit->mem_base)
 	{
-		load_pointer_base(instrx->unit->base);
+	        load_pointer_base(instrx->unit->base);
+	}
+	if ((instrx->ptr_source != NULL) && (INT == instrx->ptr_source->type))
+	{
+	        for (int i = 4; i <= instrx->ptr_source->mem_offset; i++)
+	        {
+	                decrease_base_level();
+	        }
 	}
 	if ((instrx->insertion_source != NULL) && (INSERTION == instrx->insertion_source->oper))
 	{
@@ -618,7 +633,7 @@ void write_line_with_branch(struct instrx_struct* instrx)
                 num_b++;
                 write_jump_unconditional(b_num2);
                 write_label_no(b_num);
-                write_line(instrx->insertion_source);
+                write_line_with_control(instrx->insertion_source);
                 write_label_no(b_num2);
         }
         else
@@ -888,16 +903,26 @@ void id_unit(string name)
 		find_unit_in_superunit(name, superunit);
 		superunit = superunit->parent;
 	}
+	int base_level = 0;
 	while ((NULL == new_instrx.unit) && (superunit != NULL))
 	{
 		find_unit_in_superunit(name, superunit);
 		superunit = superunit->base;
+		base_level++;
+	}
+	if ((new_instrx.unit != NULL) && (base_level >= 4) && (INT == new_instrx.unit->type))
+	{
+	        new_instrx.ptr_source = new unit_struct(*basic_units[INT]);
+	        new_instrx.ptr_source->mem_offset = base_level;
 	}
 	superunit = parent_ptr;
 	
 	while ((NULL == new_instrx.unit) && (superunit != NULL) && (METHOD == superunit->mem_base))
 	{
-		find_unit_in_superunit(name, superunit->base);
+	        if (superunit->base != NULL)
+	        {
+		        find_unit_in_superunit(name, superunit->base);
+		}
 		superunit = superunit->parent;
 	}
 }
@@ -912,6 +937,10 @@ void handle_last_instrx()
 		if ((DEF_NONE == instrx->unit->type) && (0 == instrx->unit->name.length()))
 		{
 			set_error(UNDEFINED_UNIT, instrx->unit_line, instrx->unit->name);
+		}
+		else if ((INT_CONST == instrx->unit->type) && (INSERTION == new_instrx.oper))
+		{
+		        set_error(INVALID_USE_OF_OPER, instrx->unit_line, ":");
 		}
 		else if ((DEFINE == instrx->oper) && (1 == parent_ptr->num_instrx))
 		{
