@@ -86,7 +86,10 @@ struct instrx_struct
 	int oper;
 	int is_ptr;
 	int unit_line;
-	struct unit_struct *ptr_source;
+	int oper_line;
+	int base_level;
+	int is_base;
+	struct instrx_struct *ptr_source;
 	struct instrx_struct *insertion_source;
 };
 
@@ -317,14 +320,10 @@ void load_base(struct unit_struct *unit)
 	write_unit(unit->base);
 	(void)fprintf(xcfile, "\nmov\t[%s-%d],\t%s\n", REG_DEFAULT, unit->mem_offset, REG_TEMP);
 }
-void load_pointer_base(struct unit_struct *base)
+void load_pointer_base(struct instrx_struct *instrx)
 {
-        if (PTR == base->mem_base)
-        {
-                load_pointer_base(base->base);
-        }
 	(void)fprintf(xcfile, "mov\t%s,\t", REG_PTR);
-	write_unit(base);
+	write_unit(instrx->unit);
 	(void)fprintf(xcfile, "\n");
 }
 
@@ -592,11 +591,11 @@ void write_line(struct instrx_struct *instrx)
 	}
 	if (PTR == instrx->unit->mem_base)
 	{
-	        load_pointer_base(instrx->unit->base);
+	        load_pointer_base(instrx->ptr_source);
 	}
-	if ((instrx->ptr_source != NULL) && (INT == instrx->ptr_source->type))
+	if (instrx->ptr_source != NULL)
 	{
-	        for (int i = 4; i <= instrx->ptr_source->mem_offset; i++)
+	        for (int i = 4; i <= instrx->ptr_source->base_level; i++)
 	        {
 	                decrease_base_level();
 	        }
@@ -741,9 +740,10 @@ struct unit_struct *find_unit_from_list(vector<struct unit_struct*> unit_list, s
 void find_unit_in_superunit(string name, struct unit_struct *superunit)
 {
 	new_instrx.unit = find_unit_from_list(superunit->subunits, name);
-	if ((new_instrx.unit != NULL) && !new_instrx.unit->mem_base && (new_instrx.unit->base != NULL))
+	if ((new_instrx.unit != NULL) && (new_instrx.unit->base != NULL))
 	{
-		new_instrx.ptr_source = superunit;
+		new_instrx.ptr_source = new instrx_struct;
+		new_instrx.ptr_source->unit = superunit;
 	}
 }
 void handle_inheritance(struct unit_struct *unit)
@@ -886,7 +886,12 @@ void handle_instantiation(struct instrx_struct *instrx)
 		}
 		else
 		{
-			instrx->unit = instantiate_unit(instrx->unit, instrx->ptr_source, parent_ptr);
+		        struct unit_struct *base = NULL;
+		        if (instrx->ptr_source != NULL)
+		        {
+		                base = instrx->ptr_source->unit;
+		        }
+			instrx->unit = instantiate_unit(instrx->unit, base, parent_ptr);
 			
 			if ((instrx->unit->method != NULL) && (instrx->oper != DEFINE) && (new_instrx.oper != SUBUNIT))
 			{
@@ -912,8 +917,7 @@ void id_unit(string name)
 	}
 	if ((new_instrx.unit != NULL) && (base_level >= 4) && (INT == new_instrx.unit->type))
 	{
-	        new_instrx.ptr_source = new unit_struct(*basic_units[INT]);
-	        new_instrx.ptr_source->mem_offset = base_level;
+	        new_instrx.ptr_source->base_level = base_level;
 	}
 	superunit = parent_ptr;
 	
@@ -981,7 +985,10 @@ void handle_new_instrx()
 	{
 		handle_instantiation(parent_ptr->instrx_list.back());
 		struct unit_struct *unit = parent_ptr->instrx_list.back()->unit;
-		parent_ptr->instrx_list.back()->ptr_source = unit;
+		struct instrx_struct *ptr_source = parent_ptr->instrx_list.back()->ptr_source;
+		parent_ptr->instrx_list.back()->ptr_source = new instrx_struct;
+		parent_ptr->instrx_list.back()->ptr_source->ptr_source = ptr_source;
+		parent_ptr->instrx_list.back()->ptr_source->unit = unit;
 		parent_ptr->instrx_list.back()->unit = new_instrx.unit;
 	}
 	else
