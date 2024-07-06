@@ -237,9 +237,9 @@ void write_unit(struct instrx_struct *instrx)
 	}
 	else
 	{
-		if (PTR == instrx->unit->mem_base)
+		if (METHOD == instrx->unit->mem_base)
 		{
-			(void)fprintf(xcfile, "[%s+%d]", REG_PTR, instrx->unit->mem_offset);
+			(void)fprintf(xcfile, "[%s-%d]", REG_DEFAULT, instrx->unit->mem_offset);
 		}
 		else if (2 == instrx->base_level)
 		{
@@ -247,7 +247,7 @@ void write_unit(struct instrx_struct *instrx)
 		}
 		else
 		{
-			(void)fprintf(xcfile, "[%s-%d]", REG_DEFAULT, instrx->unit->mem_offset);
+			(void)fprintf(xcfile, "[%s+%d]", REG_PTR, instrx->unit->mem_offset);
 		}
 	}
 }
@@ -317,27 +317,7 @@ void write_insertion_dst(struct instrx_struct *instrx)
 	}
 }
 
-void load_base(struct instrx_struct *instrx)
-{
-        if (instrx->base_level > 2)
-        {
-                (void)fprintf(xcfile, "mov\t%s,\t[%s+0]", REG_TEMP, REG_BASE);
-        }
-        else
-        {
-	        if (STRUCT == instrx->unit->base->type)
-	        {
-		        (void)fprintf(xcfile, "lea\t%s,\t", REG_TEMP);
-	        }
-	        else
-	        {
-		        (void)fprintf(xcfile, "mov\t%s,\t", REG_TEMP);
-	        }
-	        write_unit(instrx->ptr_source);
-	}
-	(void)fprintf(xcfile, "\nmov\t[%s-%d],\t%s\n", REG_DEFAULT, instrx->unit->mem_offset, REG_TEMP);
-}
-void load_pointer_base(struct instrx_struct *instrx)
+void write_load_ptr_base(struct instrx_struct *instrx)
 {
 	(void)fprintf(xcfile, "mov\t%s,\t", REG_PTR);
 	write_unit(instrx);
@@ -364,7 +344,7 @@ void write_insertion(struct instrx_struct *instrx)
 	(void)fprintf(xcfile, "\n");
 }
 
-void write_load_ptr(struct instrx_struct *instrx)
+void write_ptr_to_temp(struct instrx_struct *instrx)
 {
 	
 	if (METHOD == instrx->unit->type)
@@ -374,12 +354,23 @@ void write_load_ptr(struct instrx_struct *instrx)
 	}
 	else
 	{
-		(void)fprintf(xcfile, "lea\t%s,\t", REG_TEMP);
-		write_unit(instrx);
-		(void)fprintf(xcfile, "\n");
+	        if (STRUCT == instrx->unit->type)
+	        {
+		        (void)fprintf(xcfile, "lea\t%s,\t", REG_TEMP);
+		}
+	        else
+	        {
+	                (void)fprintf(xcfile, "mov\t%s,\t", REG_TEMP);
+	        }
+	        write_unit(instrx);
+	        (void)fprintf(xcfile, "\n");
 	}
 }
 
+void load_base_to_temp()
+{
+        (void)fprintf(xcfile, "mov\t%s,\t[%s+0]\n", REG_TEMP, REG_BASE);
+}
 void store_temp(int mem_offset)
 {
 	(void)fprintf(xcfile, "mov\t[%s-%d],\t%s\n", REG_DEFAULT, mem_offset, REG_TEMP);
@@ -494,10 +485,38 @@ void write_jump_conditional(int b_num)
 void decrease_base_level(int base_level)
 {
         (void)fprintf(xcfile, "mov\t%s,\t[%s+0]\n", REG_PTR, REG_BASE);
-        if (base_level >= 4)
+        for (int i = 4; i <= base_level; i++)
         {
                 (void)fprintf(xcfile, "mov\t%s,\t[%s]\n", REG_PTR, REG_PTR);
         }
+}
+void load_pointer_base(struct instrx_struct *instrx)
+{
+        if (instrx->base_level > 2)
+        {
+                decrease_base_level(instrx->base_level);
+        }
+        else if (PTR == instrx->unit->mem_base)
+        {
+                load_pointer_base(instrx->ptr_source);
+        }
+        write_load_ptr_base(instrx);
+}
+void load_base(struct instrx_struct *instrx)
+{
+        if (instrx->base_level > 2)
+        {
+                load_base_to_temp();
+        }
+        else
+        {
+                if (PTR == instrx->unit->mem_base)
+                {
+                        load_pointer_base(instrx);
+                }
+                write_ptr_to_temp(instrx->ptr_source);
+	}
+	store_temp(instrx->unit->mem_offset);
 }
 void write_do_instrx(struct instrx_struct *instrx)
 {
@@ -524,7 +543,7 @@ void handle_instrx_default(struct instrx_struct *instrx)
 {
 	if (instrx->is_ptr)
 	{
-		write_load_ptr(instrx);
+		write_ptr_to_temp(instrx);
 	}
 	else if (((STRUCT == instrx->unit->type) && (instrx->unit->method != NULL)) 
 		|| (METHOD == instrx->unit->type) || (METHOD_PTR == instrx->unit->type))
@@ -618,7 +637,7 @@ void write_line(struct instrx_struct *instrx)
 	{
 		write_line(instrx->insertion_source);
 	}
-	if ((instrx->base_level > 2) && (PTR == instrx->unit->mem_base))
+	if ((instrx->base_level > 2) && (instrx->unit->mem_base != METHOD))
 	{
 	        decrease_base_level(instrx->base_level);
 	}
@@ -969,7 +988,7 @@ void id_unit(string name)
 	if ((new_instrx.unit != NULL) && (superunit != NULL))
 	{
 	        new_instrx.base_level = base_level;
-	        if (STRUCT == new_instrx.unit->mem_base)
+	        if (STRUCT == parent_ptr->type)
 	        {
 	                new_instrx.base_level = 2;
 	        }
@@ -1047,6 +1066,7 @@ void handle_new_instrx()
 		parent_ptr->instrx_list.back()->ptr_source->unit = unit;
 		parent_ptr->instrx_list.back()->ptr_source->base_level = base_level;
 		parent_ptr->instrx_list.back()->unit = new_instrx.unit;
+		parent_ptr->instrx_list.back()->base_level = new_instrx.base_level;
 	}
 	else
 	{
