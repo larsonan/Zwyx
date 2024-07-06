@@ -271,7 +271,7 @@ void write_do(struct instrx_struct *instrx)
 		write_unit(instrx);
 		(void)fprintf(xcfile, "\n");
 	}
-	if (STRUCT == base_instrx->unit->type)
+	if ((STRUCT == base_instrx->unit->type) && ((base_instrx->unit->mem_base) || (METHOD_PTR == unit->type)))
 	{
 		(void)fprintf(xcfile, "lea\t");
 	}
@@ -600,7 +600,7 @@ void initialize_unit(struct instrx_struct *instrx)
         struct unit_struct *unit = instrx->unit;
 	if ((STRUCT == unit->type) || ((METHOD == unit->type) && (unit->f_num <= 0)))
 	{
-		if ((unit->base != NULL) && ((unit->base->mem_base) || (PTR == unit->base->type)))
+		if ((unit->base != NULL) && ((PTR == unit->base->type) || (STRUCT == unit->base->type)))
 		{
 			if ((BASE_UNLOADED == unit->f_num) || (STRUCT_UNINITIALIZED == unit->f_num))
 			{
@@ -872,7 +872,7 @@ void instantiate_method(struct instrx_struct *instrx)
 	        instrx->unit = new unit_struct(*instrx->unit);
 		instrx->unit->mem_used = parent_ptr->mem_used;
 		instrx->ptr_source = new instrx_struct;
-		if ((METHOD == instrx->unit->type) && (!parent_ptr->base->mem_base))
+		if ((METHOD == instrx->unit->type) && (NULL == parent_ptr->base_instrx))
 		{
 			instrx->ptr_source->unit = parent_ptr->base->base;
 		}
@@ -1137,14 +1137,6 @@ void handle_new_superunit()
 				unit->type = METHOD;
 				handle_new_method(unit);
 				parent_ptr->method = unit;
-			}
-			else
-			{
-				struct unit_struct *cloned_base = new unit_struct;
-				*cloned_base = *unit->base;
-				unit->base = cloned_base;
-				unit->base->type = PTR;
-				unit->base->subunits = instantiate_subunits(unit->base, unit->base);
 			}
 		}
 		handle_define_statement(parent_ptr->instrx_list.back()->unit, unit);
