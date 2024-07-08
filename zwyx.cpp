@@ -496,7 +496,7 @@ void load_pointer_base(struct instrx_struct *instrx)
         {
                 decrease_base_level(instrx->base_level);
         }
-        else if (PTR == instrx->unit->mem_base)
+        else if ((instrx->ptr_source != NULL) && (instrx->unit->mem_base != METHOD))
         {
                 load_pointer_base(instrx->ptr_source);
         }
@@ -510,9 +510,9 @@ void load_base(struct instrx_struct *instrx)
         }
         else
         {
-                if (PTR == instrx->unit->mem_base)
+                if ((instrx->ptr_source->ptr_source != NULL) && (instrx->unit->mem_base != METHOD))
                 {
-                        load_pointer_base(instrx);
+                        load_pointer_base(instrx->ptr_source->ptr_source);
                 }
                 write_ptr_to_temp(instrx->ptr_source);
 	}
@@ -641,7 +641,8 @@ void write_line(struct instrx_struct *instrx)
 	{
 	        decrease_base_level(instrx->base_level);
 	}
-	else if (PTR == instrx->unit->mem_base)
+	else if ((instrx->ptr_source != NULL) && instrx->unit->mem_base && (instrx->unit->mem_base != METHOD)
+	                            && (instrx->unit->type != METHOD_PTR))
 	{
 	        load_pointer_base(instrx->ptr_source);
 	}
@@ -1024,7 +1025,8 @@ void handle_last_instrx()
 		{
 			handle_inheritance(instrx->unit);
 		}
-		else if ((instrx->unit->type != DEF_NONE) && (instrx->unit->type != INT_CONST))
+		else if ((instrx->unit->type != DEF_NONE) && (instrx->unit->type != INT_CONST)
+		                  && (!instrx->is_ptr || (instrx->unit->type != METHOD)))
 		{
 			handle_instantiation(instrx);
 			if (DEFINE == instrx->oper)
