@@ -121,10 +121,10 @@ struct unit_struct
 	int mem_base;
 	struct unit_struct *base;
 	vector<struct unit_struct*> subunits;
-	int num_subunits;
 	int f_num;
 	struct unit_struct *method;
 	struct unit_struct *parent;
+	struct unit_struct *typing;
 	vector<struct instrx_struct*> instrx_list;
 	struct instrx_struct *base_instrx;
 };
@@ -211,7 +211,7 @@ void setup_basic_units(void)
 	for (int i = 0; i < NUM_BASIC_UNITS; i++)
 	{
 		basic_units.push_back(&basic_unit_data[i]);
-		basic_units[i]->num_subunits = 0;
+		
 		basic_units[i]->type = i;
 		basic_units[i]->mem_base = false;
 		basic_units[i]->name = basic_unit_names[i];
@@ -263,7 +263,7 @@ void write_do(struct instrx_struct *instrx)
         else
         {
                 unit = instrx->unit;
-                base_instrx = instrx->ptr_source;
+                base_instrx = instrx->unit->base_instrx;
         }
 	if (METHOD_PTR == unit->type)
 	{
@@ -641,8 +641,7 @@ void write_line(struct instrx_struct *instrx)
 	{
 	        decrease_base_level(instrx->base_level);
 	}
-	else if ((instrx->ptr_source != NULL) && instrx->unit->mem_base && (instrx->unit->mem_base != METHOD)
-	                            && (instrx->unit->type != METHOD_PTR))
+	else if ((instrx->ptr_source != NULL) && instrx->unit->mem_base && (instrx->unit->mem_base != METHOD))
 	{
 	        load_pointer_base(instrx->ptr_source);
 	}
@@ -785,16 +784,19 @@ struct unit_struct *find_unit_from_list(vector<struct unit_struct*> unit_list, s
 }
 void find_unit_in_superunit(string name, struct unit_struct *superunit)
 {
-	new_instrx.unit = find_unit_from_list(superunit->subunits, name);
+        if (PTR == superunit->type)
+        {
+                new_instrx.unit = find_unit_from_list(superunit->typing->subunits, name);
+        }
+        else
+        {
+	        new_instrx.unit = find_unit_from_list(superunit->subunits, name);
+	}
 }
 void handle_inheritance(struct unit_struct *unit)
 {
-	parent_ptr->num_subunits = unit->subunits.size();
 	parent_ptr->mem_used = unit->mem_used;
-	if (parent_ptr->num_subunits > 0)
-	{
-		parent_ptr->subunits = unit->subunits;
-	}
+	parent_ptr->subunits = unit->subunits;
 	if (unit->method != NULL)
 	{
 		parent_ptr->method = unit->method;
@@ -816,18 +818,13 @@ void handle_define_statement(struct unit_struct *defined_unit, struct unit_struc
 		parent_ptr->mem_used += definition_unit->mem_used;
 	}
 	parent_ptr->subunits.push_back(definition_unit);
-	parent_ptr->num_subunits++;
 }
 struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struct *base, struct unit_struct *parent)
 {
 	struct unit_struct *instance = new unit_struct;
 	*instance = *unit;
 	instance->mem_base = parent->type;
-	if (PTR == parent->type)
-	{
-		instance->base = parent;
-	}
-	else if ((STRUCT == parent->type) && (METHOD == parent->mem_base))
+	if ((STRUCT == parent->type) && (METHOD == parent->mem_base))
 	{
 		instance->mem_base = METHOD;
 		instance->mem_offset = parent->mem_offset - instance->mem_offset;
@@ -860,10 +857,6 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 	{
 		instance->subunits = instantiate_subunits(instance, parent);
 	}
-	else if (PTR == instance->type)
-	{
-		instance->subunits = instantiate_subunits(instance, instance);
-	}
 	return instance;
 }
 void instantiate_method(struct instrx_struct *instrx)
@@ -872,23 +865,23 @@ void instantiate_method(struct instrx_struct *instrx)
         {
 	        instrx->unit = new unit_struct(*instrx->unit);
 		instrx->unit->mem_used = parent_ptr->mem_used;
-		instrx->ptr_source = new instrx_struct;
+		instrx->unit->base_instrx = new instrx_struct;
 		if ((METHOD == instrx->unit->type) && (NULL == parent_ptr->base_instrx))
 		{
-			instrx->ptr_source->unit = parent_ptr->base->base;
+			instrx->unit->base_instrx->unit = parent_ptr->base->base;
 		}
 		else if (parent_ptr->base_instrx != NULL)
 		{
-			instrx->ptr_source = parent_ptr->base_instrx;
+			instrx->unit->base_instrx = parent_ptr->base_instrx;
 		}
 		else
 		{
-		        instrx->ptr_source->unit = parent_ptr->base;
+		        instrx->unit->base_instrx->unit = parent_ptr->base;
 		}
 		
 		if (!parent_ptr->base->mem_base)
 		{
-		        instrx->ptr_source->base_level = 2;
+		        instrx->unit->base_instrx->base_level = 2;
 		}
 	}
 	else
@@ -903,15 +896,15 @@ void instantiate_method(struct instrx_struct *instrx)
 struct unit_struct* instantiate_as_ptr(struct unit_struct *unit)
 {
 	struct unit_struct *new_ptr = instantiate_unit(basic_units[PTR], NULL, parent_ptr);
-	new_ptr->subunits = instantiate_subunits(unit, new_ptr);
-	new_ptr->num_subunits = unit->num_subunits;
+	new_ptr->typing = unit;
+	
 	return new_ptr;
 }
 vector<struct unit_struct*> instantiate_subunits(struct unit_struct *superunit, struct unit_struct *parent)
 {
 	vector<struct unit_struct*> units = superunit->subunits;
 	
-	for (int i = 0; i < superunit->num_subunits; i++)
+	for (int i = 0; i < superunit->subunits.size(); i++)
 	{
 		if (STRUCT == superunit->subunits[i]->mem_base)
 		{
@@ -957,7 +950,7 @@ void handle_instantiation(struct instrx_struct *instrx)
 void find_unit_in_instrx(string name, struct instrx_struct *instrx)
 {
         find_unit_in_superunit(name, instrx->unit);
-        if ((new_instrx.unit != NULL) && (new_instrx.unit->base != NULL))
+        if ((new_instrx.unit != NULL) && ((PTR == instrx->unit->type) || (new_instrx.unit->base != NULL)))
         {
                 new_instrx.ptr_source = instrx;
         }
@@ -1060,13 +1053,8 @@ void handle_new_instrx()
 	if ((SUBUNIT == new_instrx.oper) && ((new_instrx.unit->type != METHOD) || (parent_ptr->instrx_list.back()->oper != DEFINE)))
 	{
 		handle_instantiation(parent_ptr->instrx_list.back());
-		struct unit_struct *unit = parent_ptr->instrx_list.back()->unit;
-		int base_level = parent_ptr->instrx_list.back()->base_level;
-		struct instrx_struct *ptr_source = parent_ptr->instrx_list.back()->ptr_source;
-		parent_ptr->instrx_list.back()->ptr_source = new instrx_struct;
-		parent_ptr->instrx_list.back()->ptr_source->ptr_source = ptr_source;
-		parent_ptr->instrx_list.back()->ptr_source->unit = unit;
-		parent_ptr->instrx_list.back()->ptr_source->base_level = base_level;
+		parent_ptr->instrx_list.back()->ptr_source = new instrx_struct(*parent_ptr->instrx_list.back());
+		parent_ptr->instrx_list.back()->ptr_source->oper = NO_OPER;
 		parent_ptr->instrx_list.back()->unit = new_instrx.unit;
 		parent_ptr->instrx_list.back()->base_level = new_instrx.base_level;
 	}
