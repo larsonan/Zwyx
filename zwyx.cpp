@@ -784,14 +784,11 @@ struct unit_struct *find_unit_from_list(vector<struct unit_struct*> unit_list, s
 }
 void find_unit_in_superunit(string name, struct unit_struct *superunit)
 {
-        if (PTR == superunit->type)
+        new_instrx.unit = find_unit_from_list(superunit->subunits, name);
+        if ((NULL == new_instrx.unit) && (superunit->typing != NULL))
         {
                 new_instrx.unit = find_unit_from_list(superunit->typing->subunits, name);
         }
-        else
-        {
-	        new_instrx.unit = find_unit_from_list(superunit->subunits, name);
-	}
 }
 void handle_inheritance(struct unit_struct *unit)
 {
@@ -824,12 +821,7 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 	struct unit_struct *instance = new unit_struct;
 	*instance = *unit;
 	instance->mem_base = parent->type;
-	if ((STRUCT == parent->type) && (METHOD == parent->mem_base))
-	{
-		instance->mem_base = METHOD;
-		instance->mem_offset = parent->mem_offset - instance->mem_offset;
-	}
-	else if ((STRUCT == instance->type) && (METHOD == parent->type))
+	if ((STRUCT == instance->type) && (METHOD == parent->type))
 	{
 		if ((base != NULL) && (METHOD == base->mem_base) && (base->mem_offset >= parent->mem_used))
 		{
@@ -844,6 +836,11 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 			instance->f_num = BASE_UNLOADED;
 		}
 		parent = instance;
+	}
+	else if ((STRUCT == parent->type) && (METHOD == parent->mem_base))
+	{
+	        instance->mem_base = METHOD;
+	        instance->mem_offset = parent->mem_offset - instance->mem_offset;
 	}
 	else
 	{
@@ -902,13 +899,13 @@ struct unit_struct* instantiate_as_ptr(struct unit_struct *unit)
 }
 vector<struct unit_struct*> instantiate_subunits(struct unit_struct *superunit, struct unit_struct *parent)
 {
-	vector<struct unit_struct*> units = superunit->subunits;
+	vector<struct unit_struct*> units;
 	
 	for (int i = 0; i < superunit->subunits.size(); i++)
 	{
 		if (STRUCT == superunit->subunits[i]->mem_base)
 		{
-			units[i] = instantiate_unit(superunit->subunits[i], NULL, parent);
+			units.push_back(instantiate_unit(superunit->subunits[i], NULL, parent));
 		}
 	}
 	return units;
@@ -934,7 +931,12 @@ void handle_instantiation(struct instrx_struct *instrx)
 		        {
 		                base = instrx->ptr_source->unit;
 		        }
+		        struct unit_struct *typing = instrx->unit;
 			instrx->unit = instantiate_unit(instrx->unit, base, parent_ptr);
+			if (STRUCT == instrx->unit->type)
+			{
+			        instrx->unit->typing = typing;
+			}
 			if (STRUCT == parent_ptr->type)
 			{
 			        instrx->base_level = 2;
