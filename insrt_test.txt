@@ -65,9 +65,7 @@ writenf~{
 print~{
 	~writenf
 	fn:@{
-		wr~@writenf:$
-		b~@bytes:wr.bn
-		_console_write:b
+		_console_write:bn
 	}
 }
 list~{
@@ -114,11 +112,8 @@ str~{
 	write~{
 		~writenf
 		fn:@{
-			wr~@writenf
-			wr:$
-			base~@str:wr.ignore
-			in~@bytes:wr.bn
-			self~@bytes:base.b
+			in~@bytes:bn
+			self~@bytes:b
 			
 			countin~int:in.c0
 			countself~int:self.c0
