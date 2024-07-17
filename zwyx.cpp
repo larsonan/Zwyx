@@ -545,8 +545,8 @@ void handle_instrx_default(struct instrx_struct *instrx)
 	{
 		write_ptr_to_temp(instrx);
 	}
-	else if (((STRUCT == instrx->unit->type) && (instrx->unit->method != NULL)) 
-		|| (METHOD == instrx->unit->type) || (METHOD_PTR == instrx->unit->type))
+	else if (((STRUCT == instrx->unit->type) && (instrx->unit->method != NULL)) || (METHOD == instrx->unit->type)
+		|| ((METHOD_PTR == instrx->unit->type) && (instrx->oper != INSERTION)))
 	{
 		write_do_instrx(instrx);
 	}
@@ -854,7 +854,7 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 	{
 		instance->mem_offset += parent->mem_used + temp_reg_mem;
 	}
-	if (METHOD_PTR == instance->type)
+	if ((METHOD_PTR == instance->type) && !parent->mem_base)
 	{
 	        instance->base = parent_ptr;
 	}
@@ -1046,7 +1046,7 @@ void handle_last_instrx()
 }
 struct unit_struct *get_correct_method_type()
 {
-	if (DEFINE == new_instrx.oper)
+	if ((DEFINE == new_instrx.oper) || (SUBUNIT == new_instrx.oper))
 	{
 		return basic_units[METHOD_PTR];
 	}
@@ -1067,7 +1067,10 @@ void handle_new_instrx()
 {
 	if ((SUBUNIT == new_instrx.oper) && ((new_instrx.unit->type != METHOD) || (parent_ptr->instrx_list.back()->oper != DEFINE)))
 	{
-		handle_instantiation(parent_ptr->instrx_list.back());
+	        if (new_instrx.unit->type != METHOD_PTR)
+	        {
+		        handle_instantiation(parent_ptr->instrx_list.back());
+		}
 		parent_ptr->instrx_list.back()->ptr_source = new instrx_struct(*parent_ptr->instrx_list.back());
 		parent_ptr->instrx_list.back()->ptr_source->oper = NO_OPER;
 		parent_ptr->instrx_list.back()->unit = new_instrx.unit;
@@ -1106,6 +1109,17 @@ void handle_new_instrx()
 	new_instrx.is_ptr = 0;
 	new_instrx.ptr_source = NULL;
 	parent_ptr->instrx_list.back()->unit_line = line_num;
+}
+struct unit_struct* in_unit(struct unit_struct *unit)
+{
+        if (STRUCT == unit->type)
+        {
+                return unit->subunits[0];
+        }
+        else
+        {
+                return unit;
+        }
 }
 void handle_unit(struct unit_struct *unit)
 {
@@ -1179,16 +1193,8 @@ void handle_new_superunit()
 			
 			if (new_instrx.is_ptr)
 			{
-			        if (METHOD_PTR == parent_ptr->instrx_list.back()->unit->type)
-			        {
-				        unit->base = parent_ptr->instrx_list.back()->unit->base;
-				        unit->mem_base = METHOD_PTR;
-				}
-				else
-				{
-				        unit->base = new unit_struct(*basic_units[INT]);
-				        unit->base->mem_base = METHOD;
-				}
+				unit->base = in_unit(parent_ptr->instrx_list.back()->unit)->base;
+				unit->mem_base = METHOD_PTR;
 				handle_new_method(unit);
 				unit->mem_used = WORD_SIZE;
 			}
