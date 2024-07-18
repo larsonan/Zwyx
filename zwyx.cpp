@@ -829,6 +829,11 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 	struct unit_struct *instance = new unit_struct;
 	*instance = *unit;
 	instance->mem_base = parent->type;
+	if (INT_CONST == instance->type)
+	{
+	        instance->type = STRUCT;
+	        instance->mem_used = WORD_SIZE * stoi(instance->name);
+	}
 	if ((STRUCT == instance->type) && (METHOD == parent->type))
 	{
 		if ((base != NULL) && (METHOD == base->mem_base) && (base->mem_offset >= parent->mem_used))
@@ -945,7 +950,7 @@ void handle_instantiation(struct instrx_struct *instrx)
 		        }
 		        struct unit_struct *typing = instrx->unit;
 			instrx->unit = instantiate_unit(instrx->unit, base, parent_ptr);
-			if (STRUCT == instrx->unit->type)
+			if (STRUCT == typing->type)
 			{
 			        instrx->unit->typing = typing;
 			}
@@ -1033,8 +1038,8 @@ void handle_last_instrx()
 		{
 			handle_inheritance(instrx->unit);
 		}
-		else if ((instrx->unit->type != DEF_NONE) && (instrx->unit->type != INT_CONST)
-		                  && (!instrx->is_ptr || (instrx->unit->type != METHOD)))
+		else if ((instrx->unit->type != DEF_NONE) && ((instrx->unit->type != INT_CONST)
+		          || (DEFINE == instrx->oper)) && (!instrx->is_ptr || (instrx->unit->type != METHOD)))
 		{
 			handle_instantiation(instrx);
 			if (DEFINE == instrx->oper)
