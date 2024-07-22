@@ -251,6 +251,12 @@ void write_unit(struct instrx_struct *instrx)
 		}
 	}
 }
+void write_load_ptr_base(struct instrx_struct *instrx)
+{
+	(void)fprintf(xcfile, "mov\t%s,\t", REG_PTR);
+	write_unit(instrx);
+	(void)fprintf(xcfile, "\n");
+}
 void write_do(struct instrx_struct *instrx)
 {
         struct unit_struct *unit;
@@ -297,33 +303,6 @@ void write_do(struct instrx_struct *instrx)
 	(void)fprintf(xcfile, "mov\t%s,\t[%s]\n", REG_BASE, REG_DEFAULT);
 }
 
-void write_insertion_dst(struct instrx_struct *instrx)
-{
-	if ((STRUCT == instrx->unit->type) && (instrx->unit->base != NULL) && (instrx->unit->base->type != METHOD))
-	{
-		if (STRUCT == instrx->unit->mem_base)
-		{
-			(void)fprintf(xcfile, "[%s+%d]", REG_BASE, instrx->unit->mem_offset + WORD_SIZE);
-		}
-		else
-		{
-			(void)fprintf(xcfile, "[%s-%d]", REG_DEFAULT, instrx->unit->mem_offset - WORD_SIZE);
-		}
-	}
-	else
-	{
-		
-		write_unit(instrx);
-	}
-}
-
-void write_load_ptr_base(struct instrx_struct *instrx)
-{
-	(void)fprintf(xcfile, "mov\t%s,\t", REG_PTR);
-	write_unit(instrx);
-	(void)fprintf(xcfile, "\n");
-}
-
 void write_insertion(struct instrx_struct *instrx)
 {
 	(void)fprintf(xcfile, "mov\t");
@@ -331,7 +310,7 @@ void write_insertion(struct instrx_struct *instrx)
 	{
 		(void)fprintf(xcfile, "qword\t");
 	}
-	write_insertion_dst(instrx);
+	write_unit(instrx);
 	(void)fprintf(xcfile, ",\t");
 	if (INT_CONST == instrx->insertion_source->unit->type)
 	{
@@ -625,6 +604,23 @@ void initialize_unit(struct instrx_struct *instrx)
 		unit->f_num = 0;
 	}
 }
+struct unit_struct* in_unit(struct unit_struct *unit)
+{
+        if (STRUCT == unit->type)
+        {
+                return in_unit(unit->subunits[0]);
+        }
+        else
+        {
+                return unit;
+        }
+}
+void write_insertion_in_unit(struct instrx_struct *instrx)
+{
+        struct instrx_struct temp = *instrx;
+        temp.unit = in_unit(temp.unit);
+        write_insertion(&temp);
+}
 void write_line(struct instrx_struct *instrx)
 {
 	if (!is_default_instrx(instrx) && (instrx->oper != DEFINE)
@@ -647,7 +643,7 @@ void write_line(struct instrx_struct *instrx)
 	}
 	if ((instrx->insertion_source != NULL) && (INSERTION == instrx->insertion_source->oper))
 	{
-		write_insertion(instrx);
+		write_insertion_in_unit(instrx);
 	}
 	
 	initialize_unit(instrx);
@@ -1114,17 +1110,6 @@ void handle_new_instrx()
 	new_instrx.is_ptr = 0;
 	new_instrx.ptr_source = NULL;
 	parent_ptr->instrx_list.back()->unit_line = line_num;
-}
-struct unit_struct* in_unit(struct unit_struct *unit)
-{
-        if (STRUCT == unit->type)
-        {
-                return unit->subunits[0];
-        }
-        else
-        {
-                return unit;
-        }
 }
 void handle_unit(struct unit_struct *unit)
 {
