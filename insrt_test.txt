@@ -15,11 +15,9 @@ writenf~{
 	~interface
 	data~arr_ptr
 	s~{
-		b~@bytes
+		b~arr_ptr
 		;~{
-			data:{b+8}
-			data.count:b.c0
-			
+			data:b
 			;
 		}
 	}
@@ -47,7 +45,6 @@ writenf~{
 			p.c0:{in%10+48}
 			in:{in/10}
 			p:{p-8}
-			
 			size~int:1
 			
 			{in > 0}#{
@@ -56,10 +53,8 @@ writenf~{
 				p:{p-8}
 				size:{size+1}
 			}
-			p.c0:size
-			
 			data:{p+8}
-			data.count:p.c0
+			data.count:size
 			;
 		}
 	}
@@ -72,13 +67,13 @@ print~{
 	}
 }
 list~{
-	b~@bytes
+	b~arr_ptr
 	set~{
 		at~int
 		char~int
 		;~{
 			p~@bytes:{b+{at*8}}
-			p.c1:char
+			p.c0:char
 		}
 	}
 	each~{
@@ -87,8 +82,8 @@ list~{
 		;~{
 			p~@bytes:b
 			remaining~int
-			remaining:p.c0
-			p:{p+8}
+			remaining:b.count
+			
 			{remaining > 0}#{
 				mbr~@bytes:p.c0
 				mbr.{f}
@@ -117,18 +112,14 @@ str~{
 		fn:@{
 			in~@bytes:data
 			self~@bytes:b
-			
+			self:{self+{b.count*8}}
 			countin~int:data.count
-			countself~int:self.c0
-			self.c0:{countself+countin}
-			self:{self+8+{countself*8}}
-			
+			b.count:{b.count+countin}
 			{countin > 0}#{
 				self.c0:in.c0
 				self:{self+8}
 				
 				in:{in+8}
-				
 				countin:{countin-1}
 			}
 		}
@@ -149,7 +140,11 @@ npairlist~{
 		;~{each:in}
 	}
 }
-l~npairlist:@b0
+a_ptr~arr_ptr
+a_ptr:@b0
+a_ptr.count:5
+a_ptr:{a_ptr+8}
+l~npairlist:a_ptr
 
 l.eachnpair:@{print.d:{a+b}}
 getmsg~{
@@ -164,11 +159,11 @@ getmsg~{
 print.{
 	hello~bytes
 	msg~str:@hello
+	msg.b.count:0
 	msg.write.{getmsg:@$}
 	getmsg:@$
 	msg.set.{char:70 at:1 ; at:2 ; at:3 ; at:4 ;}
 	s:msg
-	
 	d:1749 c:102 d:0 c:90 endl
 }
 

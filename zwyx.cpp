@@ -546,6 +546,23 @@ void write_do_instrx(struct instrx_struct *instrx)
 	}
 }
 
+struct unit_struct* in_unit(struct unit_struct *unit)
+{
+        if (STRUCT == unit->type)
+        {
+                return in_unit(unit->subunits[0]);
+        }
+        else
+        {
+                return unit;
+        }
+}
+void write_insertion_src_out_unit(struct instrx_struct *instrx)
+{
+        struct instrx_struct temp = *instrx;
+        temp.unit = in_unit(temp.unit);
+        write_insertion_src(&temp);
+}
 void handle_instrx_default(struct instrx_struct *instrx)
 {
 	if (instrx->is_ptr)
@@ -560,7 +577,7 @@ void handle_instrx_default(struct instrx_struct *instrx)
 	else if ((instrx->unit->type != METHOD) && ((instrx->oper != NO_OPER) || (NULL == instrx->insertion_source))
 				&& ((instrx->oper != INSERTION) || (instrx->unit->type != INT_CONST)))
 	{
-		write_insertion_src(instrx);
+		write_insertion_src_out_unit(instrx);
 	}
 }
 int get_temp_offset(struct unit_struct *unit)
@@ -631,17 +648,6 @@ void initialize_unit(struct instrx_struct *instrx)
 		}
 		unit->f_num = 0;
 	}
-}
-struct unit_struct* in_unit(struct unit_struct *unit)
-{
-        if (STRUCT == unit->type)
-        {
-                return in_unit(unit->subunits[0]);
-        }
-        else
-        {
-                return unit;
-        }
 }
 void write_insertion_in_unit(struct instrx_struct *instrx)
 {
