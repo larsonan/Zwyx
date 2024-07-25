@@ -1,6 +1,5 @@
-an~{c~int}
 _console_write~{
-	in~@an
-	;~{_system.{rax:1 rdx:{in.c*8} rdi:1 rsi:{in+8} ;}}
+	a~arr_ptr
+	;~{_system.{rax:1 rdx:{a.count*8} rdi:1 rsi:a ;}}
 }
 

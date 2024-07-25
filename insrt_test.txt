@@ -65,7 +65,10 @@ writenf~{
 print~{
 	~writenf
 	fn:@{
-		_console_write:bn
+		a~arr_ptr
+		a:{bn+8}
+		a.count:bn.c0
+		_console_write:a
 	}
 }
 list~{

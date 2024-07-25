@@ -1104,10 +1104,16 @@ void handle_new_instrx()
 	        {
 		        handle_instantiation(parent_ptr->instrx_list.back());
 		}
-		parent_ptr->instrx_list.back()->ptr_source = new instrx_struct(*parent_ptr->instrx_list.back());
-		parent_ptr->instrx_list.back()->ptr_source->oper = NO_OPER;
+		if ((PTR == parent_ptr->instrx_list.back()->unit->type) || !new_instrx.unit->mem_base)
+		{
+		        parent_ptr->instrx_list.back()->ptr_source = 
+		                                                new instrx_struct(*parent_ptr->instrx_list.back());
+		        
+		        parent_ptr->instrx_list.back()->ptr_source->oper = NO_OPER;
+		        parent_ptr->instrx_list.back()->base_level = 0;
+		}
 		parent_ptr->instrx_list.back()->unit = new_instrx.unit;
-		parent_ptr->instrx_list.back()->base_level = new_instrx.base_level;
+		
 	}
 	else
 	{
