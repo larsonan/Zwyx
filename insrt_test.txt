@@ -65,9 +65,7 @@ writenf~{
 print~{
 	~writenf
 	fn:@{
-		wr~@writenf:$
-		b~@bytes:wr.bn
-		_console_write:b
+		_console_write:bn
 	}
 }
 list~{
@@ -114,11 +112,8 @@ str~{
 	write~{
 		~writenf
 		fn:@{
-			wr~@writenf
-			wr:$
-			base~@str:wr.ignore
-			in~@bytes:wr.bn
-			self~@bytes:base.b
+			in~@bytes:bn
+			self~@bytes:b
 			
 			countin~int:in.c0
 			countself~int:self.c0
@@ -143,14 +138,16 @@ b4~npair.{a:2 b:7}
 b5~npair.{a:4 b:1}
 b0~bytes.{c0:5 c1:@b1 c2:@b2 c3:@b3 c4:@b4 c5:@b5}
 
-l~list:@b0
-
-l.each:@{
-	np~@npair:$
-	np.{
-		print.d:{a+b}
+npairlist~{
+	~list
+	eachnpair~{
+		in~npair.;
+		;~{each:in}
 	}
 }
+l~npairlist:@b0
+
+l.eachnpair:@{print.d:{a+b}}
 getmsg~{
 	write~@writenf
 	;~{
