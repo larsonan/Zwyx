@@ -41,9 +41,9 @@ using namespace std;
 #define MAIN 1
 #define PTR 2
 #define INT 3
-#define METHOD_PTR 4
-#define SYSRUN 5
-#define STRUCT 6
+#define ARR_PTR 4
+#define STRUCT 5
+#define METHOD_PTR 6
 #define INT_CONST 7
 #define PAREN 8
 #define METHOD 9
@@ -62,6 +62,8 @@ using namespace std;
 #define REG_TEMP "rax"
 #define REG_BASE "rbx"
 #define REG_PTR "rcx"
+#define REG_COUNT "rdx"
+
 string error_messages[] = 
 {
 	"", /* No Error */
@@ -102,7 +104,6 @@ struct method_struct
 	struct instrx_struct **instrxs;
 };
 
-
 struct error_struct
 {
 	int type;
@@ -110,7 +111,6 @@ struct error_struct
 	string section;
 	
 };
-
 
 struct unit_struct
 {
@@ -129,7 +129,7 @@ struct unit_struct
 	struct instrx_struct *base_instrx;
 };
 
-string basic_unit_names[] = {"none", "", "", "int", "method", "sysrun", "", "", "", "do" };
+string basic_unit_names[] = {"none", "", "", "int", "arr_ptr", "", "method_ptr", "", "", "do" };
 char opers[] = {'\0', ':', '~', '.', '?', '=', '+', '/', ',', '\0', '-', '<', '!', '#', '*', '%', '>'};
 
 struct error_struct errors[MAX_ERRORS];
@@ -218,15 +218,21 @@ void setup_basic_units(void)
 	}
 	basic_units[PTR]->mem_used = WORD_SIZE;
 	basic_units[INT]->mem_used = WORD_SIZE;
-	basic_units[SYSRUN]->method = basic_units[METHOD];
+	basic_units[METHOD_PTR]->mem_used = WORD_SIZE;
+	basic_units[ARR_PTR]->mem_used = WORD_SIZE * 2;
+	
+	struct unit_struct *count = new unit_struct(*basic_units[INT]);
+	count->name = "count";
+	count->mem_base = STRUCT;
+	count->mem_used = WORD_SIZE;
+	count->mem_offset = WORD_SIZE;
+	basic_units[ARR_PTR]->subunits.push_back(count);
 }
 void init(void)
 {
 	instrx_idx = 0;
 	num_errors = 0;
 	parent_ptr = NULL;
-	basic_unit_data[METHOD_PTR].mem_used = WORD_SIZE;
-	
 	setup_basic_units();
 }
 void write_unit(struct instrx_struct *instrx)
@@ -302,7 +308,13 @@ void write_do(struct instrx_struct *instrx)
 	(void)fprintf(xcfile, "add\t%s,\t%d\n", REG_DEFAULT, unit->mem_used - WORD_SIZE);
 	(void)fprintf(xcfile, "mov\t%s,\t[%s]\n", REG_BASE, REG_DEFAULT);
 }
-
+void write_array_count(struct instrx_struct *instrx)
+{
+        struct instrx_struct temp = *instrx;
+        temp.unit = instrx->unit->subunits[0];
+        
+        write_unit(&temp);
+}
 void write_insertion(struct instrx_struct *instrx)
 {
 	(void)fprintf(xcfile, "mov\t");
@@ -321,6 +333,14 @@ void write_insertion(struct instrx_struct *instrx)
 		(void)fprintf(xcfile, "%s", REG_TEMP);
 	}
 	(void)fprintf(xcfile, "\n");
+	
+	if (ARR_PTR == instrx->unit->type)
+	{
+	        (void)fprintf(xcfile, "mov\t");
+	        write_array_count(instrx);
+	        
+	        (void)fprintf(xcfile, ",\t%s\n", REG_COUNT);
+	}
 }
 
 void write_ptr_to_temp(struct instrx_struct *instrx)
@@ -375,6 +395,14 @@ void write_insertion_src(struct instrx_struct *instrx)
 	
 	write_unit(instrx);
 	(void)fprintf(xcfile, "\n");
+	
+	if (ARR_PTR == instrx->unit->type)
+	{
+	        (void)fprintf(xcfile, "mov\t%s,\t", REG_COUNT);
+	        write_array_count(instrx);
+	        
+	        (void)fprintf(xcfile, "\n");
+	}
 }
 
 void write_math_instrx(struct instrx_struct *instrx)
@@ -825,12 +853,16 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 	struct unit_struct *instance = new unit_struct;
 	*instance = *unit;
 	instance->mem_base = parent->type;
+	if ((ARR_PTR == parent->type) || (STRUCT == parent->type))
+	{
+	        instance->mem_base = STRUCT;
+	}
 	if (INT_CONST == instance->type)
 	{
 	        instance->type = STRUCT;
 	        instance->mem_used = WORD_SIZE * stoi(instance->name);
 	}
-	if ((STRUCT == instance->type) && (METHOD == parent->type))
+	if (((ARR_PTR == instance->type) || (STRUCT == instance->type)) && (METHOD == parent->type))
 	{
 		if ((base != NULL) && (METHOD == base->mem_base) && (base->mem_offset >= parent->mem_used))
 		{
@@ -846,7 +878,7 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 		}
 		parent = instance;
 	}
-	else if ((STRUCT == parent->type) && (METHOD == parent->mem_base))
+	else if (((ARR_PTR == parent->type) || (STRUCT == parent->type)) && (METHOD == parent->mem_base))
 	{
 	        instance->mem_base = METHOD;
 	        instance->mem_offset = parent->mem_offset - instance->mem_offset;
@@ -863,7 +895,7 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 	{
 		instance->base = base;
 	}
-	if (STRUCT == instance->type)
+	if ((ARR_PTR == instance->type) || (STRUCT == instance->type))
 	{
 		instance->subunits = instantiate_subunits(instance, parent);
 	}
