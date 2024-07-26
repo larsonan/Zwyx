@@ -68,6 +68,13 @@ print~{
 }
 list~{
 	b~arr_ptr
+	set_buffer~{
+		in~int
+		;~{
+			b:in
+			b.count:0
+		}
+	}
 	set~{
 		at~int
 		char~int
@@ -140,13 +147,16 @@ npairlist~{
 		;~{each:in}
 	}
 }
-a_ptr~arr_ptr
-a_ptr:@b0
-a_ptr.count:5
+a_ptr~int:@b0
 a_ptr:{a_ptr+8}
-l~npairlist:a_ptr
+
+l~npairlist
+
+l.set_buffer:a_ptr
+l.b.count:5
 
 l.eachnpair:@{print.d:{a+b}}
+
 getmsg~{
 	write~@writenf
 	;~{
@@ -158,8 +168,8 @@ getmsg~{
 
 print.{
 	hello~bytes
-	msg~str:@hello
-	msg.b.count:0
+	msg~str
+	msg.set_buffer:@hello
 	msg.write.{getmsg:@$}
 	getmsg:@$
 	msg.set.{char:70 at:1 ; at:2 ; at:3 ; at:4 ;}
