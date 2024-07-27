@@ -83,6 +83,13 @@ list~{
 			p.c0:char
 		}
 	}
+	add~{
+		in~int
+		;~{
+			set.{at:b.count char:in ;}
+			b.count:{b.count + 1}
+		}
+	}
 	each~{
 		
 		f~;
@@ -138,7 +145,7 @@ b2~npair.{a:2 b:5}
 b3~npair.{a:0 b:5}
 b4~npair.{a:2 b:7}
 b5~npair.{a:4 b:1}
-b0~bytes.{c0:5 c1:@b1 c2:@b2 c3:@b3 c4:@b4 c5:@b5}
+b0~bytes
 
 npairlist~{
 	~list
@@ -147,13 +154,13 @@ npairlist~{
 		;~{each:in}
 	}
 }
-a_ptr~int:@b0
-a_ptr:{a_ptr+8}
 
-l~npairlist
-
-l.set_buffer:a_ptr
-l.b.count:5
+l~npairlist.{
+	set_buffer:@b0
+	add.{
+		$:@b1 ; $:@b2 ; $:@b3 ; $:@b4 ; $:@b5 ;
+	}
+}
 
 l.eachnpair:@{print.d:{a+b}}
 
