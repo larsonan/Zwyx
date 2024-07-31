@@ -63,7 +63,7 @@ using namespace std;
 #define REG_BASE "rbx"
 #define REG_PTR "rcx"
 #define REG_COUNT "rdx"
-
+#define REG_TEMP_ONE_BYTE "al"
 string error_messages[] = 
 {
 	"", /* No Error */
@@ -328,6 +328,10 @@ void write_insertion(struct instrx_struct *instrx)
 	{
 		(void)fprintf(xcfile, "%s", instrx->insertion_source->unit->name.c_str());
 	}
+	else if (instrx->unit->mem_used < WORD_SIZE)
+	{
+	        (void)fprintf(xcfile, "%s", REG_TEMP_ONE_BYTE);
+	}
 	else
 	{
 		(void)fprintf(xcfile, "%s", REG_TEMP);
@@ -337,9 +341,23 @@ void write_insertion(struct instrx_struct *instrx)
 	if (ARR_PTR == instrx->unit->type)
 	{
 	        (void)fprintf(xcfile, "mov\t");
+	        if ((STRUCT == instrx->insertion_source->unit->type)
+	                                                && (0 == instrx->insertion_source->unit->subunits.size()))
+	        {
+	                (void)fprintf(xcfile, "qword\t");
+	        }
 	        write_array_count(instrx);
-	        
-	        (void)fprintf(xcfile, ",\t%s\n", REG_COUNT);
+	        (void)fprintf(xcfile, ",\t");
+	        if ((STRUCT == instrx->insertion_source->unit->type)
+	                                                && (0 == instrx->insertion_source->unit->subunits.size()))
+	        {
+	                (void)fprintf(xcfile, "%d", instrx->insertion_source->unit->mem_used);
+	        }
+	        else
+	        {
+	                (void)fprintf(xcfile, "%s", REG_COUNT);
+	        }
+	        (void)fprintf(xcfile, "\n");
 	}
 }
 
@@ -548,7 +566,7 @@ void write_do_instrx(struct instrx_struct *instrx)
 
 struct unit_struct* in_unit(struct unit_struct *unit)
 {
-        if (STRUCT == unit->type)
+        if ((STRUCT == unit->type) && (unit->subunits.size() > 0))
         {
                 return in_unit(unit->subunits[0]);
         }
@@ -845,12 +863,20 @@ void handle_new_method(struct unit_struct *unit)
 	unit->f_num = num_f;
 	num_f++;
 }
+int handle_alignment(int mem_offset)
+{
+        if ((mem_offset % WORD_SIZE) != 0)
+        {
+                return mem_offset / WORD_SIZE * WORD_SIZE + WORD_SIZE;
+        }
+        return mem_offset;
+}
 void handle_define_statement(struct unit_struct *defined_unit, struct unit_struct *definition_unit)
 {
 	definition_unit->name = defined_unit->name;
 	if ((STRUCT == definition_unit->mem_base) || (METHOD == definition_unit->mem_base))
 	{
-		parent_ptr->mem_used += definition_unit->mem_used;
+		parent_ptr->mem_used += handle_alignment(definition_unit->mem_used);
 	}
 	parent_ptr->subunits.push_back(definition_unit);
 }
@@ -866,7 +892,7 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 	if (INT_CONST == instance->type)
 	{
 	        instance->type = STRUCT;
-	        instance->mem_used = WORD_SIZE * stoi(instance->name);
+	        instance->mem_used = stoi(instance->name);
 	}
 	if (((ARR_PTR == instance->type) || (STRUCT == instance->type)) && (METHOD == parent->type))
 	{
@@ -1106,11 +1132,12 @@ void handle_new_instrx()
 {
 	if ((SUBUNIT == new_instrx.oper) && ((new_instrx.unit->type != METHOD) || (parent_ptr->instrx_list.back()->oper != DEFINE)))
 	{
-	        if (new_instrx.unit->type != METHOD_PTR)
+	        if ((new_instrx.unit->type != METHOD_PTR) && (new_instrx.unit->type != INT_CONST))
 	        {
 		        handle_instantiation(parent_ptr->instrx_list.back());
 		}
-		if ((PTR == parent_ptr->instrx_list.back()->unit->type) || !new_instrx.unit->mem_base)
+		if ((PTR == parent_ptr->instrx_list.back()->unit->type)
+		            || (!new_instrx.unit->mem_base && (new_instrx.unit->type != INT_CONST)))
 		{
 		        parent_ptr->instrx_list.back()->ptr_source = 
 		                                                new instrx_struct(*parent_ptr->instrx_list.back());
@@ -1220,7 +1247,7 @@ void handle_new_superunit()
 		{
 			unit->base_instrx = new instrx_struct(*parent_ptr->instrx_list.back());
 			unit->base = parent_ptr->instrx_list.back()->unit;
-			unit->mem_used += parent_ptr->instrx_list.back()->unit->mem_used;
+			unit->mem_used += handle_alignment(parent_ptr->instrx_list.back()->unit->mem_used);
 		}
 		else if (new_instrx.oper != BRANCH)
 		{

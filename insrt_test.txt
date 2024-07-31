@@ -1,5 +1,5 @@
-bytes~{
-	c0~int:0 c1~int c2~int c3~int c4~int c5~int
+iter~{
+	el~int
 	
 }
 
@@ -9,6 +9,10 @@ interface~{
 	
 	fn~;
 	;~{fn}
+}
+
+c_iter~{
+	el~int.1
 }
 
 writenf~{
@@ -24,7 +28,8 @@ writenf~{
 	c~{
 		in~int
 		;~{
-			b~bytes.{c0:in}
+			b~int.1
+			b:in
 			data:@b
 			data.count:1
 			;
@@ -39,21 +44,21 @@ writenf~{
 	d~{
 		in~int
 		;~{
-			intb~bytes
-			p~@bytes:@intb
-			p:{p+40}
-			p.c0:{in%10+48}
+			buff~int.48
+			it~@c_iter:@buff
+			it:{it+40}
+			it.el:{in%10+48}
 			in:{in/10}
-			p:{p-8}
+			it:{it-1}
 			size~int:1
 			
 			{in > 0}#{
-				p.c0:{in%10+48}
+				it.el:{in%10+48}
 				in:{in/10}
-				p:{p-8}
+				it:{it-1}
 				size:{size+1}
 			}
-			data:{p+8}
+			data:{it+1}
 			data.count:size
 			;
 		}
@@ -79,8 +84,8 @@ list~{
 		at~int
 		char~int
 		;~{
-			p~@bytes:{b+{at*8}}
-			p.c0:char
+			it~@iter:{b+{at*8}}
+			it.el:char
 		}
 	}
 	add~{
@@ -94,16 +99,16 @@ list~{
 		
 		f~;
 		;~{
-			p~@bytes:b
+			it~@iter:b
 			remaining~int
 			remaining:b.count
 			
 			{remaining > 0}#{
-				mbr~@bytes:p.c0
+				mbr~@iter:it.el
 				mbr.{f}
 				
 				
-				p:{p+8}
+				it:{it+8}
 				remaining:{remaining-1}
 			}
 		}
@@ -121,19 +126,27 @@ list~{
 str~{
 	
 	~list
+	setchar~{
+		at~int
+		char~int
+		;~{
+			it~@c_iter:{b+at}
+			it.el:char
+		}
+	}
 	write~{
 		~writenf
 		fn:@{
-			in~@bytes:data
-			self~@bytes:b
-			self:{self+{b.count*8}}
+			in~@c_iter:data
+			self~@c_iter:b
+			self:{self+b.count}
 			countin~int:data.count
 			b.count:{b.count+countin}
 			{countin > 0}#{
-				self.c0:in.c0
-				self:{self+8}
+				self.el:in.el
+				self:{self+1}
 				
-				in:{in+8}
+				in:{in+1}
 				countin:{countin-1}
 			}
 		}
@@ -145,7 +158,7 @@ b2~npair.{a:2 b:5}
 b3~npair.{a:0 b:5}
 b4~npair.{a:2 b:7}
 b5~npair.{a:4 b:1}
-b0~bytes
+b0~int.48
 
 npairlist~{
 	~list
@@ -174,12 +187,12 @@ getmsg~{
 
 
 print.{
-	hello~bytes
+	hello~int.40
 	msg~str
 	msg.set_buffer:@hello
 	msg.write.{getmsg:@$}
 	getmsg:@$
-	msg.set.{char:70 at:1 ; at:2 ; at:3 ; at:4 ;}
+	msg.setchar.{char:70 at:1 ; at:2 ; at:3 ; at:4 ;}
 	s:msg
 	d:1749 c:102 d:0 c:90 endl
 }

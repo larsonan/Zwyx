@@ -1,5 +1,5 @@
 _console_write~{
 	a~arr_ptr
-	;~{_system.{rax:1 rdx:{a.count*8} rdi:1 rsi:a ;}}
+	;~{_system.{rax:1 rdx:a.count rdi:1 rsi:a ;}}
 }
 
