@@ -1,0 +1,175 @@
+iter~{
+	el~int
+	
+}
+
+interface~{
+	ignore~int
+	
+	
+	fn~;
+	;~{fn}
+}
+
+c_iter~{
+	el~int.1
+}
+
+writenf~{
+	~interface
+	data~arr_ptr
+	s~{
+		b~arr_ptr
+		;~{
+			data:b
+			;
+		}
+	}
+	c~{
+		in~int
+		;~{
+			b~int.1
+			b:in
+			data:@b
+			data.count:1
+			;
+		}
+	}
+	
+	endl~{
+		;~{
+			c:10
+		}
+	}
+	line~{
+		b~arr_ptr
+		;~{
+			s:b
+			endl
+		}
+	}
+	d~{
+		in~int
+		;~{
+			buff~int.48
+			it~@c_iter:@buff
+			it:{it+40}
+			it.el:{in%10+48}
+			in:{in/10}
+			it:{it-1}
+			size~int:1
+			
+			{in > 0}?*{
+				it.el:{in%10+48}
+				in:{in/10}
+				it:{it-1}
+				size:{size+1}
+			}
+			data:{it+1}
+			data.count:size
+			;
+		}
+	}
+}
+
+print~{
+	~writenf
+	fn:@{
+		_console_write:data
+	}
+}
+list~{
+	b~arr_ptr
+	set_buffer~{
+		in~int
+		;~{
+			b:in
+			b.count:0
+		}
+	}
+	set~{
+		at~int
+		char~int
+		;~{
+			it~@iter:{b+{at*8}}
+			it.el:char
+		}
+	}
+	add~{
+		in~int
+		;~{
+			set.{at:b.count char:in ;}
+			b.count:{b.count + 1}
+		}
+	}
+	each~{
+		
+		f~;
+		;~{
+			it~@iter:b
+			remaining~int
+			remaining:b.count
+			
+			{remaining > 0}?*{
+				mbr~@iter:it.el
+				mbr.{f}
+				
+				
+				it:{it+8}
+				remaining:{remaining-1}
+			}
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+str~{
+	
+	~list
+	setchar~{
+		at~int
+		char~int
+		;~{
+			it~@c_iter:{b+at}
+			it.el:char
+		}
+	}
+	write~{
+		~writenf
+		fn:@{
+			in~@c_iter:data
+			self~@c_iter:b
+			self:{self+b.count}
+			countin~int:data.count
+			b.count:{b.count+countin}
+			{countin > 0}?*{
+				self.el:in.el
+				self:{self+1}
+				
+				in:{in+1}
+				countin:{countin-1}
+			}
+		}
+	}
+}
+
+enum~{
+	val~int
+	op~{
+		op_val~int
+		is~{
+			;~{val=op_val}
+		}
+		set~{
+			;~{val:op_val}
+		}
+	}
+}
+

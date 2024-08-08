@@ -1,0 +1,89 @@
+_import:"utilities_lib"
+
+npair~{a~int b~int}
+b1~npair.{a:0 b:1}
+b2~npair.{a:2 b:5}
+b3~npair.{a:0 b:5}
+b4~npair.{a:2 b:7}
+b5~npair.{a:4 b:1}
+b0~int.48
+
+npairlist~{
+	~list
+	eachnpair~{
+		in~npair.;
+		;~{each:in}
+	}
+}
+
+l~npairlist.{
+	set_buffer:@b0
+	add.{
+		$:@b1 ; $:@b2 ; $:@b3 ; $:@b4 ; $:@b5 ;
+	}
+}
+
+l.eachnpair:@{print.d:{a+b}}
+
+getmsg~{
+	write~@writenf
+	;~{
+		write.{c:67 c:76 c:79 c:83 c:69}
+	}
+	
+}
+
+
+print.{
+	hello~int.40
+	msg~str
+	msg.set_buffer:@hello
+	msg.write.{getmsg:@$}
+	getmsg:@$
+	msg.setchar.{char:70 at:1 ; at:2 ; at:3 ; at:4 ;}
+	s:msg
+	d:1749 c:102 d:0 c:90 endl
+}
+
+factorial~{
+	in~int
+	;~{
+		{in < 2} ? 1 ! {in * factorial:{in-1}}
+	}
+}
+
+print.{d:factorial:7 endl}
+
+color~{
+	~enum
+	red~{~op op_val:0}
+	green~{~op op_val:1}
+	orange~{~op op_val:2}
+	yellow~{~op op_val:3}
+	blue~{~op op_val:4}
+}
+
+color_a~color
+color_a.blue.set
+print.{d:color_a.blue.is endl d:color_a.orange.is endl}
+
+write_color~{
+	write~@writenf
+	colrw~color
+	;~{
+		write.{
+			colrw.{
+				red.is ? {s:"RED"}
+				! green.is ? {s:"GREEN"}
+				! orange.is ? {s:"ORANGE"}
+				! yellow.is ? {s:"YELLOW"}
+				! blue.is ? {s:"BLUE"}
+			}
+			endl
+		}
+	}
+}
+
+printer~print
+write_color.{write:@printer colrw:color_a ; color_a.orange.set colrw:color_a ;}
+

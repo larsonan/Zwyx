@@ -1,5 +1,5 @@
 #!/bin/bash
 g++ zwyx.cpp
-./a.out insrt_test.txt
+./a.out first_test.zwyx
 ./test
 

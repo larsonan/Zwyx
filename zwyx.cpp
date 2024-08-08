@@ -30,12 +30,17 @@ using namespace std;
 #define COMPARE_NOT 8
 #define LOAD 9
 #define SUBTRACT 10
-#define LESS_THAN 11
+#define PLACE 11
 #define ELSE 12
 #define WHILE 13
 #define MULTIPLY 14
 #define MODULUS 15
-#define GREATER_THAN 16
+#define GREATER_THAN_OR_EQUAL 16
+#define LESS_THAN_OR_EQUAL 17
+#define GREATER_THAN 18
+#define LESS_THAN 19
+#define AND 20
+#define OR 21
 
 #define DEF_NONE 0
 #define MAIN 1
@@ -47,8 +52,11 @@ using namespace std;
 #define INT_CONST 7
 #define PAREN 8
 #define METHOD 9
+#define BYTES 10
+#define IGNORE 11
+#define IMPORT 12
 
-#define NUM_BASIC_UNITS 10
+#define NUM_BASIC_UNITS 13
 #define STRUCT_UNINITIALIZED -2
 #define BASE_UNLOADED -1
 #define WORD_SIZE 8
@@ -64,6 +72,9 @@ using namespace std;
 #define REG_PTR "rcx"
 #define REG_COUNT "rdx"
 #define REG_TEMP_ONE_BYTE "al"
+
+#define FILE_EXTENSION ".zwyx"
+
 string error_messages[] = 
 {
 	"", /* No Error */
@@ -129,8 +140,9 @@ struct unit_struct
 	struct instrx_struct *base_instrx;
 };
 
-string basic_unit_names[] = {"none", "", "", "int", "arr_ptr", "", "method_ptr", "", "", "do" };
-char opers[] = {'\0', ':', '~', '.', '?', '=', '+', '/', ',', '\0', '-', '<', '!', '#', '*', '%', '>'};
+string basic_unit_names[] = {"none", "", "", "int", "arr_ptr", "", "method_ptr", "", "", "do", "", "", "_import"};
+char opers[] = {'\0', ':', '~', '.', '?', '=', '+', '/', '\0', '\0', '-', '\0', '!', '#', '*', '%', 
+                '\0', '\0', '>', '<', '&', '|'};
 
 struct error_struct errors[MAX_ERRORS];
 int num_errors;
@@ -155,7 +167,7 @@ struct instrx_struct new_instrx;
 FILE* err_out;
 FILE* xcfile;
 int num_b = 0;
-
+vector<string> data_section_strings;
 int num_f = 0;
 int temp_reg_mem;
 
@@ -205,7 +217,7 @@ vector<struct unit_struct*> instantiate_subunits(struct unit_struct *superunit, 
 struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struct *base, struct unit_struct *parent);
 void write_instrxs(vector<struct instrx_struct*> instrx);
 void write_line_with_control(struct instrx_struct *instrx);
-
+void parse_file(string file_name);
 void setup_basic_units(void)
 {
 	for (int i = 0; i < NUM_BASIC_UNITS; i++)
@@ -318,7 +330,7 @@ void write_array_count(struct instrx_struct *instrx)
 void write_insertion(struct instrx_struct *instrx)
 {
 	(void)fprintf(xcfile, "mov\t");
-	if (INT_CONST == instrx->insertion_source->unit->type)
+	if ((INT_CONST == instrx->insertion_source->unit->type) || (MAIN == instrx->insertion_source->unit->mem_base))
 	{
 		(void)fprintf(xcfile, "qword\t");
 	}
@@ -327,6 +339,10 @@ void write_insertion(struct instrx_struct *instrx)
 	if (INT_CONST == instrx->insertion_source->unit->type)
 	{
 		(void)fprintf(xcfile, "%s", instrx->insertion_source->unit->name.c_str());
+	}
+	else if (MAIN == instrx->insertion_source->unit->mem_base)
+	{
+	        (void)fprintf(xcfile, "s%d", instrx->insertion_source->unit->f_num);
 	}
 	else if (instrx->unit->mem_used < WORD_SIZE)
 	{
@@ -454,6 +470,12 @@ void write_math_instrx(struct instrx_struct *instrx)
 		
 		(void)fprintf(xcfile, "mul\tqword\t");
 		break;
+	case AND:
+	        (void)fprintf(xcfile, "and\t%s,\t", REG_TEMP);
+	        break;
+	case OR:
+	        (void)fprintf(xcfile, "or\t%s,\t", REG_TEMP);
+	        break;
 	case COMPARE:
 	case COMPARE_NOT:
 	case GREATER_THAN:
@@ -474,13 +496,21 @@ void write_math_instrx(struct instrx_struct *instrx)
 		(void)fprintf(xcfile, "\n");
 	}
 	
+	if (MODULUS == instrx->oper)
+	{
+	        (void)fprintf(xcfile, "mov\t%s,\trdx\n", REG_TEMP);
+	}
+	
 	switch (instrx->oper)
 	{
-	        case MODULUS:
-		        (void)fprintf(xcfile, "mov\t%s,\trdx\n", REG_TEMP);
-		        break;
 		case COMPARE:
 		        (void)fprintf(xcfile, "sete\tal\nmovzx\t%s,\tal\n", REG_TEMP);
+		        break;
+		case GREATER_THAN_OR_EQUAL:
+		        (void)fprintf(xcfile, "setge\tal\nmovzx\t%s,\tal\n", REG_TEMP);
+		        break;
+		case LESS_THAN_OR_EQUAL:
+		        (void)fprintf(xcfile, "setle\tal\nmovzx\t%s,\tal\n", REG_TEMP);
 		        break;
 		case COMPARE_NOT:
 		        (void)fprintf(xcfile, "setne\tal\nmovzx\t%s,\tal\n", REG_TEMP);
@@ -593,7 +623,8 @@ void handle_instrx_default(struct instrx_struct *instrx)
 		write_do_instrx(instrx);
 	}
 	else if ((instrx->unit->type != METHOD) && ((instrx->oper != NO_OPER) || (NULL == instrx->insertion_source))
-				&& ((instrx->oper != INSERTION) || (instrx->unit->type != INT_CONST)))
+		&& ((instrx->oper != INSERTION)
+		|| ((instrx->unit->type != INT_CONST) && (instrx->unit->mem_base != MAIN))))
 	{
 		write_insertion_src_out_unit(instrx);
 	}
@@ -664,7 +695,10 @@ void initialize_unit(struct instrx_struct *instrx)
 			
 			restore_base_to_reg();
 		}
-		unit->f_num = 0;
+		if (unit->mem_base != MAIN)
+		{
+		        unit->f_num = 0;
+		}
 	}
 }
 void write_insertion_in_unit(struct instrx_struct *instrx)
@@ -813,7 +847,12 @@ void write_xc(string format)
 	
 	(void)fprintf(xcfile, "%s", compiled_instrxs.c_str());
 	
-	(void)fprintf(xcfile, "SECTION .bss\nstaticdata:\tresb\t%d\n", 8);
+	(void)fprintf(xcfile, "SECTION .data\n");
+	
+	for (int i = 0; i < data_section_strings.size(); i++)
+	{
+	        (void)fprintf(xcfile, "s%d\tdb\t'%s'\n", i+1, data_section_strings[i].c_str());
+	}
 	fclose(xcfile);
 }
 
@@ -995,7 +1034,15 @@ void handle_instantiation(struct instrx_struct *instrx)
 	{
 		instantiate_method(instrx);
 	}
-	else if (!instrx->unit->mem_base && (instrx->base_level != -1))
+	else if (MAIN == instrx->unit->mem_base)
+	{
+	        data_section_strings.push_back(instrx->unit->name);
+	        int size;
+	        int sizes;
+	        size = data_section_strings.size();
+	        instrx->unit->f_num = size;
+	}
+	else if (!instrx->unit->mem_base && (instrx->base_level != -1) && (instrx->unit->type != IMPORT))
 	{
 		if (instrx->is_ptr)
 		{
@@ -1148,6 +1195,11 @@ void handle_new_instrx()
 		parent_ptr->instrx_list.back()->unit = new_instrx.unit;
 		
 	}
+	else if ((parent_ptr->instrx_list.size() > 0) && (IMPORT == parent_ptr->instrx_list.back()->unit->type))
+	{
+	        parent_ptr->instrx_list.back()->unit = basic_units[DEF_NONE];
+	        parse_file(new_instrx.unit->name + ".zwyx");
+	}
 	else
 	{
 	        struct instrx_struct *temp = new instrx_struct(new_instrx);
@@ -1157,6 +1209,10 @@ void handle_new_instrx()
 		    || (WHILE == new_instrx.oper) || (ELSE == new_instrx.oper) || (BRANCH == new_instrx.oper))
 		{
 			parent_ptr->instrx_list.back()->insertion_source = temp;
+			if (MAIN == temp->unit->mem_base)
+			{
+			        
+			}
 		}
 		
 		if ((INSERTION == new_instrx.oper) && (STRUCT == parent_ptr->type))
@@ -1272,15 +1328,49 @@ void handle_new_superunit()
 	unit->parent = parent_ptr;
 	parent_ptr = unit;
 }
+int handle_double_oper(int oper)
+{
+        if (COMPARE == oper)
+	{
+	        if (GREATER_THAN == new_instrx.oper)
+	        {
+	                return GREATER_THAN_OR_EQUAL;
+	        }
+	        else if (LESS_THAN == new_instrx.oper)
+	        {
+	                return LESS_THAN_OR_EQUAL;
+	        }
+	}
+	else if ((MULTIPLY == oper) && (BRANCH == new_instrx.oper))
+	{
+	        return WHILE;
+	}
+	return NO_OPER;
+}
 void handle_char(int c)
 {
-	for (int i = 0; i < 17; i++)
+        int new_oper = NO_OPER;
+	for (int i = 0; i <= 22; i++)
 	{
 		if (c == opers[i])
 		{
-			new_instrx.oper = i;
+			new_oper = i;
 			break;
 		}
+	}
+	if (new_oper != NO_OPER)
+	{
+	        if (new_instrx.oper != NO_OPER)
+	        {
+	                new_oper = handle_double_oper(new_oper);
+	                if (NO_OPER == new_oper)
+	                {
+	                        string error_str;
+	                        error_str.push_back(c);
+	                        set_error(INVALID_USE_OF_OPER, 0, error_str);
+	                }
+	        }
+	        new_instrx.oper = new_oper;
 	}
 	if (((';' == c) || ('$' == c)) && (new_instrx.oper != SUBUNIT))
 	{
@@ -1339,6 +1429,15 @@ void end_base_unit()
 
 
 
+void handle_string_literal(string str)
+{
+        handle_last_instrx();
+        new_instrx.unit = new unit_struct(*basic_units[STRUCT]);
+        new_instrx.unit->name = str;
+        new_instrx.unit->mem_base = MAIN;
+        new_instrx.unit->mem_used = str.size();
+        handle_new_instrx();
+}
 void handle_unit_name(string name)
 {
 	
@@ -1382,6 +1481,7 @@ void parse_file(string file_name)
 	line_num = 1;
 	string unit_name_buffer;
 	int in_compiled_instrxs = 0;
+	int in_string_literal = 0;
 	int unit_name_buffer_idx = 0;
 	
 	int c = fgetc(zyfile);
@@ -1390,6 +1490,23 @@ void parse_file(string file_name)
 		if (in_compiled_instrxs)
 		{
 			compiled_instrxs.push_back(c);
+		}
+		else if (in_string_literal)
+		{
+		        if ('"' == c)
+		        {
+		                handle_string_literal(unit_name_buffer);
+		                unit_name_buffer.clear();
+		                in_string_literal = 0;
+		        }
+		        else
+		        {
+		                unit_name_buffer.push_back(c);
+		        }
+		}
+		else if ('"' == c)
+		{
+		        in_string_literal = 1;
 		}
 		else
 		{
@@ -1441,8 +1558,8 @@ int main(int argc, char** argv)
 	
 	init();
 	start_base_unit();
-	parse_file("sysapi.txt");
-	parse_file(string("sysapi_")+FORMAT+".txt");
+	parse_file("sysapi.zwyx");
+	parse_file(string("sysapi_")+FORMAT+".zwyx");
 	
 	parse_file(argv[1]);
 	end_base_unit();
