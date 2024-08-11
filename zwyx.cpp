@@ -3,21 +3,14 @@
 #include <stdlib.h>
 #include <vector>
 using namespace std;
+
 #define NO_ERROR 0
-#define INVALID_USE_OF_CHAR 1
+#define INVALID_USE_OF_OPER 1
 #define UNDEFINED_UNIT 2
 #define REDEFINED_UNIT 3
-#define UNIT_NAME_WITHOUT_LETTER 4
-#define UNIT_NAME_BEGINNING_WITH_DIGIT 5
-#define UNKNOWN_TOKEN 6
-#define UNIT_NAME_TOO_LONG 7
-#define INT_CONST_TOO_LONG 8
-#define INVALID_USE_OF_INT_CONST 9
-#define TOO_MANY_NESTED_UNITS 10
-#define TOO_MANY_SUBUNITS 11
-#define MISSING_END_BRACE 12
-#define UNMATCHED_END_BRACE 13
-#define INVALID_USE_OF_OPER 14
+#define INVALID_NUMBER_FORMAT 4
+#define MISSING_END_BRACE 5
+#define UNMATCHED_END_BRACE 6
 
 #define NO_OPER 0
 #define INSERTION 1
@@ -60,11 +53,7 @@ using namespace std;
 #define STRUCT_UNINITIALIZED -2
 #define BASE_UNLOADED -1
 #define WORD_SIZE 8
-#define UNIT_NAME_MAX_LEN 20
-#define MAX_SUBUNITS 100
-#define MAX_UNIT_CHAIN_LEN 100
 #define MAX_ERRORS 100
-#define MAX_METHOD_UNITS 100
 
 #define REG_DEFAULT "rsp"
 #define REG_TEMP "rax"
@@ -101,7 +90,7 @@ struct instrx_struct
 	int unit_line;
 	int oper_line;
 	int base_level;
-	int is_base;
+	int state;
 	struct instrx_struct *ptr_source;
 	struct instrx_struct *insertion_source;
 };
@@ -149,9 +138,6 @@ int num_errors;
 
 struct unit_struct *parent_ptr;
 
-struct unit_struct *subunit_stack[MAX_SUBUNITS];
-
-int subunit_stack_idx;
 #define FORMAT "elf64"
 struct unit_struct basic_unit_data[NUM_BASIC_UNITS];
 vector<struct unit_struct*> basic_units;
@@ -205,16 +191,13 @@ void print_errors(void)
 	{
 		(void)fprintf(stdout, "Line %d - \"", errors[i].line);
 		(void)fprintf(stdout, "%s", errors[i].section.c_str());
-		if ((UNIT_NAME_TOO_LONG == errors[i].type) || (INT_CONST_TOO_LONG == errors[i].type))
-		{
-			(void)fprintf(stdout, "...");
-		}
 		(void)fprintf(stdout, "\": %s\n", error_messages[errors[i].type].c_str());
 	}
 }
 
-vector<struct unit_struct*> instantiate_subunits(struct unit_struct *superunit, struct unit_struct *parent);
-struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struct *base, struct unit_struct *parent);
+vector<struct unit_struct*> instantiate_subunits(struct unit_struct *superunit, struct unit_struct *mem_ref_parent);
+struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struct *base,
+                                      struct unit_struct *mem_ref_parent);
 void write_instrxs(vector<struct instrx_struct*> instrx);
 void write_line_with_control(struct instrx_struct *instrx);
 void parse_file(string file_name);
@@ -255,11 +238,11 @@ void write_unit(struct instrx_struct *instrx)
 	}
 	else
 	{
-		if ((METHOD == instrx->unit->mem_base) || (-1 == instrx->base_level))
+		if (METHOD == instrx->unit->mem_base)
 		{
 			(void)fprintf(xcfile, "[%s-%d]", REG_DEFAULT, instrx->unit->mem_offset);
 		}
-		else if (2 == instrx->base_level)
+		else if (1 == instrx->base_level)
 		{
 			(void)fprintf(xcfile, "[%s+%d]", REG_BASE, instrx->unit->mem_offset);
 		}
@@ -540,14 +523,14 @@ void write_jump_conditional(int b_num)
 void decrease_base_level(int base_level)
 {
         (void)fprintf(xcfile, "mov\t%s,\t[%s+0]\n", REG_PTR, REG_BASE);
-        for (int i = 4; i <= base_level; i++)
+        for (int i = 2; i < base_level; i++)
         {
                 (void)fprintf(xcfile, "mov\t%s,\t[%s]\n", REG_PTR, REG_PTR);
         }
 }
 void load_pointer_base(struct instrx_struct *instrx)
 {
-        if (instrx->base_level > 2)
+        if (instrx->base_level > 1)
         {
                 decrease_base_level(instrx->base_level);
         }
@@ -559,7 +542,7 @@ void load_pointer_base(struct instrx_struct *instrx)
 }
 void load_base(struct instrx_struct *instrx)
 {
-        if (instrx->base_level > 2)
+        if (instrx->base_level > 1)
         {
                 load_base_to_temp();
         }
@@ -675,7 +658,7 @@ void initialize_unit(struct instrx_struct *instrx)
 	{
 		if ((unit->base != NULL) && ((PTR == unit->base->type) || (STRUCT == unit->base->type)))
 		{
-			if ((BASE_UNLOADED == unit->f_num) || (STRUCT_UNINITIALIZED == unit->f_num))
+			if (STRUCT_UNINITIALIZED == instrx->state)
 			{
 				load_base(instrx);
 			}
@@ -688,16 +671,13 @@ void initialize_unit(struct instrx_struct *instrx)
 			        initialize_unit(instrx->ptr_source);
 			}
 		}
-		if (STRUCT_UNINITIALIZED == unit->f_num)
+		if ((STRUCT_UNINITIALIZED == instrx->state) && (STRUCT_UNINITIALIZED == unit->f_num))
 		{
 			load_base_to_reg(unit->mem_offset);
 			write_instrxs(unit->instrx_list);
 			
 			restore_base_to_reg();
-		}
-		if (unit->mem_base != MAIN)
-		{
-		        unit->f_num = 0;
+			unit->f_num = 0;
 		}
 	}
 }
@@ -719,7 +699,7 @@ void write_line(struct instrx_struct *instrx)
 	{
 		write_line(instrx->insertion_source);
 	}
-	if ((instrx->base_level > 2) && (instrx->unit->mem_base != METHOD))
+	if ((instrx->base_level > 1) && (instrx->unit->mem_base != METHOD))
 	{
 	        decrease_base_level(instrx->base_level);
 	}
@@ -919,12 +899,13 @@ void handle_define_statement(struct unit_struct *defined_unit, struct unit_struc
 	}
 	parent_ptr->subunits.push_back(definition_unit);
 }
-struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struct *base, struct unit_struct *parent)
+struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struct *base,
+                                      struct unit_struct *mem_ref_parent)
 {
 	struct unit_struct *instance = new unit_struct;
 	*instance = *unit;
-	instance->mem_base = parent->type;
-	if ((ARR_PTR == parent->type) || (STRUCT == parent->type))
+	instance->mem_base = mem_ref_parent->type;
+	if ((ARR_PTR == mem_ref_parent->type) || (STRUCT == mem_ref_parent->type))
 	{
 	        instance->mem_base = STRUCT;
 	}
@@ -933,32 +914,30 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 	        instance->type = STRUCT;
 	        instance->mem_used = stoi(instance->name);
 	}
-	if (((ARR_PTR == instance->type) || (STRUCT == instance->type)) && (METHOD == parent->type))
+	if (((ARR_PTR == instance->type) || (STRUCT == instance->type)) && (METHOD == mem_ref_parent->type))
 	{
-		if ((base != NULL) && (METHOD == base->mem_base) && (base->mem_offset >= parent->mem_used))
+		if ((base != NULL) && (METHOD == base->mem_base) && (base->mem_offset >= mem_ref_parent->mem_used))
 		{
 			instance->mem_offset = base->mem_offset + instance->mem_used;
 		}
 		else
 		{
-			instance->mem_offset = temp_reg_mem + parent->mem_used + instance->mem_used - WORD_SIZE;
+			instance->mem_offset = temp_reg_mem + mem_ref_parent->mem_used
+			                                            + instance->mem_used - WORD_SIZE;
 		}
-		if (0 == instance->f_num)
-		{
-			instance->f_num = BASE_UNLOADED;
-		}
-		parent = instance;
+		mem_ref_parent = instance;
 	}
-	else if (((ARR_PTR == parent->type) || (STRUCT == parent->type)) && (METHOD == parent->mem_base))
+	else if (((ARR_PTR == mem_ref_parent->type)
+	        || (STRUCT == mem_ref_parent->type)) && (METHOD == mem_ref_parent->mem_base))
 	{
 	        instance->mem_base = METHOD;
-	        instance->mem_offset = parent->mem_offset - instance->mem_offset;
+	        instance->mem_offset = mem_ref_parent->mem_offset - instance->mem_offset;
 	}
 	else
 	{
-		instance->mem_offset += parent->mem_used + temp_reg_mem;
+		instance->mem_offset += mem_ref_parent->mem_used + temp_reg_mem;
 	}
-	if ((METHOD_PTR == instance->type) && !parent->mem_base)
+	if ((METHOD_PTR == instance->type) && !mem_ref_parent->mem_base)
 	{
 	        instance->base = parent_ptr;
 	}
@@ -968,7 +947,7 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 	}
 	if ((ARR_PTR == instance->type) || (STRUCT == instance->type))
 	{
-		instance->subunits = instantiate_subunits(instance, parent);
+		instance->subunits = instantiate_subunits(instance, mem_ref_parent);
 	}
 	return instance;
 }
@@ -994,7 +973,7 @@ void instantiate_method(struct instrx_struct *instrx)
 		
 		if (!parent_ptr->base->mem_base)
 		{
-		        instrx->unit->base_instrx->base_level = 2;
+		        instrx->unit->base_instrx->base_level = 1;
 		}
 	}
 	else
@@ -1013,7 +992,7 @@ struct unit_struct* instantiate_as_ptr(struct unit_struct *unit)
 	
 	return new_ptr;
 }
-vector<struct unit_struct*> instantiate_subunits(struct unit_struct *superunit, struct unit_struct *parent)
+vector<struct unit_struct*> instantiate_subunits(struct unit_struct *superunit, struct unit_struct *mem_ref_parent)
 {
 	vector<struct unit_struct*> units;
 	
@@ -1021,7 +1000,7 @@ vector<struct unit_struct*> instantiate_subunits(struct unit_struct *superunit, 
 	{
 		if (STRUCT == superunit->subunits[i]->mem_base)
 		{
-			units.push_back(instantiate_unit(superunit->subunits[i], NULL, parent));
+			units.push_back(instantiate_unit(superunit->subunits[i], NULL, mem_ref_parent));
 		}
 	}
 	return units;
@@ -1042,7 +1021,7 @@ void handle_instantiation(struct instrx_struct *instrx)
 	        size = data_section_strings.size();
 	        instrx->unit->f_num = size;
 	}
-	else if (!instrx->unit->mem_base && (instrx->base_level != -1) && (instrx->unit->type != IMPORT))
+	else if (!instrx->unit->mem_base && (instrx->unit->type != IMPORT))
 	{
 		if (instrx->is_ptr)
 		{
@@ -1063,9 +1042,12 @@ void handle_instantiation(struct instrx_struct *instrx)
 			}
 			if (STRUCT == parent_ptr->type)
 			{
-			        instrx->base_level = 2;
+			        instrx->base_level = 1;
 			}
-			
+			if (STRUCT == instrx->unit->type)
+			{
+			        instrx->state = STRUCT_UNINITIALIZED;
+			}
 			if ((instrx->unit->method != NULL) && (instrx->oper != DEFINE) && (new_instrx.oper != SUBUNIT))
 			{
 				instantiate_method(instrx);
@@ -1094,10 +1076,17 @@ void find_unit_in_superunit_no_instrx(string name, struct unit_struct *superunit
 void id_unit(string name)
 {
 	struct unit_struct *superunit = parent_ptr;
-	while ((NULL == new_instrx.unit) && (superunit != NULL) && (METHOD == superunit->mem_base))
+	while ((NULL == new_instrx.unit) && (superunit != NULL) && (METHOD == superunit->type))
 	{
 		find_unit_in_superunit_no_instrx(name, superunit);
-		superunit = superunit->parent;
+		if (METHOD == superunit->mem_base)
+		{
+		        superunit = superunit->parent;
+		}
+		else
+		{
+		        superunit = superunit->base;
+		}
 	}
 	int base_level = 0;
 	while ((NULL == new_instrx.unit) && (superunit != NULL))
@@ -1111,7 +1100,7 @@ void id_unit(string name)
 	        new_instrx.base_level = base_level;
 	        if (STRUCT == parent_ptr->type)
 	        {
-	                new_instrx.base_level = 2;
+	                new_instrx.base_level = 1;
 	        }
 	}
 	superunit = parent_ptr;
@@ -1192,6 +1181,7 @@ void handle_new_instrx()
 		        parent_ptr->instrx_list.back()->ptr_source->oper = NO_OPER;
 		        parent_ptr->instrx_list.back()->base_level = 0;
 		}
+		parent_ptr->instrx_list.back()->state = 0;
 		parent_ptr->instrx_list.back()->unit = new_instrx.unit;
 		
 	}
@@ -1253,7 +1243,7 @@ void handle_base()
         else
         {
                 new_instrx.unit = parent_ptr->base;
-                new_instrx.base_level = -1;
+                new_instrx.base_level = 1;
         }
         handle_new_instrx();
 }
@@ -1482,7 +1472,6 @@ void parse_file(string file_name)
 	string unit_name_buffer;
 	int in_compiled_instrxs = 0;
 	int in_string_literal = 0;
-	int unit_name_buffer_idx = 0;
 	
 	int c = fgetc(zyfile);
 	while (c != EOF)
@@ -1512,18 +1501,12 @@ void parse_file(string file_name)
 		{
 			if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || (c == '_'))
 			{
-				/* We're in the middle of a unit name - store char in buffer */
-				if (unit_name_buffer_idx < UNIT_NAME_MAX_LEN)
-				{
-					unit_name_buffer.push_back(c);
-				}
-				unit_name_buffer_idx++;
+				unit_name_buffer.push_back(c);
 			}
 			else
 			{
-				if (unit_name_buffer_idx > 0)
+				if (unit_name_buffer.size() > 0)
 				{
-					/* We've reached the end of a unit name */
 					if ("0_START_INSTRXS" == unit_name_buffer)
 					{
 						in_compiled_instrxs = 1;
@@ -1535,18 +1518,14 @@ void parse_file(string file_name)
 						handle_unit_name(unit_name_buffer);
 					}
 					unit_name_buffer.clear();
-					/* Reset buffer_idx */
-					unit_name_buffer_idx = 0;
 				}
 				handle_char(c);
 			}
 		}
 		c = fgetc(zyfile);
 	}
-	if (unit_name_buffer_idx > 0)
+	if (unit_name_buffer.size() > 0)
 	{
-		/* Final unit name still unhandled */
-		
 		handle_unit_name(unit_name_buffer);
 	}
 	
