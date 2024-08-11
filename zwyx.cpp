@@ -63,6 +63,7 @@ using namespace std;
 #define REG_TEMP_ONE_BYTE "al"
 
 #define FILE_EXTENSION ".zwyx"
+#define FORMAT "elf64"
 
 string error_messages[] = 
 {
@@ -138,7 +139,6 @@ int num_errors;
 
 struct unit_struct *parent_ptr;
 
-#define FORMAT "elf64"
 struct unit_struct basic_unit_data[NUM_BASIC_UNITS];
 vector<struct unit_struct*> basic_units;
 
