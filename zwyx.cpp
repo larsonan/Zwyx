@@ -50,10 +50,12 @@ using namespace std;
 #define IMPORT 12
 
 #define NUM_BASIC_UNITS 13
-#define STRUCT_UNINITIALIZED -2
-#define BASE_UNLOADED -1
+#define STRUCT_UNINITIALIZED -1
+#define BASE_UNLOADED 4
 #define WORD_SIZE 8
 #define MAX_ERRORS 100
+#define COMPILED 1
+#define COMMENT 2
 
 #define REG_DEFAULT "rsp"
 #define REG_TEMP "rax"
@@ -68,20 +70,12 @@ using namespace std;
 string error_messages[] = 
 {
 	"", /* No Error */
-	"Invalid use of character",
+	"Invalid use of operator",
 	"Undefined unit",
 	"Redefinition of unit",
-	"Unit name must contain at least one alphabetic character",
-	"Unit name cannot begin with digit",
-	"Unknown token",
-	"Unit name too long",
-	"Integer constant too long",
-	"Invalid use of integer constant",
-	"Too many nested units",
-	"Too many subunits",
+	"Invalid number format",
 	"Missing end brace",
-	"Unmatched end brace",
-	"Invalid use of operator"
+	"Unmatched end brace"
 };
 struct instrx_struct
 {
@@ -662,11 +656,7 @@ void initialize_unit(struct instrx_struct *instrx)
 			{
 				load_base(instrx);
 			}
-			if ((unit->base_instrx != NULL) && (unit->base_instrx->unit != NULL))
-			{
-			        initialize_unit(unit->base_instrx);
-			}
-			else if ((instrx->ptr_source != NULL) && (instrx->ptr_source->unit != NULL))
+			if ((instrx->ptr_source != NULL) && (instrx->ptr_source->unit != NULL))
 			{
 			        initialize_unit(instrx->ptr_source);
 			}
@@ -1058,8 +1048,7 @@ void handle_instantiation(struct instrx_struct *instrx)
 void find_unit_in_instrx(string name, struct instrx_struct *instrx)
 {
         find_unit_in_superunit(name, instrx->unit);
-        if ((new_instrx.unit != NULL)
-            && ((PTR == instrx->unit->type) || (-1 == instrx->base_level) || (new_instrx.unit->base != NULL)))
+        if ((new_instrx.unit != NULL) && ((PTR == instrx->unit->type) || (new_instrx.unit->base != NULL)))
         {
                 new_instrx.ptr_source = instrx;
         }
@@ -1122,7 +1111,13 @@ void handle_last_instrx()
 	if ((parent_ptr->instrx_list.size() > 0) && (new_instrx.oper != DEFINE))
 	{
 		struct instrx_struct *instrx = parent_ptr->instrx_list.back();
-		if ((DEF_NONE == instrx->unit->type) && (0 == instrx->unit->name.length()))
+		if (NULL == instrx->unit)
+		{
+		        string error_str;
+		        error_str.push_back(opers[instrx->oper]);
+		        set_error(INVALID_USE_OF_OPER, instrx->unit_line, error_str);
+		}
+		else if ((DEF_NONE == instrx->unit->type) && (0 == instrx->unit->name.length()))
 		{
 			set_error(UNDEFINED_UNIT, instrx->unit_line, instrx->unit->name);
 		}
@@ -1166,13 +1161,18 @@ struct unit_struct *get_correct_method_type()
 }
 void handle_new_instrx()
 {
-	if ((SUBUNIT == new_instrx.oper) && ((new_instrx.unit->type != METHOD) || (parent_ptr->instrx_list.back()->oper != DEFINE)))
+	if (SUBUNIT == new_instrx.oper)
 	{
 	        if ((new_instrx.unit->type != METHOD_PTR) && (new_instrx.unit->type != INT_CONST))
 	        {
 		        handle_instantiation(parent_ptr->instrx_list.back());
 		}
+		if ((METHOD == new_instrx.unit->type) && (DEFINE == parent_ptr->instrx_list.back()->oper))
+		{
+		        parent_ptr->instrx_list.back()->oper = NO_OPER;
+		}
 		if ((PTR == parent_ptr->instrx_list.back()->unit->type)
+		            || (METHOD == new_instrx.unit->type)
 		            || (!new_instrx.unit->mem_base && (new_instrx.unit->type != INT_CONST)))
 		{
 		        parent_ptr->instrx_list.back()->ptr_source = 
@@ -1226,6 +1226,7 @@ void handle_new_instrx()
 	new_instrx.base_level = 0;
 	new_instrx.is_ptr = 0;
 	new_instrx.ptr_source = NULL;
+	new_instrx.unit = NULL;
 	parent_ptr->instrx_list.back()->unit_line = line_num;
 }
 void handle_unit(struct unit_struct *unit)
@@ -1292,6 +1293,7 @@ void handle_new_superunit()
 		if (SUBUNIT == new_instrx.oper)
 		{
 			unit->base_instrx = new instrx_struct(*parent_ptr->instrx_list.back());
+			unit->base_instrx->state = 0;
 			unit->base = parent_ptr->instrx_list.back()->unit;
 			unit->mem_used += handle_alignment(parent_ptr->instrx_list.back()->unit->mem_used);
 		}
@@ -1350,6 +1352,12 @@ void handle_char(int c)
 	}
 	if (new_oper != NO_OPER)
 	{
+	        if ((new_oper != DEFINE) && (0 == parent_ptr->instrx_list.size()))
+	        {
+	                string error_str;
+	                error_str.push_back(c);
+	                set_error(INVALID_USE_OF_OPER, 0, error_str);
+	        }
 	        if (new_instrx.oper != NO_OPER)
 	        {
 	                new_oper = handle_double_oper(new_oper);
@@ -1470,32 +1478,34 @@ void parse_file(string file_name)
 	FILE* zyfile = fopen(file_name.c_str(), "r");
 	line_num = 1;
 	string unit_name_buffer;
-	int in_compiled_instrxs = 0;
-	int in_string_literal = 0;
+	int read_mode = 0;
 	
 	int c = fgetc(zyfile);
 	while (c != EOF)
 	{
-		if (in_compiled_instrxs)
-		{
-			compiled_instrxs.push_back(c);
-		}
-		else if (in_string_literal)
+	        if (COMPILED == read_mode)
+	        {
+	                compiled_instrxs.push_back(c);
+	        }
+	        else if (COMMENT == read_mode)
+	        {
+	                if ('\n' == c)
+	                {
+	                        read_mode = 0;
+	                }
+	        }
+		else if (BYTES == read_mode)
 		{
 		        if ('"' == c)
 		        {
 		                handle_string_literal(unit_name_buffer);
 		                unit_name_buffer.clear();
-		                in_string_literal = 0;
+		                read_mode = 0;
 		        }
 		        else
 		        {
 		                unit_name_buffer.push_back(c);
 		        }
-		}
-		else if ('"' == c)
-		{
-		        in_string_literal = 1;
 		}
 		else
 		{
@@ -1509,7 +1519,7 @@ void parse_file(string file_name)
 				{
 					if ("0_START_INSTRXS" == unit_name_buffer)
 					{
-						in_compiled_instrxs = 1;
+						read_mode = COMPILED;
 						handle_last_instrx();
 						funcs.clear();
 					}
@@ -1519,7 +1529,18 @@ void parse_file(string file_name)
 					}
 					unit_name_buffer.clear();
 				}
-				handle_char(c);
+				if ('#' == c)
+				{
+				        read_mode = COMMENT;
+				}
+				else if ('"' == c)
+				{
+				        read_mode = BYTES;
+				}
+				else
+				{
+				        handle_char(c);
+				}
 			}
 		}
 		c = fgetc(zyfile);
