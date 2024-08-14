@@ -48,7 +48,7 @@ print.{
 factorial~{
 	in~int
 	;~{
-		{in < 2} ? 1 ! {in * factorial:{in-1}}
+		{in < 2} ? 1 ^ {in * factorial:{in-1}}
 	}
 }
 
@@ -74,10 +74,10 @@ write_color~{
 		write.{
 			colrw.{
 				red.is ? {s:"RED"}
-				! green.is ? {s:"GREEN"}
-				! orange.is ? {s:"ORANGE"}
-				! yellow.is ? {s:"YELLOW"}
-				! blue.is ? {s:"BLUE"}
+				^ green.is ? {s:"GREEN"}
+				^ orange.is ? {s:"ORANGE"}
+				^ yellow.is ? {s:"YELLOW"}
+				^ blue.is ? {s:"BLUE"}
 			}
 			endl
 		}

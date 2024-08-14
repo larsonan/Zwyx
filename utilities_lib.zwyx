@@ -87,6 +87,13 @@ list~{
 			b.count:0
 		}
 	}
+	get~{
+		at~int
+		;~{
+			it~@iter:{b+{at*8}}
+			it.el
+		}
+	}
 	set~{
 		at~int
 		char~int
@@ -139,6 +146,13 @@ str~{
 		;~{
 			it~@c_iter:{b+at}
 			it.el:char
+		}
+	}
+	getchar~{
+		at~int
+		;~{
+			it~@c_iter:{b+at}
+			it.el % 256
 		}
 	}
 	write~{

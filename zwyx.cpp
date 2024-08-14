@@ -125,8 +125,8 @@ struct unit_struct
 };
 
 string basic_unit_names[] = {"none", "", "", "int", "arr_ptr", "", "method_ptr", "", "", "do", "", "", "_import"};
-char opers[] = {'\0', ':', '~', '.', '?', '=', '+', '/', '\0', '\0', '-', '\0', '!', '#', '*', '%', 
-                '\0', '\0', '>', '<', '&', '|'};
+string operators[] = {"", ":", "~", ".", "?", "=", "+", "/", "", "", "-", "", "^", "?*", "*", "%", 
+                "", "", ">", "<", "&", "|"};
 
 struct error_struct errors[MAX_ERRORS];
 int num_errors;
@@ -401,9 +401,14 @@ void restore_base_to_reg()
 }
 void write_insertion_src(struct instrx_struct *instrx)
 {
-	(void)fprintf(xcfile, "mov\t%s,\t", REG_TEMP);
-	
-	
+        if (instrx->unit->mem_used < WORD_SIZE)
+        {
+                (void)fprintf(xcfile, "mov\t%s,\t", REG_TEMP_ONE_BYTE);
+        }
+        else
+        {
+	        (void)fprintf(xcfile, "mov\t%s,\t", REG_TEMP);
+	}
 	write_unit(instrx);
 	(void)fprintf(xcfile, "\n");
 	
@@ -1113,9 +1118,7 @@ void handle_last_instrx()
 		struct instrx_struct *instrx = parent_ptr->instrx_list.back();
 		if (NULL == instrx->unit)
 		{
-		        string error_str;
-		        error_str.push_back(opers[instrx->oper]);
-		        set_error(INVALID_USE_OF_OPER, instrx->unit_line, error_str);
+		        set_error(INVALID_USE_OF_OPER, instrx->unit_line, operators[instrx->oper]);
 		}
 		else if ((DEF_NONE == instrx->unit->type) && (0 == instrx->unit->name.length()))
 		{
@@ -1322,29 +1325,38 @@ void handle_new_superunit()
 }
 int handle_double_oper(int oper)
 {
-        if (COMPARE == oper)
+        string operator_str = operators[new_instrx.oper] + operators[oper];
+        int new_oper = NO_OPER;
+        
+	for (int i = 0; i <= 22; i++)
 	{
-	        if (GREATER_THAN == new_instrx.oper)
+	        if (operator_str == operators[i])
 	        {
-	                return GREATER_THAN_OR_EQUAL;
-	        }
-	        else if (LESS_THAN == new_instrx.oper)
-	        {
-	                return LESS_THAN_OR_EQUAL;
+	                new_oper = i;
+	                break;
 	        }
 	}
-	else if ((MULTIPLY == oper) && (BRANCH == new_instrx.oper))
+	if (NO_OPER == new_oper)
 	{
-	        return WHILE;
+	        set_error(INVALID_USE_OF_OPER, line_num, operators[oper]);
 	}
-	return NO_OPER;
+	return new_oper;
 }
 void handle_char(int c)
 {
+        if ((' ' == c) || ('\t' == c))
+        {
+                return;
+        }
+        if ('\n' == c)
+        {
+                line_num++;
+                return;
+        }
         int new_oper = NO_OPER;
 	for (int i = 0; i <= 22; i++)
 	{
-		if (c == opers[i])
+		if ((1 == operators[i].size()) && (c == operators[i][0]))
 		{
 			new_oper = i;
 			break;
@@ -1354,19 +1366,11 @@ void handle_char(int c)
 	{
 	        if ((new_oper != DEFINE) && (0 == parent_ptr->instrx_list.size()))
 	        {
-	                string error_str;
-	                error_str.push_back(c);
-	                set_error(INVALID_USE_OF_OPER, 0, error_str);
+	                set_error(INVALID_USE_OF_OPER, line_num, operators[new_oper]);
 	        }
 	        if (new_instrx.oper != NO_OPER)
 	        {
 	                new_oper = handle_double_oper(new_oper);
-	                if (NO_OPER == new_oper)
-	                {
-	                        string error_str;
-	                        error_str.push_back(c);
-	                        set_error(INVALID_USE_OF_OPER, 0, error_str);
-	                }
 	        }
 	        new_instrx.oper = new_oper;
 	}
@@ -1376,7 +1380,6 @@ void handle_char(int c)
 	}
 	switch(c)
 	{
-	
 	case ';':
 		handle_unit(get_correct_method_type());
 		break;
@@ -1386,19 +1389,13 @@ void handle_char(int c)
 	case '}':
 		handle_end_superunit();
 		break;
-		
-	case '\n':
-		line_num++;
-		break;
 	case '$':
 		handle_base();
 		break;
 	case '@':
 		new_instrx.is_ptr = 1;
 		break;
-		
 	default:
-		
 		break;
 	}
 }
