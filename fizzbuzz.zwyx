@@ -1,0 +1,56 @@
+_import:"utilities_lib"
+
+
+fizzbuzz_generic~{
+	write~@writenf
+	start~int
+	end~int
+	replace~{
+		prime~int
+		with~arr_ptr
+		n~int
+		replaced~int
+		;~{
+			{n % prime = 0}?{
+				write.s:with
+				replaced:1
+			}
+		}
+	}
+	replacements~replace.;
+	;~{
+		replace.{
+			n:start
+			{n < end}?*{
+				replaced:0
+				replacements
+				{replaced = 0}?{
+					write.d:n
+				}
+				write.endl
+				n:{n+1}
+			}
+		}
+	}
+}
+
+fizzbuzz_classic~{
+	~fizzbuzz_generic
+	start:0
+	replacements:@{
+		prime:3 with:"fizz" ;
+		prime:5 with:"buzz" ;
+	}
+}
+
+printer~print
+
+fizzbuzz_classic.{write:@printer end:100 ;}
+
+fizzbuzz_generic.{write:@printer start:0 end:100 replacements:@{
+								prime:3 with:"fizz" ;
+								prime:5 with:"buzz" ;
+								prime:7 with:"fuzz" ;
+								prime:11 with:"jazz" ;
+								} ;}
+

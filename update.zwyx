@@ -1,0 +1,40 @@
+_import:"utilities_lib"
+
+
+give_bank_update~{
+	write~@writenf
+	amount~int
+	intro_text~arr_ptr
+	;~{
+		write.{s:intro_text s:". You have $" d:amount s:" in the bank." endl}
+	}
+}
+
+printer~print
+give_bank_update.{write:@printer amount:500 intro_text:"Attention" ;}
+
+increase_urgency~{
+	in~arr_ptr
+	;~{
+		in_str~str
+		in_str.b:in
+		size~int:in.count
+		n~int:0
+		{n < size}?*{
+			{in_str.getchar:n = 46}?{
+				in_str.setchar.{char:33 at:n ;}
+			}
+			n:{n+1}
+		}
+	}
+}
+
+buffer~int.50
+out_str~str.{
+	set_buffer:@buffer
+	writer~write
+	give_bank_update.{write:@writer amount:5 intro_text:"Warning" ;}
+	increase_urgency:$
+	print.s:$
+}
+
