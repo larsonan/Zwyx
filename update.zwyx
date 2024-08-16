@@ -4,7 +4,7 @@ _import:"utilities_lib"
 give_bank_update~{
 	write~@writenf
 	amount~int
-	intro_text~arr_ptr
+	intro_text~str
 	;~{
 		write.{s:intro_text s:". You have $" d:amount s:" in the bank." endl}
 	}
@@ -14,15 +14,13 @@ printer~print
 give_bank_update.{write:@printer amount:500 intro_text:"Attention" ;}
 
 increase_urgency~{
-	in~arr_ptr
+	in~str
 	;~{
-		in_str~str
-		in_str.b:in
 		size~int:in.count
 		n~int:0
 		{n < size}?*{
-			{in_str.getchar:n = 46}?{
-				in_str.setchar.{char:33 at:n ;}
+			{in.getchar:n = 46}?{
+				in.setchar.{char:33 at:n ;}
 			}
 			n:{n+1}
 		}

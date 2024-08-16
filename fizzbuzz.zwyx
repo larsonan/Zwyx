@@ -7,7 +7,7 @@ fizzbuzz_generic~{
 	end~int
 	replace~{
 		prime~int
-		with~arr_ptr
+		with~str
 		n~int
 		replaced~int
 		;~{

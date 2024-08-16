@@ -109,6 +109,11 @@ list~{
 			b.count:{b.count + 1}
 		}
 	}
+	count~{
+		;~{
+			b.count
+		}
+	}
 	each~{
 		
 		f~;

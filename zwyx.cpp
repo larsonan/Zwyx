@@ -1084,7 +1084,8 @@ void find_unit_in_instrx(string name, struct instrx_struct *instrx)
 void find_unit_in_superunit_no_instrx(string name, struct unit_struct *superunit)
 {
         find_unit_in_superunit(name, superunit);
-        if ((new_instrx.unit != NULL) && (new_instrx.unit->base != NULL) && (new_instrx.unit->type != METHOD_PTR))
+        if ((new_instrx.unit != NULL) && (new_instrx.unit->base != NULL) && (new_instrx.unit->type != METHOD_PTR)
+                                        && (new_instrx.unit->base->type != METHOD))
         {
                 new_instrx.ptr_source = new instrx_struct;
                 new_instrx.ptr_source->unit = superunit;
