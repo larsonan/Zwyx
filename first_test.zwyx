@@ -84,6 +84,6 @@ write_color~{
 	}
 }
 
-printer~print
-write_color.{write:@printer colrw:color_a ; color_a.orange.set colrw:color_a ;}
+
+print.{write_color.{write:@$.2 colrw:color_a ; color_a.orange.set colrw:color_a ;}}
 

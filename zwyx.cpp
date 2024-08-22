@@ -48,8 +48,9 @@ using namespace std;
 #define BYTES 10
 #define IGNORE 11
 #define IMPORT 12
+#define BASE 13
 
-#define NUM_BASIC_UNITS 13
+#define NUM_BASIC_UNITS 14
 #define STRUCT_UNINITIALIZED -1
 #define BASE_UNLOADED 4
 #define WORD_SIZE 8
@@ -124,7 +125,7 @@ struct unit_struct
 	struct instrx_struct *base_instrx;
 };
 
-string basic_unit_names[] = {"none", "", "", "int", "arr_ptr", "", "method_ptr", "", "", "do", "", "", "_import"};
+string basic_unit_names[] = {"none", "", "", "int", "arr_ptr", "", "method_ptr", "", "", "do", "", "", "_import", ""};
 string operators[] = {"", ":", "~", ".", "?", "=", "+", "/", "", "", "-", "", "^", "?*", "*", "%", 
                 "", "", ">", "<", "&", "|"};
 
@@ -272,16 +273,17 @@ void write_do(struct instrx_struct *instrx)
 		write_unit(instrx);
 		(void)fprintf(xcfile, "\n");
 	}
-	if (base_instrx->unit->type != INT)
+	
+	if (base_instrx != NULL)
 	{
 	        if ((STRUCT == base_instrx->unit->type)
 	                      && ((base_instrx->unit->mem_base) || (METHOD_PTR == unit->type)))
 	        {
-		        (void)fprintf(xcfile, "lea\t");
+	                (void)fprintf(xcfile, "lea\t");
 	        }
 	        else
 	        {
-		        (void)fprintf(xcfile, "mov\t");
+	                (void)fprintf(xcfile, "mov\t");
 	        }
 	        (void)fprintf(xcfile, "%s,\t", REG_BASE);
 	        write_unit(base_instrx);
@@ -919,10 +921,9 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 	{
 	        instance->mem_base = STRUCT;
 	}
-	if (INT_CONST == instance->type)
+	if ((INT_CONST == instance->type) && (instance->mem_used > 0))
 	{
 	        instance->type = STRUCT;
-	        instance->mem_used = stoi(instance->name);
 	}
 	if (((ARR_PTR == instance->type) || (STRUCT == instance->type)) && (METHOD == mem_ref_parent->type))
 	{
@@ -967,41 +968,39 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 }
 void instantiate_method(struct instrx_struct *instrx)
 {
-        if ((METHOD == instrx->unit->type) || (METHOD_PTR == instrx->unit->type))
-        {
-	        instrx->unit = new unit_struct(*instrx->unit);
-		instrx->unit->mem_used = parent_ptr->mem_used;
-		instrx->unit->base_instrx = new instrx_struct;
-		if (METHOD_PTR == parent_ptr->mem_base)
-		{
-		        instrx->unit->base_instrx->unit = basic_units[INT];
-		}
-		else if ((METHOD == instrx->unit->type) && (NULL == parent_ptr->base_instrx))
-		{
-			instrx->unit->base_instrx->unit = parent_ptr->base->base;
-		}
-		else if (parent_ptr->base_instrx != NULL)
-		{
-			instrx->unit->base_instrx = parent_ptr->base_instrx;
-		}
-		else
-		{
-		        instrx->unit->base_instrx->unit = parent_ptr->base;
-		}
-		
-		if (!parent_ptr->base->mem_base)
-		{
-		        instrx->unit->base_instrx->base_level = 1;
-		}
+	instrx->unit = new unit_struct(*instrx->unit);
+	instrx->unit->mem_used = parent_ptr->mem_used;
+	if (METHOD == instrx->unit->type)
+	{
+		instrx->unit->base_instrx = instrx->ptr_source;
 	}
 	else
 	{
-	        instrx->unit->method = new unit_struct(*instrx->unit->method);
-		instrx->unit->method->mem_used = instrx->unit->mem_offset + WORD_SIZE;
-		instrx->unit->method->base = instrx->unit;
-		instrx->unit->method->mem_base = METHOD;
+	        struct unit_struct* superunit = parent_ptr;
+	        while (METHOD == superunit->type)
+	        {
+	                if (superunit->base_instrx != NULL)
+	                {
+	                        instrx->unit->base_instrx = superunit->base_instrx;
+	                        break;
+	                }
+	                if (superunit->mem_base != METHOD)
+	                {
+	                        instrx->unit->base_instrx = new instrx_struct;
+	                        instrx->unit->base_instrx->base_level = 1;
+	                        instrx->unit->base_instrx->unit = superunit->base;
+	                        break;
+	                }
+	                superunit = superunit->parent;
+	        }
 	}
-	
+}
+void instantiate_unit_method(struct instrx_struct *instrx)
+{
+	instrx->unit->method = new unit_struct(*instrx->unit->method);
+	instrx->unit->method->mem_used = instrx->unit->mem_offset + WORD_SIZE;
+	instrx->unit->method->base = instrx->unit;
+	instrx->unit->method->mem_base = METHOD;
 }
 struct unit_struct* instantiate_as_ptr(struct unit_struct *unit)
 {
@@ -1068,7 +1067,7 @@ void handle_instantiation(struct instrx_struct *instrx)
 			}
 			if ((instrx->unit->method != NULL) && (instrx->oper != DEFINE) && (new_instrx.oper != SUBUNIT))
 			{
-				instantiate_method(instrx);
+				instantiate_unit_method(instrx);
 			}
 		}
 	}
@@ -1110,7 +1109,7 @@ void id_unit(string name)
 	while ((NULL == new_instrx.unit) && (superunit != NULL))
 	{
 		find_unit_in_superunit_no_instrx(name, superunit);
-		superunit = superunit->base;
+		superunit = superunit->parent;
 		base_level++;
 	}
 	if ((new_instrx.unit != NULL) && (superunit != NULL))
@@ -1129,11 +1128,35 @@ void id_unit(string name)
 	        {
 		        find_unit_in_instrx(name, superunit->base_instrx);
 		}
+		if (METHOD_PTR == superunit->mem_base)
+		{
+		        find_unit_in_superunit_no_instrx(name, superunit->base);
+		}
 		superunit = superunit->parent;
 	}
 }
 
-
+void handle_base(struct instrx_struct *instrx, int base_level)
+{
+        struct unit_struct *superunit = parent_ptr;
+        while ((superunit != NULL) && (METHOD == superunit->mem_base))
+        {
+                if ((superunit->base_instrx != NULL) && (superunit->base_instrx->unit != NULL))
+                {
+                        instrx->unit = superunit->base_instrx->unit;
+                        instrx->base_level = superunit->base_instrx->base_level;
+                        if (1 == base_level)
+                        {
+                                break;
+                        }
+                        else
+                        {
+                                base_level--;
+                        }
+                }
+                superunit = superunit->parent;
+        }
+}
 void handle_last_instrx()
 {
 	
@@ -1152,12 +1175,16 @@ void handle_last_instrx()
 		{
 		        set_error(INVALID_USE_OF_OPER, instrx->unit_line, ":");
 		}
+                else if (BASE == instrx->unit->type)
+                {
+                        handle_base(instrx, 1);
+                }
 		else if ((DEFINE == instrx->oper) && (1 == parent_ptr->instrx_list.size()))
 		{
 			handle_inheritance(instrx->unit);
 		}
 		else if ((instrx->unit->type != DEF_NONE) && ((instrx->unit->type != INT_CONST)
-		          || (DEFINE == instrx->oper)) && (!instrx->is_ptr || (instrx->unit->type != METHOD)))
+		          || (DEFINE == instrx->oper)))
 		{
 			handle_instantiation(instrx);
 			if (DEFINE == instrx->oper)
@@ -1178,24 +1205,46 @@ struct unit_struct *get_correct_method_type()
 	{
 		return basic_units[METHOD_PTR];
 	}
-	else if (METHOD == parent_ptr->type)
+	
+	if (STRUCT == parent_ptr->type)
 	{
-		if ((!parent_ptr->base->mem_base) && (parent_ptr->mem_base != METHOD_PTR))
-		{
-			return parent_ptr->base->base->method;
-		}
-		else
-		{
-			return parent_ptr->base->method;
-		}
+	        return basic_units[METHOD];
 	}
+	
+	struct unit_struct* superunit = parent_ptr;
+	while (METHOD == superunit->type)
+	{
+	        if ((superunit->base != NULL) && (METHOD == superunit->base->type))
+	        {
+	                return basic_units[METHOD_PTR];
+	        }
+	        if (METHOD_PTR == superunit->mem_base)
+	        {
+	                return superunit->base->method;
+	        }
+		if (!superunit->mem_base)
+		{
+		        new_instrx.ptr_source = new instrx_struct;
+		        new_instrx.ptr_source->unit = superunit;
+		        new_instrx.ptr_source->base_level = 1;
+			return superunit->base->base->method;
+		}
+		if (superunit->base_instrx != NULL)
+		{
+		        new_instrx.ptr_source = superunit->base_instrx;
+			return superunit->base_instrx->unit->method;
+		}
+		superunit = superunit->parent;
+	}
+	
 	return basic_units[METHOD];
 }
 void handle_new_instrx()
 {
 	if (SUBUNIT == new_instrx.oper)
 	{
-	        if ((new_instrx.unit->type != METHOD_PTR) && (new_instrx.unit->type != INT_CONST))
+	        if ((new_instrx.unit->type != METHOD_PTR) && (new_instrx.unit->type != INT_CONST)
+	            && (parent_ptr->instrx_list.back()->unit->type != BASE))
 	        {
 		        handle_instantiation(parent_ptr->instrx_list.back());
 		}
@@ -1203,9 +1252,8 @@ void handle_new_instrx()
 		{
 		        parent_ptr->instrx_list.back()->oper = NO_OPER;
 		}
-		if ((PTR == parent_ptr->instrx_list.back()->unit->type)
-		            || (METHOD == new_instrx.unit->type)
-		            || (!new_instrx.unit->mem_base && (new_instrx.unit->type != INT_CONST)))
+		if ((PTR == parent_ptr->instrx_list.back()->unit->type) || (METHOD == new_instrx.unit->type)
+		    || (!new_instrx.unit->mem_base && (new_instrx.unit->type != INT_CONST)))
 		{
 		        parent_ptr->instrx_list.back()->ptr_source = 
 		                                                new instrx_struct(*parent_ptr->instrx_list.back());
@@ -1225,7 +1273,6 @@ void handle_new_instrx()
 	else
 	{
 	        struct instrx_struct *temp = new instrx_struct(new_instrx);
-	        
 		
 		if ((INSERTION == new_instrx.oper) || (SUBUNIT == new_instrx.oper)
 		    || (WHILE == new_instrx.oper) || (ELSE == new_instrx.oper) || (BRANCH == new_instrx.oper))
@@ -1265,20 +1312,6 @@ void handle_unit(struct unit_struct *unit)
 {
 	new_instrx.unit = unit;
 	handle_new_instrx();
-}
-void handle_base()
-{
-        if (parent_ptr->base_instrx != NULL)
-        {
-                new_instrx.unit = parent_ptr->base_instrx->unit;
-                new_instrx.base_level = parent_ptr->base_instrx->base_level;
-        }
-        else
-        {
-                new_instrx.unit = parent_ptr->base;
-                new_instrx.base_level = 1;
-        }
-        handle_new_instrx();
 }
 void handle_end_superunit()
 {
@@ -1338,6 +1371,7 @@ void handle_new_superunit()
 				unit->mem_base = METHOD_PTR;
 				handle_new_method(unit);
 				unit->mem_used = WORD_SIZE;
+				unit->typing = basic_units[METHOD_PTR];
 			}
 			else
 			{
@@ -1419,7 +1453,7 @@ void handle_char(int c)
 		handle_end_superunit();
 		break;
 	case '$':
-		handle_base();
+		handle_unit(basic_units[BASE]);
 		break;
 	case '@':
 		new_instrx.is_ptr = 1;
@@ -1453,6 +1487,23 @@ void end_base_unit()
 
 
 
+void handle_int_const(string str)
+{
+        if ((SUBUNIT == new_instrx.oper) && (BASE == parent_ptr->instrx_list.back()->unit->type))
+        {
+                handle_base(&new_instrx, stoi(str));
+        }
+        else
+        {
+	        new_instrx.unit = new unit_struct;
+	        new_instrx.unit->type = INT_CONST;
+	        new_instrx.unit->name = str;
+	        if (SUBUNIT == new_instrx.oper)
+	        {
+	                new_instrx.unit->mem_used = stoi(str);
+	        }
+	}
+}
 void handle_string_literal(string str)
 {
         handle_last_instrx();
@@ -1472,9 +1523,7 @@ void handle_unit_name(string name)
 	}
 	if ((name[0] >= '0') && (name[0] <= '9'))
 	{
-		new_instrx.unit = new unit_struct;
-		new_instrx.unit->type = INT_CONST;
-		new_instrx.unit->name = name;
+	        handle_int_const(name);
 	}
 	else
 	{

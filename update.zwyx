@@ -10,8 +10,8 @@ give_bank_update~{
 	}
 }
 
-printer~print
-give_bank_update.{write:@printer amount:500 intro_text:"Attention" ;}
+
+print.{give_bank_update.{write:@$.2 amount:500 intro_text:"Attention" ;}}
 
 increase_urgency~{
 	in~str
