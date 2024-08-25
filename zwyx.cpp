@@ -4,14 +4,6 @@
 #include <vector>
 using namespace std;
 
-#define NO_ERROR 0
-#define INVALID_USE_OF_OPER 1
-#define UNDEFINED_UNIT 2
-#define REDEFINED_UNIT 3
-#define INVALID_NUMBER_FORMAT 4
-#define MISSING_END_BRACE 5
-#define UNMATCHED_END_BRACE 6
-
 #define NO_OPER 0
 #define INSERTION 1
 #define DEFINE 2
@@ -21,7 +13,7 @@ using namespace std;
 #define ADD 6
 #define DIVIDE 7
 #define COMPARE_NOT 8
-#define LOAD 9
+#define IGNORE 9
 #define SUBTRACT 10
 #define PLACE 11
 #define ELSE 12
@@ -46,11 +38,23 @@ using namespace std;
 #define PAREN 8
 #define METHOD 9
 #define BYTES 10
-#define IGNORE 11
-#define IMPORT 12
-#define BASE 13
+#define NAME 11
+#define BASE 12
+#define IMPORT 13
+#define IN 14
 
-#define NUM_BASIC_UNITS 14
+#define NO_ERROR 0
+#define INVALID_USE_OF_OPER 1
+#define UNDEFINED_UNIT 2
+#define REDEFINED_UNIT 3
+#define INVALID_NUMBER_FORMAT 4
+#define MISSING_END_BRACE 5
+#define UNMATCHED_END_BRACE 6
+#define CANNOT_OPEN_FILE 7
+#define INVALID_IN_UNIT 8
+#define INVALID_USE_OF_IMPORT 9
+
+#define NUM_BASIC_UNITS 15
 #define STRUCT_UNINITIALIZED -1
 #define BASE_UNLOADED 4
 #define WORD_SIZE 8
@@ -76,7 +80,10 @@ string error_messages[] =
 	"Redefinition of unit",
 	"Invalid number format",
 	"Missing end brace",
-	"Unmatched end brace"
+	"Unmatched end brace",
+	"Cannot open file",
+	"Invalid in unit",
+	"Invalid use of import"
 };
 struct instrx_struct
 {
@@ -125,7 +132,8 @@ struct unit_struct
 	struct instrx_struct *base_instrx;
 };
 
-string basic_unit_names[] = {"none", "", "", "int", "arr_ptr", "", "method_ptr", "", "", "do", "", "", "_import", ""};
+string basic_unit_names[] = {"none", "", "", "int", "arr_ptr", "", "method_ptr", "", "", "do", "", "", "", "_import",
+                              ""};
 string operators[] = {"", ":", "~", ".", "?", "=", "+", "/", "", "", "-", "", "^", "?*", "*", "%", 
                 "", "", ">", "<", "&", "|"};
 
@@ -795,7 +803,8 @@ void write_instrxs(vector<struct instrx_struct*> instrxs)
         
 	for (int i = 0; i < instrxs.size(); i++)
 	{
-		if ((instrxs[i]->oper != INSERTION) && (instrxs[i]->oper != SUBUNIT) && (instrxs[i]->unit->type != DEF_NONE) && (instrxs[i]->oper != WHILE) && (instrxs[i]->oper != ELSE) && (instrxs[i]->oper != BRANCH))
+		if ((instrxs[i]->oper != INSERTION) && (instrxs[i]->oper != WHILE) && (instrxs[i]->oper != SUBUNIT)
+		  && (instrxs[i]->oper != ELSE) && (instrxs[i]->oper != BRANCH) && (instrxs[i]->oper != IGNORE))
 		{
 			write_line_with_control(instrxs[i]);
 		}
@@ -1167,7 +1176,8 @@ void handle_last_instrx()
 		{
 		        set_error(INVALID_USE_OF_OPER, instrx->unit_line, operators[instrx->oper]);
 		}
-		else if ((DEF_NONE == instrx->unit->type) && (0 == instrx->unit->name.length()))
+		else if ((DEF_NONE == instrx->unit->type) && (instrx->oper != IGNORE)
+		          && (new_instrx.oper != DEFINE))
 		{
 			set_error(UNDEFINED_UNIT, instrx->unit_line, instrx->unit->name);
 		}
@@ -1190,10 +1200,11 @@ void handle_last_instrx()
 			if (DEFINE == instrx->oper)
 			{
 				handle_define_statement(parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2]->unit, instrx->unit);
+				parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2]->oper = IGNORE;
 				if ((instrx->unit->f_num != STRUCT_UNINITIALIZED)
 				            && (new_instrx.oper != INSERTION) && (new_instrx.oper != SUBUNIT))
 				{
-				        instrx->unit = basic_units[DEF_NONE];
+				        instrx->oper = IGNORE;
 				}
 			}
 		}
@@ -1268,6 +1279,7 @@ void handle_new_instrx()
 	else if ((parent_ptr->instrx_list.size() > 0) && (IMPORT == parent_ptr->instrx_list.back()->unit->type))
 	{
 	        parent_ptr->instrx_list.back()->unit = basic_units[DEF_NONE];
+	        parent_ptr->instrx_list.back()->oper = IGNORE;
 	        parse_file(new_instrx.unit->name + ".zwyx");
 	}
 	else
@@ -1346,7 +1358,7 @@ void handle_new_superunit()
 			}
 		}
 		handle_define_statement(parent_ptr->instrx_list.back()->unit, unit);
-		parent_ptr->instrx_list.back()->unit = basic_units[DEF_NONE];
+		parent_ptr->instrx_list.back()->oper = IGNORE;
 		new_instrx.oper = NO_OPER;
 	}
 	else
@@ -1551,6 +1563,11 @@ void handle_unit_name(string name)
 void parse_file(string file_name)
 {
 	FILE* zyfile = fopen(file_name.c_str(), "r");
+	if (NULL == zyfile)
+	{
+	        set_error(CANNOT_OPEN_FILE, line_num, file_name);
+	        return;
+	}
 	line_num = 1;
 	string unit_name_buffer;
 	int read_mode = 0;
@@ -1630,22 +1647,28 @@ void parse_file(string file_name)
 
 int main(int argc, char** argv)
 {
-	
-	init();
-	start_base_unit();
-	parse_file("sysapi.zwyx");
-	parse_file(string("sysapi_")+FORMAT+".zwyx");
-	
-	parse_file(argv[1]);
-	end_base_unit();
-	if (num_errors > 0)
+	if (argc < 2)
 	{
-		
-		print_errors();
+	        fprintf(stdout, "File name is needed as input.\n");
 	}
 	else
 	{
-		write_xc(FORMAT);
+	        init();
+	        start_base_unit();
+	        parse_file("sysapi.zwyx");
+	        parse_file(string("sysapi_")+FORMAT+".zwyx");
+	        
+	        parse_file(argv[1]);
+	        end_base_unit();
+	        if (num_errors > 0)
+	        {
+		        
+		        print_errors();
+	        }
+	        else
+	        {
+		        write_xc(FORMAT);
+	        }
 	}
 	
 	return 0;
