@@ -1276,11 +1276,18 @@ void handle_new_instrx()
 		parent_ptr->instrx_list.back()->unit = new_instrx.unit;
 		
 	}
-	else if ((parent_ptr->instrx_list.size() > 0) && (IMPORT == parent_ptr->instrx_list.back()->unit->type))
+	else if ((parent_ptr->instrx_list.size() > 0) && (parent_ptr->instrx_list.back()->oper != IGNORE)
+	          && (IMPORT == parent_ptr->instrx_list.back()->unit->type))
 	{
-	        parent_ptr->instrx_list.back()->unit = basic_units[DEF_NONE];
-	        parent_ptr->instrx_list.back()->oper = IGNORE;
-	        parse_file(new_instrx.unit->name + ".zwyx");
+	        if (new_instrx.oper != INSERTION)
+	        {
+	                set_error(INVALID_USE_OF_IMPORT, line_num, basic_units[IMPORT]->name);
+	        }
+	        else
+	        {
+	                parent_ptr->instrx_list.back()->oper = IGNORE;
+	                parse_file(new_instrx.unit->name + ".zwyx");
+	        }
 	}
 	else
 	{
@@ -1398,6 +1405,14 @@ void handle_new_superunit()
 	unit->parent = parent_ptr;
 	parent_ptr = unit;
 }
+void handle_ptr()
+{
+        new_instrx.is_ptr = 1;
+        if ((new_instrx.oper != DEFINE) && (new_instrx.oper != INSERTION))
+        {
+                set_error(INVALID_USE_OF_OPER, line_num, operators[new_instrx.oper]);
+        }
+}
 int handle_double_oper(int oper)
 {
         string operator_str = operators[new_instrx.oper] + operators[oper];
@@ -1439,7 +1454,7 @@ void handle_char(int c)
 	}
 	if (new_oper != NO_OPER)
 	{
-	        if ((new_oper != DEFINE) && (0 == parent_ptr->instrx_list.size()))
+	        if (new_instrx.is_ptr || ((new_oper != DEFINE) && (0 == parent_ptr->instrx_list.size())))
 	        {
 	                set_error(INVALID_USE_OF_OPER, line_num, operators[new_oper]);
 	        }
@@ -1468,7 +1483,7 @@ void handle_char(int c)
 		handle_unit(basic_units[BASE]);
 		break;
 	case '@':
-		new_instrx.is_ptr = 1;
+		handle_ptr();
 		break;
 	default:
 		break;
