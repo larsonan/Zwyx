@@ -1294,7 +1294,9 @@ void handle_oper_errors()
         if (((PTR == new_instrx.unit->type) && (new_instrx.oper != NO_OPER)
             && (new_instrx.oper != DEFINE) && (new_instrx.oper != SUBUNIT)
             && (new_instrx.oper != INSERTION))
-            || ((IMPORT == new_instrx.unit->type) && (new_instrx.oper != NO_OPER)))
+            || ((IMPORT == new_instrx.unit->type) && (new_instrx.oper != NO_OPER))
+            || (new_instrx.unit->mem_base && (DEFINE == new_instrx.oper))
+            || ((INT_CONST == new_instrx.unit->type) && (DEFINE == new_instrx.oper)))
         {
                 set_error(INVALID_USE_OF_OPER, line_num, operators[new_instrx.oper]);
         }
