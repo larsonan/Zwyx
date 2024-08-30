@@ -58,7 +58,7 @@ add	rsp,	160
 mov	rbx,	[rsp]
 lea	rax,	[rel+f21]
 mov	[rsp-160],	rax
-mov	[rsp-152],	rbx
+mov	[rsp-152],	rsp
 lea	rax,	[rsp-144]
 mov	[rsp-168],	rax
 lea	rbx,	[rsp-168]
@@ -696,7 +696,7 @@ push	rbx
 mov	rax,	[rbx+8]
 mov	rdx,	[rbx+16]
 mov	[rsp-16],	rax
-mov	[rsp-8],	rbx
+mov	[rsp-8],	rdx
 mov	rax,	[rbx+0]
 mov	[rsp-24],	rax
 lea	rbx,	[rsp-24]

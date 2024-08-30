@@ -56,9 +56,10 @@ using namespace std;
 
 #define NUM_BASIC_UNITS 15
 #define NUM_OPERS 22
-#define BASE_UNLOADED 4
+#define BASE_UNLOADED -2
 #define STRUCT_UNINITIALIZED -1
-#define BASE_2 -1
+#define BASE_2_METHOD -4
+#define BASE_2_STRUCT -5
 #define WORD_SIZE 8
 #define MAX_ERRORS 100
 #define COMPILED 1
@@ -367,9 +368,16 @@ void write_insertion(struct instrx_struct *instrx)
 	        {
 	                (void)fprintf(xcfile, "%d", instrx->insertion_source->unit->mem_used);
 	        }
-	        else if (METHOD_PTR == instrx->unit->type)
+	        else if ((METHOD_PTR == instrx->unit->type) && (METHOD == instrx->insertion_source->unit->type))
 	        {
-	                (void)fprintf(xcfile, "%s", REG_BASE);
+	                if (METHOD == instrx->insertion_source->unit->parent->type)
+	                {
+	                        (void)fprintf(xcfile, "%s", REG_DEFAULT);
+	                }
+	                else
+	                {
+	                        (void)fprintf(xcfile, "%s", REG_BASE);
+	                }
 	        }
 	        else
 	        {
@@ -733,7 +741,7 @@ void write_line(struct instrx_struct *instrx)
 	{
 		write_line(instrx->insertion_source);
 	}
-	if (BASE_2 == instrx->base_level)
+	if ((BASE_2_STRUCT == instrx->base_level) || (BASE_2_METHOD == instrx->base_level))
 	{
 	        load_base_2();
 	}
@@ -1146,7 +1154,14 @@ void id_unit(string name)
 		                find_unit_in_superunit_no_instrx(name, superunit->parent);
 		                if (new_instrx.unit != NULL)
 		                {
-		                        new_instrx.base_level = BASE_2;
+		                        if (STRUCT == superunit->parent->type)
+		                        {
+		                                new_instrx.base_level = BASE_2_STRUCT;
+		                        }
+		                        else
+		                        {
+		                                new_instrx.base_level = BASE_2_METHOD;
+		                        }
 		                        return;
 		                }
 		        }
