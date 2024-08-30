@@ -6,9 +6,9 @@ g++ zwyx.cpp
 ./test fizzbuzz
 ./a.out update.zwyx
 ./test update
+./a.out shapes.zwyx
+./test shapes
 ./a.out first_test.zwyx
 ./test first_test
-
-
 
 
