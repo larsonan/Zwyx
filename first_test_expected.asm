@@ -308,6 +308,39 @@ sub	rsp,	208
 call	f24
 add	rsp,	208
 mov	rbx,	[rsp]
+mov	qword	[rsp-160],	4
+lea	rax,	[rel+f25]
+mov	[rsp-176],	rax
+mov	[rsp-168],	rsp
+lea	rax,	[rsp-144]
+mov	[rsp-184],	rax
+lea	rbx,	[rsp-184]
+sub	rsp,	184
+call	f20
+add	rsp,	184
+mov	rbx,	[rsp]
+lea	rax,	[rel+f26]
+mov	[rsp-176],	rax
+mov	[rsp-168],	rsp
+lea	rax,	[rsp-144]
+mov	[rsp-184],	rax
+lea	rbx,	[rsp-184]
+sub	rsp,	184
+call	f20
+add	rsp,	184
+mov	rbx,	[rsp]
+lea	rax,	[rsp-200]
+mov	[rsp-208],	rax
+lea	rbx,	[rsp-200]
+lea	rax,	[rel+f8]
+mov	[rbx+8],	rax
+mov	[rbx+16],	rbx
+mov	rbx,	[rsp]
+lea	rbx,	[rsp-208]
+sub	rsp,	208
+call	f5
+add	rsp,	208
+mov	rbx,	[rsp]
 mov	rax,	60
 mov	rdi,	0
 syscall
@@ -937,6 +970,41 @@ call	f5
 add	rsp,	16
 mov	rbx,	[rsp]
 pop	rbx
+ret
+f25:
+push	rdx
+push	rbx
+mov	rcx,	[rsp+8]
+mov	rax,	[rcx-160]
+mov	[rbx+8],	rax
+mov	rcx,	[rsp+8]
+mov	rax,	[rcx-160]
+sub	rax,	1
+mov	rcx,	[rsp+8]
+mov	[rcx-160],	rax
+pop	rbx
+pop	rdx
+ret
+f26:
+push	rdx
+push	rbx
+mov	rax,	[rbx+0]
+add	rax,	[rbx+8]
+mov	[rsp-48],	rax
+lea	rax,	[rsp-40]
+mov	[rsp-56],	rax
+lea	rbx,	[rsp-40]
+lea	rax,	[rel+f8]
+mov	[rbx+8],	rax
+mov	[rbx+16],	rbx
+mov	rbx,	[rsp]
+lea	rbx,	[rsp-56]
+sub	rsp,	56
+call	f7
+add	rsp,	56
+mov	rbx,	[rsp]
+pop	rbx
+pop	rdx
 ret
 f0:
 mov	rax,	[rbx+0]

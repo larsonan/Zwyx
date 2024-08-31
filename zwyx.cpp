@@ -245,7 +245,11 @@ void write_unit(struct instrx_struct *instrx)
 	}
 	else
 	{
-		if (METHOD == instrx->unit->mem_base)
+	        if (BASE_2_METHOD == instrx->base_level)
+	        {
+	                (void)fprintf(xcfile, "[%s-%d]", REG_PTR, instrx->unit->mem_offset);
+	        }
+		else if (METHOD == instrx->unit->mem_base)
 		{
 			(void)fprintf(xcfile, "[%s-%d]", REG_DEFAULT, instrx->unit->mem_offset);
 		}
@@ -1152,7 +1156,7 @@ void id_unit(string name)
 		        if ((METHOD_PTR == superunit->mem_base) && (NULL == new_instrx.unit))
 		        {
 		                find_unit_in_superunit_no_instrx(name, superunit->parent);
-		                if (new_instrx.unit != NULL)
+		                if ((new_instrx.unit != NULL) && new_instrx.unit->mem_base)
 		                {
 		                        if (STRUCT == superunit->parent->type)
 		                        {

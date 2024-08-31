@@ -87,3 +87,8 @@ write_color~{
 
 print.{write_color.{write:@$.2 colrw:color_a ; color_a.orange.set colrw:color_a ;}}
 
+n~int:4
+l.eachnpair:@{b:n n:{n-1}}
+l.eachnpair:@{print.d:{a+b}}
+print.endl
+
