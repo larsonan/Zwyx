@@ -1134,6 +1134,7 @@ void find_unit_in_instrx(string name, struct instrx_struct *instrx)
 void find_unit_in_superunit_no_instrx(string name, struct unit_struct *superunit)
 {
         find_unit_in_superunit(name, superunit);
+        
         if ((new_instrx.unit != NULL) && (new_instrx.unit->base != NULL) && (new_instrx.unit->type != METHOD_PTR)
                                         && (new_instrx.unit->base->type != METHOD))
         {
@@ -1201,6 +1202,7 @@ void id_unit(string name)
 		}
 		superunit = superunit->parent;
 	}
+	
 }
 
 void handle_base(struct instrx_struct *instrx, int base_level)
@@ -1582,8 +1584,7 @@ void handle_int_const(string str)
         }
         else
         {
-	        new_instrx.unit = new unit_struct;
-	        new_instrx.unit->type = INT_CONST;
+	        new_instrx.unit = new unit_struct(*basic_units[INT_CONST]);
 	        new_instrx.unit->name = str;
 	        if (SUBUNIT == new_instrx.oper)
 	        {

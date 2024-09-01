@@ -1,25 +1,47 @@
 _import:"utilities_lib"
 
 npair~{a~int b~int}
-b1~npair.{a:0 b:1}
-b2~npair.{a:2 b:5}
-b3~npair.{a:0 b:5}
-b4~npair.{a:2 b:7}
-b5~npair.{a:4 b:1}
+
+
 b0~int.48
+
+mbuf~int.80
 
 npairlist~{
 	~list
+	membBufferN~int
+	membBuffer~int
+	set_membBuffer~{
+		buf~int
+		;~{
+			membBuffer:buf
+			membBufferN:0
+		}
+	}
 	eachnpair~{
 		in~npair.;
 		;~{each:in}
 	}
+	emplace~{
+		in~npair.;
+		;~{
+			ptr~@iter:{membBuffer+membBufferN}
+			ptr.{in}
+			membBufferN:{membBufferN+16}
+			add:ptr
+		}
+	}
 }
 
 l~npairlist.{
+	set_membBuffer:@mbuf
 	set_buffer:@b0
-	add.{
-		$:@b1 ; $:@b2 ; $:@b3 ; $:@b4 ; $:@b5 ;
+	emplace.{
+		$:@{a:1 b:0} ;
+		$:@{a:2 b:5} ;
+		$:@{a:0 b:5} ;
+		$:@{a:2 b:7} ;
+		$:@{a:4 b:1} ;
 	}
 }
 
