@@ -1,5 +1,5 @@
 _console_write~{
-	a~arr_ptr
+	a~bytes
 	;~{_system.{rax:1 rdx:a.count rdi:1 rsi:a ;}}
 }
 

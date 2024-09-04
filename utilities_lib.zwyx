@@ -4,7 +4,7 @@ iter~{
 }
 
 interface~{
-	ignore~int
+	_base~$
 	
 	
 	fn~;
@@ -17,9 +17,9 @@ c_iter~{
 
 writenf~{
 	~interface
-	data~arr_ptr
+	data~bytes
 	s~{
-		b~arr_ptr
+		b~bytes
 		;~{
 			data:b
 			;
@@ -42,7 +42,7 @@ writenf~{
 		}
 	}
 	line~{
-		b~arr_ptr
+		b~bytes
 		;~{
 			s:b
 			endl
@@ -79,7 +79,7 @@ print~{
 	}
 }
 list~{
-	b~arr_ptr
+	b~bytes
 	set_buffer~{
 		in~int
 		;~{
