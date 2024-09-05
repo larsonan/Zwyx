@@ -4,9 +4,6 @@ iter~{
 }
 
 interface~{
-	_base~$
-	
-	
 	fn~;
 	;~{fn}
 }

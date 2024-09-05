@@ -134,6 +134,7 @@ struct unit_struct
 	struct unit_struct *typing;
 	vector<struct instrx_struct*> instrx_list;
 	struct instrx_struct *base_instrx;
+	int base_ptr_offset;
 };
 
 string basic_unit_names[] = {"none", "", "", "int", "", "", "method", "", "", "", "bytes", "",
@@ -416,9 +417,9 @@ void write_ptr_to_temp(struct instrx_struct *instrx)
 	}
 }
 
-void load_base_to_temp()
+void load_base_to_temp(struct instrx_struct* instrx)
 {
-        (void)fprintf(xcfile, "mov\t%s,\t[%s+0]\n", REG_TEMP, REG_BASE);
+        (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_TEMP, REG_BASE, instrx->ptr_source->unit->base_ptr_offset);
 }
 void store_temp(int mem_offset)
 {
@@ -562,12 +563,13 @@ void write_jump_conditional(int b_num)
 {
         (void)fprintf(xcfile, "cmp\t%s,\t0\nje\tb%d\n", REG_TEMP, b_num);
 }
-void decrease_base_level(int base_level)
+void decrease_base_level(int base_level, struct unit_struct* base)
 {
-        (void)fprintf(xcfile, "mov\t%s,\t[%s+0]\n", REG_PTR, REG_BASE);
+        (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_BASE, base->base_ptr_offset);
         for (int i = 2; i < base_level; i++)
         {
-                (void)fprintf(xcfile, "mov\t%s,\t[%s]\n", REG_PTR, REG_PTR);
+                base = base->parent;
+                (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_PTR, base->base_ptr_offset);
         }
 }
 void load_base_2()
@@ -578,7 +580,7 @@ void load_pointer_base(struct instrx_struct *instrx)
 {
         if (instrx->base_level > 1)
         {
-                decrease_base_level(instrx->base_level);
+                decrease_base_level(instrx->base_level, instrx->ptr_source->unit);
         }
         else if ((instrx->ptr_source != NULL) && (instrx->unit->mem_base != METHOD))
         {
@@ -590,7 +592,7 @@ void load_base(struct instrx_struct *instrx)
 {
         if (instrx->base_level > 1)
         {
-                load_base_to_temp();
+                load_base_to_temp(instrx);
         }
         else if (1 == instrx->base_level)
         {
@@ -600,13 +602,13 @@ void load_base(struct instrx_struct *instrx)
         {
                 if (instrx->ptr_source->base_level > 1)
                 {
-                        decrease_base_level(2);
+                        decrease_base_level(2, instrx->ptr_source->ptr_source->unit);
                 }
                 write_ptr_to_temp(instrx->ptr_source);
 	}
 	if (instrx->base_level != 1)
 	{
-	        store_temp(instrx->unit->mem_offset);
+	        store_temp(instrx->unit->mem_offset - instrx->unit->base_ptr_offset);
 	}
 }
 void write_do_instrx(struct instrx_struct *instrx)
@@ -753,7 +755,7 @@ void write_line(struct instrx_struct *instrx)
 	}
 	if ((instrx->base_level > 1) && (instrx->unit->mem_base != METHOD))
 	{
-	        decrease_base_level(instrx->base_level);
+	        decrease_base_level(instrx->base_level, instrx->ptr_source->unit);
 	}
 	else if ((instrx->ptr_source != NULL) && instrx->unit->mem_base && (instrx->unit->mem_base != METHOD))
 	{
@@ -922,12 +924,17 @@ void find_unit_in_superunit(string name, struct unit_struct *superunit)
 }
 void handle_inheritance(struct unit_struct *unit)
 {
-        if (unit->type != STRUCT)
+        if ((parent_ptr->type != STRUCT) || (unit->type != STRUCT))
         {
                 set_error(INVALID_USE_OF_OPER, line_num, operators[DEFINE]);
         }
 	parent_ptr->mem_used = unit->mem_used;
 	parent_ptr->subunits = unit->subunits;
+	if ((STRUCT == parent_ptr->parent->type) && (unit->parent->type != STRUCT))
+	{
+	        parent_ptr->base_ptr_offset = parent_ptr->mem_used;
+	        parent_ptr->mem_used += WORD_SIZE;
+	}
 	if (unit->method != NULL)
 	{
 		parent_ptr->method = unit->method;
@@ -1189,6 +1196,7 @@ void id_unit(string name)
 		}
 	}
 	int base_level = 0;
+	struct unit_struct* superunit_level_1 = superunit;
 	while ((NULL == new_instrx.unit) && (superunit != NULL))
 	{
 		find_unit_in_superunit_no_instrx(name, superunit);
@@ -1201,6 +1209,11 @@ void id_unit(string name)
 	        if (STRUCT == parent_ptr->type)
 	        {
 	                new_instrx.base_level = 1;
+	        }
+	        if (new_instrx.base_level > 1)
+	        {
+	                new_instrx.ptr_source = new instrx_struct;
+	                new_instrx.ptr_source->unit = superunit_level_1;
 	        }
 	}
 	superunit = parent_ptr;
@@ -1461,6 +1474,7 @@ void handle_new_superunit()
 		unit->base = parent_ptr;
 		if (STRUCT == parent_ptr->type)
 		{
+		        unit->base_ptr_offset = 0;
 			unit->mem_used += WORD_SIZE;
 			if (METHOD == parent_ptr->instrx_list.back()->unit->type)
 			{
