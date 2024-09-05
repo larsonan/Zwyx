@@ -42,7 +42,8 @@ using namespace std;
 #define BASE 12
 #define IMPORT 13
 #define IN 14
-#define STRING_LITERAL 15
+#define ARG 15
+#define STRING_LITERAL 16
 
 #define NO_ERROR 0
 #define INVALID_USE_OF_OPER 1
@@ -55,7 +56,7 @@ using namespace std;
 #define INVALID_IN_UNIT 8
 #define INVALID_USE_OF_IMPORT 9
 
-#define NUM_BASIC_UNITS 16
+#define NUM_BASIC_UNITS 17
 #define NUM_OPERS 22
 #define BASE_UNLOADED -2
 #define STRUCT_UNINITIALIZED -1
@@ -135,10 +136,11 @@ struct unit_struct
 	vector<struct instrx_struct*> instrx_list;
 	struct instrx_struct *base_instrx;
 	int base_ptr_offset;
+	struct unit_struct *in_unit;
 };
 
 string basic_unit_names[] = {"none", "", "", "int", "", "", "method", "", "", "", "bytes", "",
-                              "", "_import", "", ""};
+                              "", "_import", "", "arg", ""};
 string operators[] = {"", ":", "~", ".", "?", "=", "+", "/", "", "", "-", "", "^", "?*", "*", "%", 
                 "", "", ">", "<", "&", "|"};
 
@@ -1307,6 +1309,13 @@ void handle_last_instrx()
 				{
 				        instrx->oper = IGNORE;
 				}
+			}
+			else if ((INSERTION == instrx->oper)
+			          && (ARG == parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2]->unit->type))
+			{
+			       parent_ptr->in_unit = instrx->unit;
+			       instrx->oper = IGNORE;
+			       parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2]->oper = IGNORE;
 			}
 		}
 	}
