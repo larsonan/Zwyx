@@ -52,19 +52,17 @@ add	rsp,	128
 mov	rbx,	[rsp]
 mov	rax,	[rsp-72]
 mov	rdx,	[rsp-64]
-mov	[rsp-160],	rax
-mov	[rsp-152],	rdx
-lea	rax,	[rsp-144]
-mov	[rsp-168],	rax
+mov	[rsp-144],	rax
+mov	[rsp-136],	rdx
 lea	rbx,	[rsp-144]
 lea	rax,	[rel+f8]
 mov	[rbx+0],	rax
 mov	[rbx+8],	rbx
 mov	rbx,	[rsp]
-lea	rbx,	[rsp-168]
-sub	rsp,	168
-call	f3
-add	rsp,	168
+lea	rbx,	[rsp-144]
+sub	rsp,	144
+call	f2
+add	rsp,	144
 mov	rbx,	[rsp]
 mov	rax,	60
 mov	rdi,	0

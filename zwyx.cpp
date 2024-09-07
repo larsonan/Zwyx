@@ -638,6 +638,10 @@ struct unit_struct* in_unit(struct unit_struct *unit)
 {
         if ((STRUCT == unit->type) && (unit->subunits.size() > 0))
         {
+                if (unit->in_unit != NULL)
+                {
+                        return in_unit(unit->in_unit);
+                }
                 return in_unit(unit->subunits[0]);
         }
         else
@@ -1300,22 +1304,28 @@ void handle_last_instrx()
 		          || (DEFINE == instrx->oper)))
 		{
 			handle_instantiation(instrx);
-			if (DEFINE == instrx->oper)
+			if ((INSERTION == instrx->oper)
+			          && (ARG == parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2]->unit->type))
 			{
-				handle_define_statement(parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2]->unit, instrx->unit);
-				parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2]->oper = IGNORE;
+			       instrx->oper = parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2]->oper;
+			       parent_ptr->in_unit = instrx->unit;
+			       parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2]->oper = IGNORE;
+			}
+			if ((DEFINE == instrx->oper) && (instrx->unit->type != ARG))
+			{
+			        struct instrx_struct* define_instrx
+			                = parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2];
+			        if (ARG == parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2]->unit->type)
+			        {
+			                define_instrx = parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 3];
+			        }
+				handle_define_statement(define_instrx->unit, instrx->unit);
+				define_instrx->oper = IGNORE;
 				if ((instrx->unit->f_num != STRUCT_UNINITIALIZED)
 				            && (new_instrx.oper != INSERTION) && (new_instrx.oper != SUBUNIT))
 				{
 				        instrx->oper = IGNORE;
 				}
-			}
-			else if ((INSERTION == instrx->oper)
-			          && (ARG == parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2]->unit->type))
-			{
-			       parent_ptr->in_unit = instrx->unit;
-			       instrx->oper = IGNORE;
-			       parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2]->oper = IGNORE;
 			}
 		}
 	}

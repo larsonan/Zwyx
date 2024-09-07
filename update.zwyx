@@ -33,6 +33,6 @@ out_str~str.{
 	writer~write
 	give_bank_update.{write:@writer amount:5 intro_text:"Warning" ;}
 	increase_urgency:$
-	print.s:$
+	print:$
 }
 
