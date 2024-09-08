@@ -1117,7 +1117,8 @@ void handle_instantiation(struct instrx_struct *instrx)
 	        size = data_section_strings.size();
 	        instrx->unit->f_num = size;
 	}
-	else if (!instrx->unit->mem_base && (instrx->unit->type != IMPORT))
+	else if (!instrx->unit->mem_base && (instrx->unit->type != IMPORT) && (instrx->unit->type != ARG)
+	                    && (instrx->oper != IGNORE))
 	{
 		if (instrx->is_ptr)
 		{
@@ -1273,6 +1274,20 @@ void handle_base_no_index(struct instrx_struct* instrx)
                 handle_base(instrx, 1);
         }
 }
+void handle_arg(struct instrx_struct* instrx)
+{
+        handle_instantiation(instrx);
+        parent_ptr->in_unit = instrx->unit;
+}
+void handle_compile_time_method(struct instrx_struct* method_struct, struct instrx_struct* arg)
+{
+        handle_arg(arg);
+        arg->oper = method_struct->oper;
+        parent_ptr->instrx_list.pop_back();
+        delete(parent_ptr->instrx_list.back());
+        parent_ptr->instrx_list.pop_back();
+        parent_ptr->instrx_list.push_back(arg);
+}
 void handle_last_instrx()
 {
 	
@@ -1303,24 +1318,18 @@ void handle_last_instrx()
 		else if ((instrx->unit->type != DEF_NONE) && ((instrx->unit->type != INT_CONST)
 		          || (DEFINE == instrx->oper)))
 		{
-			handle_instantiation(instrx);
-			if ((INSERTION == instrx->oper)
-			          && (ARG == parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2]->unit->type))
+		        struct instrx_struct* second_last_instrx
+		                = parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2];
+			if ((INSERTION == instrx->oper) && (ARG == second_last_instrx->unit->type))
 			{
-			       instrx->oper = parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2]->oper;
-			       parent_ptr->in_unit = instrx->unit;
-			       parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2]->oper = IGNORE;
+			        handle_compile_time_method(second_last_instrx, instrx);
+			        second_last_instrx = parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2];
 			}
+			handle_instantiation(instrx);
 			if ((DEFINE == instrx->oper) && (instrx->unit->type != ARG))
 			{
-			        struct instrx_struct* define_instrx
-			                = parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2];
-			        if (ARG == parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2]->unit->type)
-			        {
-			                define_instrx = parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 3];
-			        }
-				handle_define_statement(define_instrx->unit, instrx->unit);
-				define_instrx->oper = IGNORE;
+				handle_define_statement(second_last_instrx->unit, instrx->unit);
+				second_last_instrx->oper = IGNORE;
 				if ((instrx->unit->f_num != STRUCT_UNINITIALIZED)
 				            && (new_instrx.oper != INSERTION) && (new_instrx.oper != SUBUNIT))
 				{
