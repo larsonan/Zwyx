@@ -1391,6 +1391,33 @@ void handle_oper_errors()
                 set_error(INVALID_USE_OF_OPER, line_num, operators[new_instrx.oper]);
         }
 }
+void handle_subunit()
+{
+        if ((1 == parent_ptr->instrx_list.size()) && (DEFINE == parent_ptr->instrx_list.back()->oper))
+	{
+	        set_error(INVALID_USE_OF_OPER, line_num, operators[SUBUNIT]);
+	}
+	if ((new_instrx.unit->type != METHOD_PTR) && (new_instrx.unit->type != INT_CONST)
+	    && (parent_ptr->instrx_list.back()->unit->type != BASE))
+	{
+		handle_instantiation(parent_ptr->instrx_list.back());
+	}
+	if ((METHOD == new_instrx.unit->type) && (DEFINE == parent_ptr->instrx_list.back()->oper))
+	{
+		parent_ptr->instrx_list.back()->oper = NO_OPER;
+	}
+	if ((PTR == parent_ptr->instrx_list.back()->unit->type) || (METHOD == new_instrx.unit->type)
+	    || (!new_instrx.unit->mem_base && (new_instrx.unit->type != INT_CONST)))
+	{
+		parent_ptr->instrx_list.back()->ptr_source = 
+		                                        new instrx_struct(*parent_ptr->instrx_list.back());
+		        
+		parent_ptr->instrx_list.back()->ptr_source->oper = NO_OPER;
+		parent_ptr->instrx_list.back()->base_level = 0;
+	}
+	parent_ptr->instrx_list.back()->state = 0;
+	parent_ptr->instrx_list.back()->unit = new_instrx.unit;
+}
 void handle_new_instrx()
 {
         handle_oper_errors();
@@ -1400,31 +1427,7 @@ void handle_new_instrx()
         }
 	if (SUBUNIT == new_instrx.oper)
 	{
-	        if ((1 == parent_ptr->instrx_list.size()) && (DEFINE == parent_ptr->instrx_list.back()->oper))
-	        {
-	                set_error(INVALID_USE_OF_OPER, line_num, operators[SUBUNIT]);
-	        }
-	        if ((new_instrx.unit->type != METHOD_PTR) && (new_instrx.unit->type != INT_CONST)
-	            && (parent_ptr->instrx_list.back()->unit->type != BASE))
-	        {
-		        handle_instantiation(parent_ptr->instrx_list.back());
-		}
-		if ((METHOD == new_instrx.unit->type) && (DEFINE == parent_ptr->instrx_list.back()->oper))
-		{
-		        parent_ptr->instrx_list.back()->oper = NO_OPER;
-		}
-		if ((PTR == parent_ptr->instrx_list.back()->unit->type) || (METHOD == new_instrx.unit->type)
-		    || (!new_instrx.unit->mem_base && (new_instrx.unit->type != INT_CONST)))
-		{
-		        parent_ptr->instrx_list.back()->ptr_source = 
-		                                                new instrx_struct(*parent_ptr->instrx_list.back());
-		        
-		        parent_ptr->instrx_list.back()->ptr_source->oper = NO_OPER;
-		        parent_ptr->instrx_list.back()->base_level = 0;
-		}
-		parent_ptr->instrx_list.back()->state = 0;
-		parent_ptr->instrx_list.back()->unit = new_instrx.unit;
-		
+		handle_subunit();
 	}
 	else if ((parent_ptr->instrx_list.size() > 0) && (parent_ptr->instrx_list.back()->oper != IGNORE)
 	          && (IMPORT == parent_ptr->instrx_list.back()->unit->type))
@@ -1447,11 +1450,6 @@ void handle_new_instrx()
 		    || (WHILE == new_instrx.oper) || (ELSE == new_instrx.oper) || (BRANCH == new_instrx.oper))
 		{
 			parent_ptr->instrx_list.back()->insertion_source = temp;
-		}
-		
-		if ((INSERTION == new_instrx.oper) && (STRUCT == parent_ptr->type))
-		{
-			parent_ptr->f_num = STRUCT_UNINITIALIZED;
 		}
 		
 		if (!is_default_instrx(&new_instrx) && new_instrx.oper != DEFINE)
@@ -1557,6 +1555,10 @@ void handle_new_oper(int oper)
         if (new_instrx.is_ptr || ((oper != DEFINE) && (0 == parent_ptr->instrx_list.size())))
 	{
 	        set_error(INVALID_USE_OF_OPER, line_num, operators[oper]);
+	}
+	if ((INSERTION == oper) && (STRUCT == parent_ptr->type))
+	{
+	        parent_ptr->f_num = STRUCT_UNINITIALIZED;
 	}
 	if (new_instrx.oper != NO_OPER)
 	{
