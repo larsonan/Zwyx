@@ -7,7 +7,7 @@ b0~int.48
 
 mbuf~int.80
 
-npairlist~{
+membBufferList~\ out~{
 	~list
 	membBufferN~int
 	membBuffer~int
@@ -18,12 +18,12 @@ npairlist~{
 			membBufferN:0
 		}
 	}
-	eachnpair~{
-		in~npair.;
+	eachN~{
+		in~$.;
 		;~{each:in}
 	}
 	emplace~{
-		in~npair.;
+		in~$.;
 		;~{
 			ptr~@iter:{membBuffer+membBufferN}
 			ptr.{in}
@@ -31,9 +31,11 @@ npairlist~{
 			add:ptr
 		}
 	}
-}
+} \
 
-l~npairlist.{
+l~membBufferList:npair
+
+l.{
 	set_membBuffer:@mbuf
 	set_buffer:@b0
 	emplace.{
@@ -45,7 +47,7 @@ l~npairlist.{
 	}
 }
 
-l.eachnpair:@{print.d:{a+b}}
+l.eachN:@{print.d:{a+b}}
 
 getmsg~{
 	write~@writenf
@@ -110,7 +112,7 @@ write_color~{
 print.{write_color.{write:@$.2 colrw:color_a ; color_a.orange.set colrw:color_a ;}}
 
 n~int:4
-l.eachnpair:@{b:n n:{n-1}}
-l.eachnpair:@{print.d:{a+b}}
+l.eachN:@{b:n n:{n-1}}
+l.eachN:@{print.d:{a+b}}
 print.endl
 

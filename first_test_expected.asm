@@ -1,64 +1,64 @@
 global	_start
 _start:
 lea	rax,	[rsp-128]
-mov	[rsp-168],	rax
+mov	[rsp-200],	rax
 lea	rax,	[rsp-160]
-mov	[rsp-176],	rax
-lea	rbx,	[rsp-176]
-sub	rsp,	176
+mov	[rsp-208],	rax
+lea	rbx,	[rsp-208]
+sub	rsp,	208
 call	f20
-add	rsp,	176
+add	rsp,	208
 mov	rbx,	[rsp]
 lea	rax,	[rsp-48]
-mov	[rsp-168],	rax
+mov	[rsp-200],	rax
 lea	rax,	[rsp-160]
-mov	[rsp-176],	rax
-lea	rbx,	[rsp-176]
-sub	rsp,	176
+mov	[rsp-208],	rax
+lea	rbx,	[rsp-208]
+sub	rsp,	208
 call	f9
-add	rsp,	176
+add	rsp,	208
 mov	rbx,	[rsp]
 lea	rax,	[rsp-160]
-mov	[rsp-184],	rax
+mov	[rsp-216],	rax
 lea	rax,	[rel+f23]
-mov	[rsp-176],	rax
-mov	[rsp-168],	rsp
-lea	rbx,	[rsp-184]
-sub	rsp,	184
+mov	[rsp-208],	rax
+mov	[rsp-200],	rsp
+lea	rbx,	[rsp-216]
+sub	rsp,	216
 call	f22
-add	rsp,	184
+add	rsp,	216
 mov	rbx,	[rsp]
 lea	rax,	[rel+f24]
-mov	[rsp-176],	rax
-mov	[rsp-168],	rsp
-lea	rbx,	[rsp-184]
-sub	rsp,	184
+mov	[rsp-208],	rax
+mov	[rsp-200],	rsp
+lea	rbx,	[rsp-216]
+sub	rsp,	216
 call	f22
-add	rsp,	184
+add	rsp,	216
 mov	rbx,	[rsp]
 lea	rax,	[rel+f25]
-mov	[rsp-176],	rax
-mov	[rsp-168],	rsp
-lea	rbx,	[rsp-184]
-sub	rsp,	184
+mov	[rsp-208],	rax
+mov	[rsp-200],	rsp
+lea	rbx,	[rsp-216]
+sub	rsp,	216
 call	f22
-add	rsp,	184
+add	rsp,	216
 mov	rbx,	[rsp]
 lea	rax,	[rel+f26]
-mov	[rsp-176],	rax
-mov	[rsp-168],	rsp
-lea	rbx,	[rsp-184]
-sub	rsp,	184
+mov	[rsp-208],	rax
+mov	[rsp-200],	rsp
+lea	rbx,	[rsp-216]
+sub	rsp,	216
 call	f22
-add	rsp,	184
+add	rsp,	216
 mov	rbx,	[rsp]
 lea	rax,	[rel+f27]
-mov	[rsp-176],	rax
-mov	[rsp-168],	rsp
-lea	rbx,	[rsp-184]
-sub	rsp,	184
+mov	[rsp-208],	rax
+mov	[rsp-200],	rsp
+lea	rbx,	[rsp-216]
+sub	rsp,	216
 call	f22
-add	rsp,	184
+add	rsp,	216
 mov	rbx,	[rsp]
 lea	rax,	[rel+f28]
 mov	[rsp-176],	rax

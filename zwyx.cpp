@@ -2,6 +2,8 @@
 #include <string>
 #include <stdlib.h>
 #include <vector>
+#include <fstream>
+#include <sstream>
 using namespace std;
 
 #define NO_OPER 0
@@ -31,19 +33,19 @@ using namespace std;
 #define NAMESPACE 1
 #define PTR 2
 #define INT 3
-#define BYTES_PTR 4
-#define STRUCT 5
-#define METHOD 6
+#define STRUCT 4
+#define METHOD 5
+#define METHOD_PTR 6
 #define INT_CONST 7
-#define PAREN 8
-#define METHOD_PTR 9
-#define BYTES 10
+#define BYTES 8
+#define ARG 9
+#define BYTES_PTR 10
 #define NAME 11
 #define BASE 12
 #define IMPORT 13
 #define IN 14
-#define ARG 15
-#define STRING_LITERAL 16
+#define STRING_LITERAL 15
+#define COMPTIME_METHOD 16
 
 #define NO_ERROR 0
 #define INVALID_USE_OF_OPER 1
@@ -137,10 +139,11 @@ struct unit_struct
 	struct instrx_struct *base_instrx;
 	int base_ptr_offset;
 	struct unit_struct *in_unit;
+	string str;
 };
 
-string basic_unit_names[] = {"none", "", "", "int", "", "", "method", "", "", "", "bytes", "",
-                              "", "_import", "", "arg", ""};
+string basic_unit_names[] = {"none", "", "", "int", "", "method", "", "", "bytes", "arg", "", "",
+                              "", "_import", "", "", ""};
 string operators[] = {"", ":", "~", ".", "?", "=", "+", "/", "", "", "-", "", "^", "?*", "*", "%", 
                 "", "", ">", "<", "&", "|"};
 
@@ -166,6 +169,8 @@ int num_b = 0;
 vector<string> data_section_strings;
 int num_f = 0;
 int temp_reg_mem;
+
+int comptime_method = 0;
 
 void dbg_out_str(string msg)
 {
@@ -211,6 +216,7 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 void write_instrxs(vector<struct instrx_struct*> instrx);
 void write_line_with_control(struct instrx_struct *instrx);
 void parse_file(string file_name);
+void parse_istream(istream &zyfile);
 void setup_basic_units(void)
 {
 	for (int i = 0; i < NUM_BASIC_UNITS; i++)
@@ -1118,7 +1124,7 @@ void handle_instantiation(struct instrx_struct *instrx)
 	        instrx->unit->f_num = size;
 	}
 	else if (!instrx->unit->mem_base && (instrx->unit->type != IMPORT) && (instrx->unit->type != ARG)
-	                    && (instrx->oper != IGNORE))
+	                    && (instrx->oper != IGNORE) && (instrx->unit->type != COMPTIME_METHOD))
 	{
 		if (instrx->is_ptr)
 		{
@@ -1243,7 +1249,7 @@ void id_unit(string name)
 void handle_base(struct instrx_struct *instrx, int base_level)
 {
         struct unit_struct *superunit = parent_ptr;
-        while ((superunit != NULL) && (METHOD == superunit->mem_base))
+        while (superunit != NULL)
         {
                 if ((superunit->base_instrx != NULL) && (superunit->base_instrx->unit != NULL))
                 {
@@ -1274,6 +1280,25 @@ void handle_base_no_index(struct instrx_struct* instrx)
                 handle_base(instrx, 1);
         }
 }
+void handle_custom_compile_time_method(struct instrx_struct* method_struct, struct instrx_struct *arg)
+{
+        struct unit_struct parent;
+        parent.parent = parent_ptr;
+        parent.typing = NULL;
+        parent.base_instrx = arg;
+        parent_ptr = &parent;
+        struct instrx_struct temp = new_instrx;
+        new_instrx.unit = NULL;
+        new_instrx.oper = NO_OPER;
+        istringstream str(method_struct->unit->str);
+        comptime_method = 1;
+        parse_istream(str);
+        parent_ptr = parent.parent;
+        parent.base_instrx = NULL;
+        comptime_method = 0;
+        arg->unit = parent.subunits[0];
+        new_instrx = temp;
+}
 void handle_arg(struct instrx_struct* instrx)
 {
         handle_instantiation(instrx);
@@ -1281,7 +1306,14 @@ void handle_arg(struct instrx_struct* instrx)
 }
 void handle_compile_time_method(struct instrx_struct* method_struct, struct instrx_struct* arg)
 {
-        handle_arg(arg);
+        if (ARG == method_struct->unit->type)
+        {
+                handle_arg(arg);
+        }
+        else
+        {
+                handle_custom_compile_time_method(method_struct, arg);
+        }
         arg->oper = method_struct->oper;
         parent_ptr->instrx_list.pop_back();
         delete(parent_ptr->instrx_list.back());
@@ -1290,7 +1322,6 @@ void handle_compile_time_method(struct instrx_struct* method_struct, struct inst
 }
 void handle_last_instrx()
 {
-	
 	if ((parent_ptr->instrx_list.size() > 0) && (new_instrx.oper != DEFINE))
 	{
 		struct instrx_struct *instrx = parent_ptr->instrx_list.back();
@@ -1320,18 +1351,20 @@ void handle_last_instrx()
 		{
 		        struct instrx_struct* second_last_instrx
 		                = parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2];
-			if ((INSERTION == instrx->oper) && (ARG == second_last_instrx->unit->type))
+			if ((INSERTION == instrx->oper) && ((ARG == second_last_instrx->unit->type)
+			                              || (COMPTIME_METHOD == second_last_instrx->unit->type)))
 			{
 			        handle_compile_time_method(second_last_instrx, instrx);
 			        second_last_instrx = parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2];
 			}
 			handle_instantiation(instrx);
-			if ((DEFINE == instrx->oper) && (instrx->unit->type != ARG))
+			if ((DEFINE == instrx->oper) && (instrx->unit->type != ARG)
+			        && ((instrx->unit->type != COMPTIME_METHOD) || (INSERTION != new_instrx.oper)))
 			{
 				handle_define_statement(second_last_instrx->unit, instrx->unit);
 				second_last_instrx->oper = IGNORE;
 				if ((instrx->unit->f_num != STRUCT_UNINITIALIZED)
-				            && (new_instrx.oper != INSERTION) && (new_instrx.oper != SUBUNIT))
+				    && (new_instrx.oper != INSERTION) && (new_instrx.oper != SUBUNIT))
 				{
 				        instrx->oper = IGNORE;
 				}
@@ -1396,6 +1429,10 @@ void handle_subunit()
         if ((1 == parent_ptr->instrx_list.size()) && (DEFINE == parent_ptr->instrx_list.back()->oper))
 	{
 	        set_error(INVALID_USE_OF_OPER, line_num, operators[SUBUNIT]);
+	}
+	if ((BASE == parent_ptr->instrx_list.back()->unit->type) && (new_instrx.unit->type != INT_CONST))
+	{
+	        handle_base(parent_ptr->instrx_list.back(), 1);
 	}
 	if ((new_instrx.unit->type != METHOD_PTR) && (new_instrx.unit->type != INT_CONST)
 	    && (parent_ptr->instrx_list.back()->unit->type != BASE))
@@ -1676,9 +1713,14 @@ void handle_string_literal(string str)
         new_instrx.unit->mem_used = str.size();
         handle_new_instrx();
 }
+void handle_compile_time_method_def(string str)
+{
+        new_instrx.unit = new unit_struct(*basic_units[COMPTIME_METHOD]);
+        new_instrx.unit->str = str;
+        handle_new_instrx();
+}
 void handle_unit_name(string name)
 {
-	
 	new_instrx.unit = NULL;
 	if (new_instrx.oper != SUBUNIT)
 	{
@@ -1711,24 +1753,32 @@ void handle_unit_name(string name)
 	}
 	handle_new_instrx();
 }
-void parse_file(string file_name)
+void parse_istream(istream &zyfile)
 {
-	FILE* zyfile = fopen(file_name.c_str(), "r");
-	if (NULL == zyfile)
-	{
-	        set_error(CANNOT_OPEN_FILE, line_num, file_name);
-	        return;
-	}
 	line_num = 1;
+	
 	string unit_name_buffer;
 	int read_mode = 0;
 	
-	int c = fgetc(zyfile);
-	while (c != EOF)
+	char c = zyfile.get();
+	while (zyfile.good())
 	{
 	        if (COMPILED == read_mode)
 	        {
 	                compiled_instrxs.push_back(c);
+	        }
+	        else if (COMPTIME_METHOD == read_mode)
+	        {
+	                if ('\\' == c)
+	                {
+	                        handle_compile_time_method_def(unit_name_buffer);
+	                        unit_name_buffer.clear();
+	                        read_mode = 0;
+	                }
+	                else
+	                {
+	                        unit_name_buffer.push_back(c);
+	                }
 	        }
 	        else if (COMMENT == read_mode)
 	        {
@@ -1772,6 +1822,10 @@ void parse_file(string file_name)
 					}
 					unit_name_buffer.clear();
 				}
+				if ('\\' == c)
+				{
+				        read_mode = COMPTIME_METHOD;
+				}
 				if ('#' == c)
 				{
 				        read_mode = COMMENT;
@@ -1786,14 +1840,24 @@ void parse_file(string file_name)
 				}
 			}
 		}
-		c = fgetc(zyfile);
+		c = zyfile.get();
 	}
 	if (unit_name_buffer.size() > 0)
 	{
 		handle_unit_name(unit_name_buffer);
 	}
-	
-	fclose(zyfile);
+}
+void parse_file(string file_name)
+{
+        ifstream zyfile(file_name.c_str());
+        if (!zyfile.is_open())
+        {
+                set_error(CANNOT_OPEN_FILE, line_num, file_name);
+                return;
+        }
+        
+        parse_istream(zyfile);
+        zyfile.close();
 }
 
 int main(int argc, char** argv)
