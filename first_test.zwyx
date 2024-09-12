@@ -33,9 +33,7 @@ membBufferList~\ out~{
 	}
 } \
 
-l~membBufferList:npair
-
-l.{
+l~membBufferList:npair.{
 	set_membBuffer:@mbuf
 	set_buffer:@b0
 	emplace.{

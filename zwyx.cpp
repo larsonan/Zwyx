@@ -1552,16 +1552,19 @@ void handle_new_superunit()
 	}
 	else
 	{
+	        handle_last_instrx();
 		unit->type = METHOD;
 		unit->mem_base = METHOD;
 		unit->mem_used = parent_ptr->mem_used;
-		handle_last_instrx();
 		if (SUBUNIT == new_instrx.oper)
 		{
 			unit->base_instrx = new instrx_struct(*parent_ptr->instrx_list.back());
 			unit->base_instrx->state = 0;
 			unit->base = parent_ptr->instrx_list.back()->unit;
-			unit->mem_used += handle_alignment(parent_ptr->instrx_list.back()->unit->mem_used);
+			if (parent_ptr->instrx_list.back()->unit->mem_offset > parent_ptr->mem_used)
+			{
+			        unit->mem_used += handle_alignment(parent_ptr->instrx_list.back()->unit->mem_used);
+			}
 		}
 		else if (new_instrx.is_ptr)
 		{

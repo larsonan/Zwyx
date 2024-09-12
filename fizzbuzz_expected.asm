@@ -224,14 +224,14 @@ push	rbx
 mov	rcx,	[rbx+0]
 mov	rax,	[rcx+0]
 mov	rdx,	[rcx+8]
-mov	[rsp-8],	rax
+mov	[rsp-16],	rax
 mov	rax,	[rbx+8]
 xor	rdx,	rdx
 mov	qword	rcx,	8
 mul	qword	rcx
-mov	[rsp-16],	rax
-mov	rax,	[rsp-8]
-add	rax,	[rsp-16]
+mov	[rsp-24],	rax
+mov	rax,	[rsp-16]
+add	rax,	[rsp-24]
 mov	[rsp-8],	rax
 mov	rcx,	[rsp-8]
 mov	rax,	[rcx+0]
@@ -242,14 +242,14 @@ push	rbx
 mov	rcx,	[rbx+0]
 mov	rax,	[rcx+0]
 mov	rdx,	[rcx+8]
-mov	[rsp-8],	rax
+mov	[rsp-16],	rax
 mov	rax,	[rbx+8]
 xor	rdx,	rdx
 mov	qword	rcx,	8
 mul	qword	rcx
-mov	[rsp-16],	rax
-mov	rax,	[rsp-8]
-add	rax,	[rsp-16]
+mov	[rsp-24],	rax
+mov	rax,	[rsp-16]
+add	rax,	[rsp-24]
 mov	[rsp-8],	rax
 mov	rax,	[rbx+16]
 mov	rcx,	[rsp-8]
@@ -305,9 +305,9 @@ mov	[rsp-24],	rax
 mov	rdx,	[rbx+16]
 mov	rax,	[rbx+8]
 mov	rbx,	[rsp-24]
-sub	rsp,	32
+sub	rsp,	24
 call	rax
-add	rsp,	32
+add	rsp,	24
 mov	rbx,	[rsp]
 mov	rax,	[rsp-8]
 add	rax,	8
