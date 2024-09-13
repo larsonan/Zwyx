@@ -1748,7 +1748,7 @@ void handle_unit_name(string name)
 			}
 			else
 			{
-				find_unit_in_instrx(name, new instrx_struct(*parent_ptr->instrx_list.back()));
+				find_unit_in_instrx(name, parent_ptr->instrx_list.back());
 			}
 		}
 		if (NULL == new_instrx.unit)
