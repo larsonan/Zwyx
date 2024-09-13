@@ -1705,6 +1705,10 @@ void handle_int_const(string str)
 	        if (SUBUNIT == new_instrx.oper)
 	        {
 	                new_instrx.unit->mem_used = stoi(str);
+	                if (INT == parent_ptr->instrx_list.back()->unit->type)
+	                {
+	                        new_instrx.unit->mem_used /= 8;
+	                }
 	        }
 	}
 }

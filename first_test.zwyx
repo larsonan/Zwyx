@@ -3,9 +3,9 @@ _import:"utilities_lib"
 npair~{a~int b~int}
 
 
-b0~int.48
+b0~bytes.48
 
-mbuf~int.80
+mbuf~bytes.80
 
 membBufferList~\ out~{
 	~list
@@ -57,7 +57,7 @@ getmsg~{
 
 
 print.{
-	hello~int.40
+	hello~bytes.40
 	msg~str
 	msg.set_buffer:@hello
 	msg.write.{getmsg:@$}

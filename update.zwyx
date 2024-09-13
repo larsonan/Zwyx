@@ -27,9 +27,9 @@ increase_urgency~{
 	}
 }
 
-buffer~int.50
+buff~bytes.50
 str.{
-	set_buffer:@buffer
+	set_buffer:@buff
 	writer~write
 	give_bank_update.{write:@writer amount:5 intro_text:"Warning" ;}
 	increase_urgency:$

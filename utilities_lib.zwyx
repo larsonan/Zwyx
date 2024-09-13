@@ -9,7 +9,7 @@ interface~{
 }
 
 c_iter~{
-	el~int.1
+	el~int.8
 }
 
 writenf~{
@@ -25,7 +25,7 @@ writenf~{
 	c~{
 		in~int
 		;~{
-			b~int.1
+			b~int.8
 			b:in
 			data:@b
 			data.count:1
@@ -48,7 +48,7 @@ writenf~{
 	d~{
 		in~int
 		;~{
-			buff~int.48
+			buff~bytes.48
 			it~@c_iter:@buff
 			it:{it+40}
 			it.el:{in%10+48}
