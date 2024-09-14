@@ -926,13 +926,14 @@ struct unit_struct *find_unit_from_list(vector<struct unit_struct*> unit_list, s
 	}
 	return unit_match;
 }
-void find_unit_in_superunit(string name, struct unit_struct *superunit)
+struct unit_struct *find_unit_in_superunit(string name, struct unit_struct *superunit)
 {
-        new_instrx.unit = find_unit_from_list(superunit->subunits, name);
-        if ((NULL == new_instrx.unit) && (superunit->typing != NULL))
+        struct unit_struct *unit = find_unit_from_list(superunit->subunits, name);
+        if ((NULL == unit) && (superunit->typing != NULL))
         {
-                new_instrx.unit = find_unit_from_list(superunit->typing->subunits, name);
+                unit = find_unit_from_list(superunit->typing->subunits, name);
         }
+        return unit;
 }
 void handle_inheritance(struct unit_struct *unit)
 {
@@ -1158,31 +1159,12 @@ void handle_instantiation(struct instrx_struct *instrx)
 		}
 	}
 }
-void find_unit_in_instrx(string name, struct instrx_struct *instrx)
-{
-        find_unit_in_superunit(name, instrx->unit);
-        if ((new_instrx.unit != NULL) && ((PTR == instrx->unit->type) || (new_instrx.unit->base != NULL)))
-        {
-                new_instrx.ptr_source = instrx;
-        }
-}
-void find_unit_in_superunit_no_instrx(string name, struct unit_struct *superunit)
-{
-        find_unit_in_superunit(name, superunit);
-        
-        if ((new_instrx.unit != NULL) && (new_instrx.unit->base != NULL) && (new_instrx.unit->type != METHOD_PTR)
-                                        && (new_instrx.unit->base->type != METHOD))
-        {
-                new_instrx.ptr_source = new instrx_struct;
-                new_instrx.ptr_source->unit = superunit;
-        }
-}
 void id_unit(string name)
 {
 	struct unit_struct *superunit = parent_ptr;
 	while ((NULL == new_instrx.unit) && (superunit != NULL) && (METHOD == superunit->type))
 	{
-		find_unit_in_superunit_no_instrx(name, superunit);
+		new_instrx.unit = find_unit_in_superunit(name, superunit);
 		if (METHOD == superunit->mem_base)
 		{
 		        superunit = superunit->parent;
@@ -1191,7 +1173,7 @@ void id_unit(string name)
 		{
 		        if ((METHOD_PTR == superunit->mem_base) && (NULL == new_instrx.unit))
 		        {
-		                find_unit_in_superunit_no_instrx(name, superunit->parent);
+		                new_instrx.unit = find_unit_in_superunit(name, superunit->parent);
 		                if ((new_instrx.unit != NULL) && new_instrx.unit->mem_base)
 		                {
 		                        if (STRUCT == superunit->parent->type)
@@ -1212,7 +1194,7 @@ void id_unit(string name)
 	struct unit_struct* superunit_level_1 = superunit;
 	while ((NULL == new_instrx.unit) && (superunit != NULL))
 	{
-		find_unit_in_superunit_no_instrx(name, superunit);
+		new_instrx.unit = find_unit_in_superunit(name, superunit);
 		superunit = superunit->parent;
 		base_level++;
 	}
@@ -1235,11 +1217,12 @@ void id_unit(string name)
 	{
 	        if ((superunit->base_instrx != NULL) && (superunit->base_instrx->unit != NULL))
 	        {
-		        find_unit_in_instrx(name, superunit->base_instrx);
-		}
-		if (METHOD_PTR == superunit->mem_base)
-		{
-		        find_unit_in_superunit_no_instrx(name, superunit->base);
+		        new_instrx.unit = find_unit_in_superunit(name, superunit->base_instrx->unit);
+                        if ((new_instrx.unit != NULL) && ((new_instrx.unit->base != NULL)
+                            || (PTR == superunit->base_instrx->unit->type)))
+                        {
+                                new_instrx.ptr_source = superunit->base_instrx;
+                        }
 		}
 		superunit = superunit->parent;
 	}
@@ -1748,7 +1731,7 @@ void handle_unit_name(string name)
 			}
 			else
 			{
-				find_unit_in_instrx(name, parent_ptr->instrx_list.back());
+				new_instrx.unit = find_unit_in_superunit(name, parent_ptr->instrx_list.back()->unit);
 			}
 		}
 		if (NULL == new_instrx.unit)
