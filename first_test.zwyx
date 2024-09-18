@@ -7,37 +7,15 @@ b0~bytes.48
 
 mbuf~bytes.80
 
-npairList~{
-	b~bytes
+membBufferList~\ out~{
+	~list:$
 	membBuffer~int
 	membBufferN~int
-	set_buffer~{
-		in~int
-		;~{
-			b:in
-			b.count:0
-		}
-	}
 	set_membBuffer~{
 		buf~int
 		;~{
 			membBuffer:buf
 			membBufferN:0
-		}
-	}
-	set~{
-		at~int
-		char~int
-		;~{
-			it~@iter:{b+{at*8}}
-			it.el:char
-		}
-	}
-	add~{
-		in~int
-		;~{
-			set.{at:b.count char:in ;}
-			b.count:{b.count + 1}
 		}
 	}
 	emplace~{
@@ -49,9 +27,9 @@ npairList~{
 			add:ptr
 		}
 	}
-}
+} \
 
-npList~npairList.{
+l~membBufferList:npair.{
 	set_membBuffer:@mbuf
 	set_buffer:@b0
 	emplace.{
@@ -62,9 +40,6 @@ npList~npairList.{
 		$:@{a:4 b:1} ;
 	}
 }
-
-l~list:npair
-l:npList
 
 l.each:@{print.d:{a+b}}
 

@@ -1323,17 +1323,20 @@ void handle_last_instrx()
 		{
 		        set_error(INVALID_USE_OF_OPER, instrx->unit_line, ":");
 		}
-                else if (BASE == instrx->unit->type)
-                {
-                        handle_base_no_index(instrx);
-                }
 		else if ((DEFINE == instrx->oper) && (1 == parent_ptr->instrx_list.size()))
 		{
-			handle_inheritance(instrx->unit);
+		        if (instrx->unit->type != COMPTIME_METHOD)
+		        {
+			        handle_inheritance(instrx->unit);
+			}
 		}
 		else if ((instrx->unit->type != DEF_NONE) && ((instrx->unit->type != INT_CONST)
 		          || (DEFINE == instrx->oper)))
 		{
+		        if (BASE == instrx->unit->type)
+		        {
+		                handle_base_no_index(instrx);
+		        }
 		        struct instrx_struct* second_last_instrx
 		                = parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2];
 			if ((INSERTION == instrx->oper) && ((ARG == second_last_instrx->unit->type)
@@ -1586,7 +1589,8 @@ void handle_new_oper(int oper)
 	{
 	        set_error(INVALID_USE_OF_OPER, line_num, operators[oper]);
 	}
-	if ((INSERTION == oper) && (STRUCT == parent_ptr->type))
+	if ((INSERTION == oper) && (STRUCT == parent_ptr->type)
+	  && (parent_ptr->instrx_list.back()->unit->type != COMPTIME_METHOD))
 	{
 	        parent_ptr->f_num = STRUCT_UNINITIALIZED;
 	}
