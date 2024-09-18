@@ -200,3 +200,26 @@ enum~{
 	}
 }
 
+emplacementList~\ out~{
+	~list:$
+	membSize~int
+	membBuffer~int
+	membBufferN~int
+	set_membBuffer~{
+		buf~int
+		;~{
+			membBuffer:buf
+			membBufferN:0
+		}
+	}
+	emplace~{
+		in~npair.;
+		;~{
+			ptr~@iter:{membBuffer+membBufferN}
+			ptr.{in}
+			membBufferN:{membBufferN+membSize}
+			add:ptr
+		}
+	}
+} \
+

@@ -1229,6 +1229,17 @@ void id_unit(string name)
 	
 }
 
+struct instrx_struct* get_second_last_instrx()
+{
+        if (parent_ptr->instrx_list.size() > 1)
+        {
+                return parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2];
+        }
+        else
+        {
+                return NULL;
+        }
+}
 void handle_base(struct instrx_struct *instrx, int base_level)
 {
         struct unit_struct *superunit = parent_ptr;
@@ -1323,13 +1334,6 @@ void handle_last_instrx()
 		{
 		        set_error(INVALID_USE_OF_OPER, instrx->unit_line, ":");
 		}
-		else if ((DEFINE == instrx->oper) && (1 == parent_ptr->instrx_list.size()))
-		{
-		        if (instrx->unit->type != COMPTIME_METHOD)
-		        {
-			        handle_inheritance(instrx->unit);
-			}
-		}
 		else if ((instrx->unit->type != DEF_NONE) && ((instrx->unit->type != INT_CONST)
 		          || (DEFINE == instrx->oper)))
 		{
@@ -1337,18 +1341,18 @@ void handle_last_instrx()
 		        {
 		                handle_base_no_index(instrx);
 		        }
-		        struct instrx_struct* second_last_instrx
-		                = parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2];
+		        struct instrx_struct* second_last_instrx = get_second_last_instrx();
 			if ((INSERTION == instrx->oper) && ((ARG == second_last_instrx->unit->type)
 			                              || (COMPTIME_METHOD == second_last_instrx->unit->type)))
 			{
 			        handle_compile_time_method(second_last_instrx, instrx);
-			        if ((DEFINE == instrx->oper) && (1 == parent_ptr->instrx_list.size()))
-			        {
-			                handle_inheritance(instrx->unit);
-			                return;
-			        }
-			        second_last_instrx = parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2];
+			        second_last_instrx = get_second_last_instrx();
+			}
+			if ((DEFINE == instrx->oper) && (NULL == second_last_instrx)
+			    && (instrx->unit->type != COMPTIME_METHOD))
+			{
+			        handle_inheritance(instrx->unit);
+			        return;
 			}
 			handle_instantiation(instrx);
 			if ((DEFINE == instrx->oper) && (instrx->unit->type != ARG)
