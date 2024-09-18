@@ -75,7 +75,7 @@ print~{
 		_console_write:data
 	}
 }
-list~{
+list~\ out~{
 	b~bytes
 	set_buffer~{
 		in~int
@@ -113,7 +113,7 @@ list~{
 	}
 	each~{
 		
-		f~;
+		f~$.;
 		;~{
 			it~@iter:b
 			remaining~int
@@ -129,7 +129,7 @@ list~{
 			}
 		}
 	}
-}
+} \
 
 
 
@@ -140,8 +140,14 @@ list~{
 
 
 str~{
-	
-	~list
+	b~bytes
+	set_buffer~{
+		in~int
+		;~{
+			b:in
+			b.count:0
+		}
+	}
 	setchar~{
 		at~int
 		char~int
@@ -155,6 +161,11 @@ str~{
 		;~{
 			it~@c_iter:{b+at}
 			it.el % 256
+		}
+	}
+	count~{
+		;~{
+			b.count
 		}
 	}
 	write~{

@@ -1273,6 +1273,7 @@ void handle_custom_compile_time_method(struct instrx_struct* method_struct, stru
         struct instrx_struct temp = new_instrx;
         new_instrx.unit = NULL;
         new_instrx.oper = NO_OPER;
+        int temp_temp_reg_mem = temp_reg_mem;
         istringstream str(method_struct->unit->str);
         comptime_method = 1;
         parse_istream(str);
@@ -1281,6 +1282,7 @@ void handle_custom_compile_time_method(struct instrx_struct* method_struct, stru
         comptime_method = 0;
         arg->unit = parent.subunits[0];
         new_instrx = temp;
+        temp_reg_mem = temp_temp_reg_mem;
 }
 void handle_arg(struct instrx_struct* instrx)
 {
@@ -1338,6 +1340,11 @@ void handle_last_instrx()
 			                              || (COMPTIME_METHOD == second_last_instrx->unit->type)))
 			{
 			        handle_compile_time_method(second_last_instrx, instrx);
+			        if ((DEFINE == instrx->oper) && (1 == parent_ptr->instrx_list.size()))
+			        {
+			                handle_inheritance(instrx->unit);
+			                return;
+			        }
 			        second_last_instrx = parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2];
 			}
 			handle_instantiation(instrx);

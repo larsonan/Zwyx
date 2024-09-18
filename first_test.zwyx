@@ -7,10 +7,17 @@ b0~bytes.48
 
 mbuf~bytes.80
 
-membBufferList~\ out~{
-	~list
-	membBufferN~int
+npairList~{
+	b~bytes
 	membBuffer~int
+	membBufferN~int
+	set_buffer~{
+		in~int
+		;~{
+			b:in
+			b.count:0
+		}
+	}
 	set_membBuffer~{
 		buf~int
 		;~{
@@ -18,12 +25,23 @@ membBufferList~\ out~{
 			membBufferN:0
 		}
 	}
-	eachN~{
-		in~$.;
-		;~{each:in}
+	set~{
+		at~int
+		char~int
+		;~{
+			it~@iter:{b+{at*8}}
+			it.el:char
+		}
+	}
+	add~{
+		in~int
+		;~{
+			set.{at:b.count char:in ;}
+			b.count:{b.count + 1}
+		}
 	}
 	emplace~{
-		in~$.;
+		in~npair.;
 		;~{
 			ptr~@iter:{membBuffer+membBufferN}
 			ptr.{in}
@@ -31,9 +49,9 @@ membBufferList~\ out~{
 			add:ptr
 		}
 	}
-} \
+}
 
-l~membBufferList:npair.{
+npList~npairList.{
 	set_membBuffer:@mbuf
 	set_buffer:@b0
 	emplace.{
@@ -45,7 +63,10 @@ l~membBufferList:npair.{
 	}
 }
 
-l.eachN:@{print.d:{a+b}}
+l~list:npair
+l:npList
+
+l.each:@{print.d:{a+b}}
 
 getmsg~{
 	write~@writenf
@@ -110,7 +131,7 @@ write_color~{
 print.{write_color.{write:@$.2 colrw:color_a ; color_a.orange.set colrw:color_a ;}}
 
 n~int:4
-l.eachN:@{b:n n:{n-1}}
-l.eachN:@{print.d:{a+b}}
+l.each:@{b:n n:{n-1}}
+l.each:@{print.d:{a+b}}
 print.endl
 

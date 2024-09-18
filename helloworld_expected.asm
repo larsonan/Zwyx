@@ -207,106 +207,6 @@ push	rbx
 mov	rcx,	[rbx+0]
 mov	rax,	[rcx+0]
 mov	rdx,	[rcx+8]
-mov	[rsp-16],	rax
-mov	rax,	[rbx+8]
-xor	rdx,	rdx
-mov	qword	rcx,	8
-mul	qword	rcx
-mov	[rsp-24],	rax
-mov	rax,	[rsp-16]
-add	rax,	[rsp-24]
-mov	[rsp-8],	rax
-mov	rcx,	[rsp-8]
-mov	rax,	[rcx+0]
-pop	rbx
-ret
-f11:
-push	rbx
-mov	rcx,	[rbx+0]
-mov	rax,	[rcx+0]
-mov	rdx,	[rcx+8]
-mov	[rsp-16],	rax
-mov	rax,	[rbx+8]
-xor	rdx,	rdx
-mov	qword	rcx,	8
-mul	qword	rcx
-mov	[rsp-24],	rax
-mov	rax,	[rsp-16]
-add	rax,	[rsp-24]
-mov	[rsp-8],	rax
-mov	rax,	[rbx+16]
-mov	rcx,	[rsp-8]
-mov	[rcx+0],	rax
-pop	rbx
-ret
-f12:
-push	rbx
-mov	rax,	[rbx+0]
-mov	[rsp-24],	rax
-mov	rcx,	[rbx+0]
-mov	rax,	[rcx+8]
-mov	[rsp-16],	rax
-mov	rax,	[rbx+8]
-mov	[rsp-8],	rax
-lea	rbx,	[rsp-24]
-sub	rsp,	24
-call	f11
-add	rsp,	24
-mov	rbx,	[rsp]
-mov	rcx,	[rbx+0]
-mov	rax,	[rcx+8]
-add	rax,	1
-mov	rcx,	[rbx+0]
-mov	[rcx+8],	rax
-pop	rbx
-ret
-f13:
-push	rbx
-mov	rcx,	[rbx+0]
-mov	rax,	[rcx+8]
-pop	rbx
-ret
-f14:
-push	rbx
-mov	rcx,	[rbx+0]
-mov	rax,	[rcx+0]
-mov	rdx,	[rcx+8]
-mov	[rsp-8],	rax
-mov	rcx,	[rbx+0]
-mov	rax,	[rcx+8]
-mov	[rsp-16],	rax
-b2:
-mov	rax,	[rsp-16]
-cmp	rax,	0
-setg	al
-movzx	rax,	al
-cmp	rax,	0
-je	b3
-mov	rcx,	[rsp-8]
-mov	rax,	[rcx+0]
-mov	[rsp-24],	rax
-mov	rdx,	[rbx+16]
-mov	rax,	[rbx+8]
-mov	rbx,	[rsp-24]
-sub	rsp,	24
-call	rax
-add	rsp,	24
-mov	rbx,	[rsp]
-mov	rax,	[rsp-8]
-add	rax,	8
-mov	[rsp-8],	rax
-mov	rax,	[rsp-16]
-sub	rax,	1
-mov	[rsp-16],	rax
-jmp	b2
-b3:
-pop	rbx
-ret
-f15:
-push	rbx
-mov	rcx,	[rbx+0]
-mov	rax,	[rcx+0]
-mov	rdx,	[rcx+8]
 add	rax,	[rbx+8]
 mov	[rsp-8],	rax
 mov	rax,	[rbx+16]
@@ -314,7 +214,7 @@ mov	rcx,	[rsp-8]
 mov	[rcx+0],	al
 pop	rbx
 ret
-f16:
+f11:
 push	rbx
 mov	rcx,	[rbx+0]
 mov	rax,	[rcx+0]
@@ -329,7 +229,13 @@ div	qword	rcx
 mov	rax,	rdx
 pop	rbx
 ret
-f17:
+f12:
+push	rbx
+mov	rcx,	[rbx+0]
+mov	rax,	[rcx+8]
+pop	rbx
+ret
+f13:
 push	rdx
 push	rbx
 mov	rcx,	[rsp+8]
@@ -352,13 +258,13 @@ mov	rax,	[rcx+8]
 add	rax,	[rsp-24]
 mov	rcx,	[rbx+32]
 mov	[rcx+8],	rax
-b4:
+b2:
 mov	rax,	[rsp-24]
 cmp	rax,	0
 setg	al
 movzx	rax,	al
 cmp	rax,	0
-je	b5
+je	b3
 mov	rcx,	[rsp-8]
 mov	al,	[rcx+0]
 mov	rcx,	[rsp-16]
@@ -372,12 +278,12 @@ mov	[rsp-8],	rax
 mov	rax,	[rsp-24]
 sub	rax,	1
 mov	[rsp-24],	rax
-jmp	b4
-b5:
+jmp	b2
+b3:
 pop	rbx
 pop	rdx
 ret
-f18:
+f14:
 push	rbx
 mov	rcx,	[rbx+0]
 mov	rcx,	[rcx+0]
@@ -388,7 +294,7 @@ sete	al
 movzx	rax,	al
 pop	rbx
 ret
-f19:
+f15:
 push	rbx
 mov	rcx,	[rbx+0]
 mov	rax,	[rcx+8]
