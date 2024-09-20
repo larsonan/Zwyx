@@ -92,6 +92,7 @@ string error_messages[] =
 	"Invalid in unit",
 	"Invalid use of import"
 };
+
 struct instrx_struct
 {
 	struct unit_struct *unit;
@@ -217,6 +218,7 @@ void write_instrxs(vector<struct instrx_struct*> instrx);
 void write_line_with_control(struct instrx_struct *instrx);
 void parse_file(string file_name);
 void parse_istream(istream &zyfile);
+
 void setup_basic_units(void)
 {
 	for (int i = 0; i < NUM_BASIC_UNITS; i++)
@@ -240,6 +242,7 @@ void setup_basic_units(void)
 	basic_units[BYTES_PTR]->subunits.push_back(count);
 	basic_units[METHOD_PTR]->subunits.push_back(count);
 }
+
 void init(void)
 {
 	instrx_idx = 0;
@@ -247,6 +250,7 @@ void init(void)
 	parent_ptr = NULL;
 	setup_basic_units();
 }
+
 void write_unit(struct instrx_struct *instrx)
 {
 	if (INT_CONST == instrx->unit->type)
@@ -273,12 +277,14 @@ void write_unit(struct instrx_struct *instrx)
 		}
 	}
 }
+
 void write_load_ptr_base(struct instrx_struct *instrx)
 {
 	(void)fprintf(xcfile, "mov\t%s,\t", REG_PTR);
 	write_unit(instrx);
 	(void)fprintf(xcfile, "\n");
 }
+
 void write_array_count(struct instrx_struct *instrx)
 {
         struct instrx_struct temp = *instrx;
@@ -286,6 +292,7 @@ void write_array_count(struct instrx_struct *instrx)
         
         write_unit(&temp);
 }
+
 void write_do(struct instrx_struct *instrx)
 {
         struct unit_struct *unit;
@@ -336,10 +343,10 @@ void write_do(struct instrx_struct *instrx)
 	{
 		(void)fprintf(xcfile, "call\tf%d\n", unit->f_num);
 	}
-	
 	(void)fprintf(xcfile, "add\t%s,\t%d\n", REG_DEFAULT, unit->mem_used - WORD_SIZE);
 	(void)fprintf(xcfile, "mov\t%s,\t[%s]\n", REG_BASE, REG_DEFAULT);
 }
+
 void write_insertion(struct instrx_struct *instrx)
 {
 	(void)fprintf(xcfile, "mov\t");
@@ -404,7 +411,6 @@ void write_insertion(struct instrx_struct *instrx)
 
 void write_ptr_to_temp(struct instrx_struct *instrx)
 {
-	
 	if (METHOD == instrx->unit->type)
 	{
 		(void)fprintf(xcfile, "lea\t%s,\t", REG_TEMP);
@@ -429,18 +435,22 @@ void load_base_to_temp(struct instrx_struct* instrx)
 {
         (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_TEMP, REG_BASE, instrx->ptr_source->unit->base_ptr_offset);
 }
+
 void store_temp(int mem_offset)
 {
 	(void)fprintf(xcfile, "mov\t[%s-%d],\t%s\n", REG_DEFAULT, mem_offset, REG_TEMP);
 }
+
 void get_stored_temp(int mem_offset)
 {
 	(void)fprintf(xcfile, "mov\t%s,\t[%s-%d]\n", REG_TEMP, REG_DEFAULT, mem_offset);
 }
+
 void load_base_to_reg(int mem_offset)
 {
 	(void)fprintf(xcfile, "lea\t%s,\t[%s-%d]\n", REG_BASE, REG_DEFAULT, mem_offset);
 }
+
 void store_base(int mem_offset)
 {
         (void)fprintf(xcfile, "mov\t[%s-%d],\t%s\n", REG_DEFAULT, mem_offset, REG_BASE);
@@ -449,8 +459,8 @@ void store_base(int mem_offset)
 void restore_base_to_reg()
 {
 	(void)fprintf(xcfile, "mov\t%s,\t[%s]\n", REG_BASE, REG_DEFAULT);
-	
 }
+
 void write_insertion_src(struct instrx_struct *instrx)
 {
         if (instrx->unit->mem_used < WORD_SIZE)
@@ -493,15 +503,12 @@ void write_math_instrx(struct instrx_struct *instrx)
 		(void)fprintf(xcfile, "div\tqword\t");
 		break;
 	case ADD:
-	
 		(void)fprintf(xcfile, "add\t%s,\t", REG_TEMP);
 		break;
 	case SUBTRACT:
-		
 		(void)fprintf(xcfile, "sub\t%s,\t", REG_TEMP);
 		break;
 	case MULTIPLY:
-		
 		(void)fprintf(xcfile, "mul\tqword\t");
 		break;
 	case AND:
@@ -559,18 +566,22 @@ void write_math_instrx(struct instrx_struct *instrx)
 		        break;
 	}
 }
+
 void write_jump_unconditional(int b_num)
 {
         (void)fprintf(xcfile, "jmp\tb%d\n", b_num);
 }
+
 void write_label_no(int b_num)
 {
         (void)fprintf(xcfile, "b%d:\n", b_num);
 }
+
 void write_jump_conditional(int b_num)
 {
         (void)fprintf(xcfile, "cmp\t%s,\t0\nje\tb%d\n", REG_TEMP, b_num);
 }
+
 void decrease_base_level(int base_level, struct unit_struct* base)
 {
         (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_BASE, base->base_ptr_offset);
@@ -580,10 +591,12 @@ void decrease_base_level(int base_level, struct unit_struct* base)
                 (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_PTR, base->base_ptr_offset);
         }
 }
+
 void load_base_2()
 {
         (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_DEFAULT, WORD_SIZE);
 }
+
 void load_pointer_base(struct instrx_struct *instrx)
 {
         if (instrx->base_level > 1)
@@ -596,6 +609,7 @@ void load_pointer_base(struct instrx_struct *instrx)
         }
         write_load_ptr_base(instrx);
 }
+
 void load_base(struct instrx_struct *instrx)
 {
         if (instrx->base_level > 1)
@@ -619,10 +633,11 @@ void load_base(struct instrx_struct *instrx)
 	        store_temp(instrx->unit->mem_offset - instrx->unit->base_ptr_offset);
 	}
 }
+
 void write_do_instrx(struct instrx_struct *instrx)
 {
 	if ((METHOD == instrx->unit->type) || ((METHOD_PTR == instrx->unit->type)
-											&& (NULL == instrx->insertion_source) && (instrx->oper != INSERTION)))
+			      && (NULL == instrx->insertion_source) && (instrx->oper != INSERTION)))
 	{
 		if ((METHOD == instrx->unit->type) && (0 == instrx->unit->name.length()))
 		{
@@ -632,7 +647,6 @@ void write_do_instrx(struct instrx_struct *instrx)
 		{
 			write_do(instrx);
 		}
-		
 	}
 	else if ((STRUCT == instrx->unit->type) && (instrx->unit->method != NULL) && (instrx->unit->method->mem_base))
 	{
@@ -655,12 +669,14 @@ struct unit_struct* in_unit(struct unit_struct *unit)
                 return unit;
         }
 }
+
 void write_insertion_src_out_unit(struct instrx_struct *instrx)
 {
         struct instrx_struct temp = *instrx;
         temp.unit = in_unit(temp.unit);
         write_insertion_src(&temp);
 }
+
 void handle_instrx_default(struct instrx_struct *instrx)
 {
 	if (instrx->is_ptr)
@@ -679,6 +695,7 @@ void handle_instrx_default(struct instrx_struct *instrx)
 		write_insertion_src_out_unit(instrx);
 	}
 }
+
 int get_temp_offset(struct unit_struct *unit)
 {
 	int result;
@@ -698,14 +715,13 @@ int get_temp_offset(struct unit_struct *unit)
 	
 	return result;
 }
+
 void handle_math_oper(struct instrx_struct *instrx)
 {
-	
 	if ((METHOD == instrx->unit->type) || (STRUCT == instrx->unit->type) || (METHOD_PTR == instrx->unit->type))
 	{
 		write_do_instrx(instrx);
 		int temp_offset = get_temp_offset(instrx->unit);
-		
 		store_temp(temp_offset + WORD_SIZE);
 		get_stored_temp(temp_offset);
 	}
@@ -743,16 +759,18 @@ void initialize_unit(struct instrx_struct *instrx)
 		}
 	}
 }
+
 void write_insertion_in_unit(struct instrx_struct *instrx)
 {
         struct instrx_struct temp = *instrx;
         temp.unit = in_unit(temp.unit);
         write_insertion(&temp);
 }
+
 void write_line(struct instrx_struct *instrx)
 {
 	if (!is_default_instrx(instrx) && (instrx->oper != DEFINE)
-				&& ((METHOD == instrx->unit->type) || (STRUCT == instrx->unit->type) || (METHOD_PTR == instrx->unit->type)))
+	  && ((METHOD == instrx->unit->type) || (STRUCT == instrx->unit->type) || (METHOD_PTR == instrx->unit->type)))
 	{
 		store_temp(get_temp_offset(instrx->unit));
 	}
@@ -779,7 +797,6 @@ void write_line(struct instrx_struct *instrx)
 	}
 	
 	initialize_unit(instrx);
-	
 	if (is_default_instrx(instrx))
 	{
 		handle_instrx_default(instrx);
@@ -789,7 +806,6 @@ void write_line(struct instrx_struct *instrx)
 		handle_math_oper(instrx);
 	}
 }
-
 
 void write_line_with_branch(struct instrx_struct* instrx)
 {
@@ -846,7 +862,6 @@ void write_line_with_control(struct instrx_struct* instrx)
 
 void write_instrxs(vector<struct instrx_struct*> instrxs)
 {
-        
 	for (int i = 0; i < instrxs.size(); i++)
 	{
 		if ((instrxs[i]->oper != INSERTION) && (instrxs[i]->oper != WHILE) && (instrxs[i]->oper != SUBUNIT)
@@ -856,6 +871,7 @@ void write_instrxs(vector<struct instrx_struct*> instrxs)
 		}
 	}
 }
+
 void write_f(void)
 {
 	for (int i = 0; i < funcs.size(); i++)
@@ -926,6 +942,7 @@ struct unit_struct *find_unit_from_list(vector<struct unit_struct*> unit_list, s
 	}
 	return unit_match;
 }
+
 struct unit_struct *find_unit_in_superunit(string name, struct unit_struct *superunit)
 {
         struct unit_struct *unit = find_unit_from_list(superunit->subunits, name);
@@ -935,6 +952,7 @@ struct unit_struct *find_unit_in_superunit(string name, struct unit_struct *supe
         }
         return unit;
 }
+
 void handle_inheritance(struct unit_struct *unit)
 {
         if ((parent_ptr->type != STRUCT) || (unit->type != STRUCT))
@@ -964,11 +982,12 @@ void handle_inheritance(struct unit_struct *unit)
 
 void handle_new_method(struct unit_struct *unit)
 {
-	
 	funcs.push_back(unit);
 	unit->f_num = num_f;
+	
 	num_f++;
 }
+
 int handle_alignment(int mem_offset)
 {
         if ((mem_offset % WORD_SIZE) != 0)
@@ -977,6 +996,7 @@ int handle_alignment(int mem_offset)
         }
         return mem_offset;
 }
+
 void handle_define_statement(struct unit_struct *defined_unit, struct unit_struct *definition_unit)
 {
 	definition_unit->name = defined_unit->name;
@@ -986,6 +1006,7 @@ void handle_define_statement(struct unit_struct *defined_unit, struct unit_struc
 	}
 	parent_ptr->subunits.push_back(definition_unit);
 }
+
 struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struct *base,
                                       struct unit_struct *mem_ref_parent)
 {
@@ -1044,6 +1065,7 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
 	}
 	return instance;
 }
+
 void instantiate_method(struct instrx_struct *instrx)
 {
 	instrx->unit = new unit_struct(*instrx->unit);
@@ -1073,6 +1095,7 @@ void instantiate_method(struct instrx_struct *instrx)
 	        }
 	}
 }
+
 void instantiate_unit_method(struct instrx_struct *instrx)
 {
 	instrx->unit->method = new unit_struct(*instrx->unit->method);
@@ -1080,6 +1103,7 @@ void instantiate_unit_method(struct instrx_struct *instrx)
 	instrx->unit->method->base = instrx->unit;
 	instrx->unit->method->mem_base = METHOD;
 }
+
 struct unit_struct* instantiate_as_ptr(struct unit_struct *unit)
 {
         struct unit_struct *new_ptr;
@@ -1095,6 +1119,7 @@ struct unit_struct* instantiate_as_ptr(struct unit_struct *unit)
 	
 	return new_ptr;
 }
+
 vector<struct unit_struct*> instantiate_subunits(struct unit_struct *superunit, struct unit_struct *mem_ref_parent)
 {
 	vector<struct unit_struct*> units;
@@ -1159,6 +1184,7 @@ void handle_instantiation(struct instrx_struct *instrx)
 		}
 	}
 }
+
 void id_unit(string name)
 {
 	struct unit_struct *superunit = parent_ptr;
@@ -1240,6 +1266,7 @@ struct instrx_struct* get_second_last_instrx()
                 return NULL;
         }
 }
+
 void handle_base(struct instrx_struct *instrx, int base_level)
 {
         struct unit_struct *superunit = parent_ptr;
@@ -1261,6 +1288,7 @@ void handle_base(struct instrx_struct *instrx, int base_level)
                 superunit = superunit->parent;
         }
 }
+
 void handle_base_no_index(struct instrx_struct* instrx)
 {
         if ((DEFINE == instrx->oper) && (STRUCT == parent_ptr->type))
@@ -1274,6 +1302,7 @@ void handle_base_no_index(struct instrx_struct* instrx)
                 handle_base(instrx, 1);
         }
 }
+
 void handle_custom_compile_time_method(struct instrx_struct* method_struct, struct instrx_struct *arg)
 {
         struct unit_struct parent;
@@ -1295,11 +1324,13 @@ void handle_custom_compile_time_method(struct instrx_struct* method_struct, stru
         new_instrx = temp;
         temp_reg_mem = temp_temp_reg_mem;
 }
+
 void handle_arg(struct instrx_struct* instrx)
 {
         handle_instantiation(instrx);
         parent_ptr->in_unit = instrx->unit;
 }
+
 void handle_compile_time_method(struct instrx_struct* method_struct, struct instrx_struct* arg)
 {
         if (ARG == method_struct->unit->type)
@@ -1316,6 +1347,7 @@ void handle_compile_time_method(struct instrx_struct* method_struct, struct inst
         parent_ptr->instrx_list.pop_back();
         parent_ptr->instrx_list.push_back(arg);
 }
+
 void handle_last_instrx()
 {
 	if ((parent_ptr->instrx_list.size() > 0) && (new_instrx.oper != DEFINE))
@@ -1369,6 +1401,7 @@ void handle_last_instrx()
 		}
 	}
 }
+
 struct unit_struct *get_correct_method_type()
 {
 	if ((DEFINE == new_instrx.oper) || (SUBUNIT == new_instrx.oper))
@@ -1409,6 +1442,7 @@ struct unit_struct *get_correct_method_type()
 	
 	return basic_units[METHOD];
 }
+
 void handle_oper_errors()
 {
         if (((PTR == new_instrx.unit->type) && (new_instrx.oper != NO_OPER)
@@ -1421,6 +1455,7 @@ void handle_oper_errors()
                 set_error(INVALID_USE_OF_OPER, line_num, operators[new_instrx.oper]);
         }
 }
+
 void handle_subunit()
 {
         if ((1 == parent_ptr->instrx_list.size()) && (DEFINE == parent_ptr->instrx_list.back()->oper))
@@ -1452,6 +1487,7 @@ void handle_subunit()
 	parent_ptr->instrx_list.back()->state = 0;
 	parent_ptr->instrx_list.back()->unit = new_instrx.unit;
 }
+
 void handle_new_instrx()
 {
         handle_oper_errors();
@@ -1495,8 +1531,6 @@ void handle_new_instrx()
 			temp_reg_mem = 0;
 		}
 		parent_ptr->instrx_list.push_back(temp);
-		
-		
 	}
 	new_instrx.oper = NO_OPER;
 	new_instrx.base_level = 0;
@@ -1505,11 +1539,13 @@ void handle_new_instrx()
 	new_instrx.unit = NULL;
 	parent_ptr->instrx_list.back()->unit_line = line_num;
 }
+
 void handle_unit(struct unit_struct *unit)
 {
 	new_instrx.unit = unit;
 	handle_new_instrx();
 }
+
 void handle_end_superunit()
 {
 	if (NULL == parent_ptr)
@@ -1524,6 +1560,7 @@ void handle_end_superunit()
 		parent_ptr = parent_ptr->parent;
 	}
 }
+
 void handle_new_superunit()
 {
 	struct unit_struct *unit = new unit_struct;
@@ -1579,6 +1616,7 @@ void handle_new_superunit()
 	unit->parent = parent_ptr;
 	parent_ptr = unit;
 }
+
 void handle_ptr()
 {
         new_instrx.is_ptr = 1;
@@ -1587,6 +1625,7 @@ void handle_ptr()
                 set_error(INVALID_USE_OF_OPER, line_num, operators[new_instrx.oper]);
         }
 }
+
 void handle_new_oper(int oper)
 {
         if (new_instrx.is_ptr || ((oper != DEFINE) && (0 == parent_ptr->instrx_list.size())))
@@ -1620,6 +1659,7 @@ void handle_new_oper(int oper)
 	}
 	new_instrx.oper = oper;
 }
+
 void handle_char(int c)
 {
         if ((' ' == c) || ('\t' == c))
@@ -1665,6 +1705,7 @@ void handle_char(int c)
 		break;
 	}
 }
+
 void start_base_unit()
 {
 	parent_ptr = new unit_struct;
@@ -1674,6 +1715,7 @@ void start_base_unit()
 	parent_ptr->mem_used += WORD_SIZE;
 	parent_ptr->base = NULL;
 }
+
 void end_base_unit()
 {
 	if (parent_ptr->parent != NULL)
@@ -1685,10 +1727,6 @@ void end_base_unit()
 		handle_end_superunit();
 	}
 }
-
-
-
-
 
 void handle_int_const(string str)
 {
@@ -1710,6 +1748,7 @@ void handle_int_const(string str)
 	        }
 	}
 }
+
 void handle_string_literal(string str)
 {
         handle_last_instrx();
@@ -1718,12 +1757,14 @@ void handle_string_literal(string str)
         new_instrx.unit->mem_used = str.size();
         handle_new_instrx();
 }
+
 void handle_compile_time_method_def(string str)
 {
         new_instrx.unit = new unit_struct(*basic_units[COMPTIME_METHOD]);
         new_instrx.unit->str = str;
         handle_new_instrx();
 }
+
 void handle_unit_name(string name)
 {
 	new_instrx.unit = NULL;
@@ -1758,6 +1799,7 @@ void handle_unit_name(string name)
 	}
 	handle_new_instrx();
 }
+
 void parse_istream(istream &zyfile)
 {
 	line_num = 1;
@@ -1852,6 +1894,7 @@ void parse_istream(istream &zyfile)
 		handle_unit_name(unit_name_buffer);
 	}
 }
+
 void parse_file(string file_name)
 {
         ifstream zyfile(file_name.c_str());
