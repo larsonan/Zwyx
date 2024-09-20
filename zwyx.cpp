@@ -120,7 +120,7 @@ struct error_struct
 	int type;
 	int line;
 	string section;
-	
+	string file_name;
 };
 
 struct unit_struct
@@ -171,7 +171,7 @@ vector<string> data_section_strings;
 int num_f = 0;
 int temp_reg_mem;
 
-int comptime_method = 0;
+string file_name;
 
 void dbg_out_str(string msg)
 {
@@ -194,7 +194,7 @@ void set_error(int type, int line, string section)
 	errors[num_errors].type = type;
 	errors[num_errors].line = line;
 	errors[num_errors].section = section;
-	
+	errors[num_errors].file_name = file_name;
 	if (num_errors < MAX_ERRORS - 1)
 	{
 		num_errors++;
@@ -205,9 +205,17 @@ void print_errors(void)
 {
 	for (int i = 0; i < num_errors; i++)
 	{
-		(void)fprintf(stdout, "Line %d - \"", errors[i].line);
-		(void)fprintf(stdout, "%s", errors[i].section.c_str());
-		(void)fprintf(stdout, "\": %s\n", error_messages[errors[i].type].c_str());
+	        (void)fprintf(stdout, "%s, ", errors[i].file_name.c_str());
+	        if (0 == errors[i].line)
+	        {
+	                (void)fprintf(stdout, "compile-time method");
+	        }
+	        else
+	        {
+		        (void)fprintf(stdout, "line %d", errors[i].line);
+		}
+		(void)fprintf(stdout, " - \"%s\"", errors[i].section.c_str());
+		(void)fprintf(stdout, ": %s\n", error_messages[errors[i].type].c_str());
 	}
 }
 
@@ -216,7 +224,7 @@ struct unit_struct* instantiate_unit(struct unit_struct *unit, struct unit_struc
                                       struct unit_struct *mem_ref_parent);
 void write_instrxs(vector<struct instrx_struct*> instrx);
 void write_line_with_control(struct instrx_struct *instrx);
-void parse_file(string file_name);
+void parse_file(string parse_file_name);
 void parse_istream(istream &zyfile);
 
 void setup_basic_units(void)
@@ -1315,11 +1323,11 @@ void handle_custom_compile_time_method(struct instrx_struct* method_struct, stru
         new_instrx.oper = NO_OPER;
         int temp_temp_reg_mem = temp_reg_mem;
         istringstream str(method_struct->unit->str);
-        comptime_method = 1;
+        int outer_line_num = line_num;
+        line_num = 0;
         parse_istream(str);
         parent_ptr = parent.parent;
-        parent.base_instrx = NULL;
-        comptime_method = 0;
+        line_num = outer_line_num;
         arg->unit = parent.subunits[0];
         new_instrx = temp;
         temp_reg_mem = temp_temp_reg_mem;
@@ -1668,7 +1676,10 @@ void handle_char(int c)
         }
         if ('\n' == c)
         {
-                line_num++;
+                if (line_num > 0)
+                {
+                        line_num++;
+                }
                 return;
         }
         int new_oper = NO_OPER;
@@ -1802,8 +1813,6 @@ void handle_unit_name(string name)
 
 void parse_istream(istream &zyfile)
 {
-	line_num = 1;
-	
 	string unit_name_buffer;
 	int read_mode = 0;
 	
@@ -1895,17 +1904,22 @@ void parse_istream(istream &zyfile)
 	}
 }
 
-void parse_file(string file_name)
+void parse_file(string parse_file_name)
 {
-        ifstream zyfile(file_name.c_str());
+        ifstream zyfile(parse_file_name.c_str());
+        string outer_file_name = file_name;
+        file_name = parse_file_name;
+        int outer_line_num = line_num;
+        line_num = 1;
         if (!zyfile.is_open())
         {
-                set_error(CANNOT_OPEN_FILE, line_num, file_name);
+                set_error(CANNOT_OPEN_FILE, line_num, parse_file_name);
                 return;
         }
-        
         parse_istream(zyfile);
         zyfile.close();
+        line_num = outer_line_num;
+        file_name = outer_file_name;
 }
 
 int main(int argc, char** argv)
