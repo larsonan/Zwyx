@@ -136,7 +136,7 @@ struct Unit
 	Unit *method;
 	Unit *parent;
 	Unit *typing;
-	vector<Instrx*> instrx_list;
+	vector<Instrx*> instrxs;
 	Instrx *base_instrx;
 	int base_ptr_offset;
 	Unit *in_unit;
@@ -648,7 +648,7 @@ void write_do_instrx(Instrx *instrx)
 	{
 		if ((METHOD == instrx->unit->type) && (0 == instrx->unit->name.length()))
 		{
-			write_instrxs(instrx->unit->instrx_list);
+			write_instrxs(instrx->unit->instrxs);
 		}
 		else
 		{
@@ -760,7 +760,7 @@ void initialize_unit(Instrx *instrx)
 		if ((STRUCT_UNINITIALIZED == instrx->state) && (STRUCT_UNINITIALIZED == unit->f_num))
 		{
 			load_base_to_reg(unit->mem_offset);
-			write_instrxs(unit->instrx_list);
+			write_instrxs(unit->instrxs);
 			
 			restore_base_to_reg();
 		}
@@ -889,7 +889,7 @@ void write_f(void)
 		        (void)fprintf(xcfile, "push\t%s\n", REG_COUNT);
 		}
 		(void)fprintf(xcfile, "push\t%s\n", REG_BASE);
-		write_instrxs(funcs[i]->instrx_list);
+		write_instrxs(funcs[i]->instrxs);
 		(void)fprintf(xcfile, "pop\t%s\n", REG_BASE);
 		if (METHOD_PTR == funcs[i]->mem_base)
 		{
@@ -912,7 +912,7 @@ void write_xc(string format)
 	        (void)fprintf(xcfile, "global\t_start\n_start:\n");
 	}
 	
-	write_instrxs(parent_ptr->instrx_list);
+	write_instrxs(parent_ptr->instrxs);
 	
 	if (format == "macho64")
 	{
@@ -1263,9 +1263,9 @@ void id_unit(string name)
 
 Instrx* get_second_last_instrx()
 {
-        if (parent_ptr->instrx_list.size() > 1)
+        if (parent_ptr->instrxs.size() > 1)
         {
-                return parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2];
+                return parent_ptr->instrxs[parent_ptr->instrxs.size() - 2];
         }
         else
         {
@@ -1301,7 +1301,7 @@ void handle_base_no_index(Instrx* instrx)
         {
                 parent_ptr->mem_used += WORD_SIZE;
                 instrx->oper = IGNORE;
-                parent_ptr->instrx_list[parent_ptr->instrx_list.size() - 2]->oper = IGNORE;
+                parent_ptr->instrxs[parent_ptr->instrxs.size() - 2]->oper = IGNORE;
         }
         else
         {
@@ -1348,17 +1348,17 @@ void handle_compile_time_method(Instrx* method_struct, Instrx* arg)
                 handle_custom_compile_time_method(method_struct, arg);
         }
         arg->oper = method_struct->oper;
-        parent_ptr->instrx_list.pop_back();
-        delete(parent_ptr->instrx_list.back());
-        parent_ptr->instrx_list.pop_back();
-        parent_ptr->instrx_list.push_back(arg);
+        parent_ptr->instrxs.pop_back();
+        delete(parent_ptr->instrxs.back());
+        parent_ptr->instrxs.pop_back();
+        parent_ptr->instrxs.push_back(arg);
 }
 
 void handle_last_instrx()
 {
-	if ((parent_ptr->instrx_list.size() > 0) && (new_instrx.oper != DEFINE))
+	if ((parent_ptr->instrxs.size() > 0) && (new_instrx.oper != DEFINE))
 	{
-		Instrx *instrx = parent_ptr->instrx_list.back();
+		Instrx *instrx = parent_ptr->instrxs.back();
 		if (NULL == instrx->unit)
 		{
 		        set_error(INVALID_USE_OF_OPER, instrx->unit_line, operators[instrx->oper]);
@@ -1464,34 +1464,34 @@ void handle_oper_errors()
 
 void handle_subunit()
 {
-        if ((1 == parent_ptr->instrx_list.size()) && (DEFINE == parent_ptr->instrx_list.back()->oper))
+        if ((1 == parent_ptr->instrxs.size()) && (DEFINE == parent_ptr->instrxs.back()->oper))
 	{
 	        set_error(INVALID_USE_OF_OPER, line_num, operators[SUBUNIT]);
 	}
-	if ((BASE == parent_ptr->instrx_list.back()->unit->type) && (new_instrx.unit->type != INT_CONST))
+	if ((BASE == parent_ptr->instrxs.back()->unit->type) && (new_instrx.unit->type != INT_CONST))
 	{
-	        handle_base(parent_ptr->instrx_list.back(), 1);
+	        handle_base(parent_ptr->instrxs.back(), 1);
 	}
 	if ((new_instrx.unit->type != METHOD_PTR) && (new_instrx.unit->type != INT_CONST)
-	    && (parent_ptr->instrx_list.back()->unit->type != BASE))
+	    && (parent_ptr->instrxs.back()->unit->type != BASE))
 	{
-		handle_instantiation(parent_ptr->instrx_list.back());
+		handle_instantiation(parent_ptr->instrxs.back());
 	}
-	if ((METHOD == new_instrx.unit->type) && (DEFINE == parent_ptr->instrx_list.back()->oper))
+	if ((METHOD == new_instrx.unit->type) && (DEFINE == parent_ptr->instrxs.back()->oper))
 	{
-		parent_ptr->instrx_list.back()->oper = NO_OPER;
+		parent_ptr->instrxs.back()->oper = NO_OPER;
 	}
-	if ((PTR == parent_ptr->instrx_list.back()->unit->type) || (METHOD == new_instrx.unit->type)
+	if ((PTR == parent_ptr->instrxs.back()->unit->type) || (METHOD == new_instrx.unit->type)
 	    || (!new_instrx.unit->mem_base && (new_instrx.unit->type != INT_CONST)))
 	{
-		parent_ptr->instrx_list.back()->ptr_source = 
-		                                        new Instrx(*parent_ptr->instrx_list.back());
+		parent_ptr->instrxs.back()->ptr_source = 
+		                                        new Instrx(*parent_ptr->instrxs.back());
 		        
-		parent_ptr->instrx_list.back()->ptr_source->oper = NO_OPER;
-		parent_ptr->instrx_list.back()->base_level = 0;
+		parent_ptr->instrxs.back()->ptr_source->oper = NO_OPER;
+		parent_ptr->instrxs.back()->base_level = 0;
 	}
-	parent_ptr->instrx_list.back()->state = 0;
-	parent_ptr->instrx_list.back()->unit = new_instrx.unit;
+	parent_ptr->instrxs.back()->state = 0;
+	parent_ptr->instrxs.back()->unit = new_instrx.unit;
 }
 
 void handle_new_instrx()
@@ -1505,8 +1505,8 @@ void handle_new_instrx()
 	{
 		handle_subunit();
 	}
-	else if ((parent_ptr->instrx_list.size() > 0) && (parent_ptr->instrx_list.back()->oper != IGNORE)
-	          && (IMPORT == parent_ptr->instrx_list.back()->unit->type))
+	else if ((parent_ptr->instrxs.size() > 0) && (parent_ptr->instrxs.back()->oper != IGNORE)
+	          && (IMPORT == parent_ptr->instrxs.back()->unit->type))
 	{
 	        if (new_instrx.oper != INSERTION)
 	        {
@@ -1514,7 +1514,7 @@ void handle_new_instrx()
 	        }
 	        else
 	        {
-	                parent_ptr->instrx_list.back()->oper = IGNORE;
+	                parent_ptr->instrxs.back()->oper = IGNORE;
 	                parse_file(new_instrx.unit->name + ".zwyx");
 	        }
 	}
@@ -1525,7 +1525,7 @@ void handle_new_instrx()
 		if ((INSERTION == new_instrx.oper) || (SUBUNIT == new_instrx.oper)
 		    || (WHILE == new_instrx.oper) || (ELSE == new_instrx.oper) || (BRANCH == new_instrx.oper))
 		{
-			parent_ptr->instrx_list.back()->insertion_source = temp;
+			parent_ptr->instrxs.back()->insertion_source = temp;
 		}
 		
 		if (!is_default_instrx(&new_instrx) && new_instrx.oper != DEFINE)
@@ -1536,14 +1536,14 @@ void handle_new_instrx()
 		{
 			temp_reg_mem = 0;
 		}
-		parent_ptr->instrx_list.push_back(temp);
+		parent_ptr->instrxs.push_back(temp);
 	}
 	new_instrx.oper = NO_OPER;
 	new_instrx.base_level = 0;
 	new_instrx.is_ptr = 0;
 	new_instrx.ptr_source = NULL;
 	new_instrx.unit = NULL;
-	parent_ptr->instrx_list.back()->unit_line = line_num;
+	parent_ptr->instrxs.back()->unit_line = line_num;
 }
 
 void handle_unit(Unit *unit)
@@ -1579,15 +1579,15 @@ void handle_new_superunit()
 		{
 		        unit->base_ptr_offset = 0;
 			unit->mem_used += WORD_SIZE;
-			if (METHOD == parent_ptr->instrx_list.back()->unit->type)
+			if (METHOD == parent_ptr->instrxs.back()->unit->type)
 			{
 				unit->type = METHOD;
 				handle_new_method(unit);
 				parent_ptr->method = unit;
 			}
 		}
-		handle_define_statement(parent_ptr->instrx_list.back()->unit, unit);
-		parent_ptr->instrx_list.back()->oper = IGNORE;
+		handle_define_statement(parent_ptr->instrxs.back()->unit, unit);
+		parent_ptr->instrxs.back()->oper = IGNORE;
 		new_instrx.oper = NO_OPER;
 	}
 	else
@@ -1598,17 +1598,17 @@ void handle_new_superunit()
 		unit->mem_used = parent_ptr->mem_used;
 		if (SUBUNIT == new_instrx.oper)
 		{
-			unit->base_instrx = new Instrx(*parent_ptr->instrx_list.back());
+			unit->base_instrx = new Instrx(*parent_ptr->instrxs.back());
 			unit->base_instrx->state = 0;
-			unit->base = parent_ptr->instrx_list.back()->unit;
-			if (parent_ptr->instrx_list.back()->unit->mem_offset > parent_ptr->mem_used)
+			unit->base = parent_ptr->instrxs.back()->unit;
+			if (parent_ptr->instrxs.back()->unit->mem_offset > parent_ptr->mem_used)
 			{
-			        unit->mem_used += handle_alignment(parent_ptr->instrx_list.back()->unit->mem_used);
+			        unit->mem_used += handle_alignment(parent_ptr->instrxs.back()->unit->mem_used);
 			}
 		}
 		else if (new_instrx.is_ptr)
 		{
-		        unit->base = in_unit(parent_ptr->instrx_list.back()->unit)->base;
+		        unit->base = in_unit(parent_ptr->instrxs.back()->unit)->base;
 			unit->mem_base = METHOD_PTR;
 			handle_new_method(unit);
 			unit->mem_used = WORD_SIZE;
@@ -1634,12 +1634,12 @@ void handle_ptr()
 
 void handle_new_oper(int oper)
 {
-        if (new_instrx.is_ptr || ((oper != DEFINE) && (0 == parent_ptr->instrx_list.size())))
+        if (new_instrx.is_ptr || ((oper != DEFINE) && (0 == parent_ptr->instrxs.size())))
 	{
 	        set_error(INVALID_USE_OF_OPER, line_num, operators[oper]);
 	}
 	if ((INSERTION == oper) && (STRUCT == parent_ptr->type)
-	  && (parent_ptr->instrx_list.back()->unit->type != COMPTIME_METHOD))
+	  && (parent_ptr->instrxs.back()->unit->type != COMPTIME_METHOD))
 	{
 	        parent_ptr->f_num = STRUCT_UNINITIALIZED;
 	}
@@ -1739,7 +1739,7 @@ void end_base_unit()
 
 void handle_int_const(string str)
 {
-        if ((SUBUNIT == new_instrx.oper) && (BASE == parent_ptr->instrx_list.back()->unit->type))
+        if ((SUBUNIT == new_instrx.oper) && (BASE == parent_ptr->instrxs.back()->unit->type))
         {
                 handle_base(&new_instrx, stoi(str));
         }
@@ -1750,7 +1750,7 @@ void handle_int_const(string str)
 	        if (SUBUNIT == new_instrx.oper)
 	        {
 	                new_instrx.unit->mem_used = stoi(str);
-	                if (INT == parent_ptr->instrx_list.back()->unit->type)
+	                if (INT == parent_ptr->instrxs.back()->unit->type)
 	                {
 	                        new_instrx.unit->mem_used /= 8;
 	                }
@@ -1796,7 +1796,7 @@ void handle_unit_name(string name)
 			}
 			else
 			{
-				new_instrx.unit = find_unit_in_superunit(name, parent_ptr->instrx_list.back()->unit);
+				new_instrx.unit = find_unit_in_superunit(name, parent_ptr->instrxs.back()->unit);
 			}
 		}
 		if (NULL == new_instrx.unit)
