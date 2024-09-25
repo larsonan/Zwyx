@@ -329,35 +329,31 @@ mov	rax,	[rsp-8]
 or	rax,	[rsp-16]
 cmp	rax,	0
 je	b4
-mov	qword	[rsp-48],	s1
-mov	qword	[rsp-40],	24
-lea	rax,	[rsp-32]
-mov	[rsp-56],	rax
+mov	qword	[rsp-16],	s1
+mov	qword	[rsp-8],	24
 lea	rbx,	[rsp-32]
 lea	rax,	[rel+f8]
 mov	[rbx+0],	rax
 mov	[rbx+8],	rbx
 mov	rbx,	[rsp]
-lea	rbx,	[rsp-56]
-sub	rsp,	56
-call	f3
-add	rsp,	56
+lea	rbx,	[rsp-32]
+sub	rsp,	32
+call	f2
+add	rsp,	32
 mov	rbx,	[rsp]
 jmp	b5
 b4:
-mov	qword	[rsp-48],	s2
-mov	qword	[rsp-40],	20
-lea	rax,	[rsp-32]
-mov	[rsp-56],	rax
+mov	qword	[rsp-16],	s2
+mov	qword	[rsp-8],	20
 lea	rbx,	[rsp-32]
 lea	rax,	[rel+f8]
 mov	[rbx+0],	rax
 mov	[rbx+8],	rbx
 mov	rbx,	[rsp]
-lea	rbx,	[rsp-56]
-sub	rsp,	56
-call	f3
-add	rsp,	56
+lea	rbx,	[rsp-32]
+sub	rsp,	32
+call	f2
+add	rsp,	32
 mov	rbx,	[rsp]
 b5:
 lea	rbx,	[rsp-32]

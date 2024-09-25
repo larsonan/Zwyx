@@ -5,9 +5,9 @@ react_to_temperature~{
         temperature~int
         ;~{
                 {temperature.{{$ >= 75} | {$ < 50}}} ? {
-                        print.s:"I am not going outside. "
+                        print:"I am not going outside. "
                 } ^ {
-                        print.s:"I am going outside. "
+                        print:"I am going outside. "
                 }
                 print.{
                         s:"The temperature is "

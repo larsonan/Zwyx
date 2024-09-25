@@ -970,6 +970,7 @@ void handle_inheritance(Unit *unit)
         }
 	parent_ptr->mem_used = unit->mem_used;
 	parent_ptr->subunits = unit->subunits;
+	parent_ptr->in_unit = unit->in_unit;
 	if ((STRUCT == parent_ptr->parent->type) && (unit->parent->type != STRUCT))
 	{
 	        parent_ptr->base_ptr_offset = parent_ptr->mem_used;
@@ -1067,6 +1068,10 @@ Unit* instantiate_unit(Unit *unit, Unit *base, Unit *mem_ref_parent)
 	{
 	        instance->base_instrx = new Instrx;
 	}
+	if (instance->in_unit != NULL)
+	{
+	        instance->in_unit = instantiate_unit(instance->in_unit, base, mem_ref_parent);
+	}
 	if ((METHOD_PTR == instance->type) || (BYTES_PTR == instance->type) || (STRUCT == instance->type))
 	{
 		instance->subunits = instantiate_subunits(instance, mem_ref_parent);
@@ -1079,7 +1084,6 @@ void instantiate_method(Instrx *instrx)
 	instrx->unit = new Unit(*instrx->unit);
 	instrx->unit->mem_used = parent_ptr->mem_used;
 	
-	dbg_out(instrx->unit->mem_used);
 	if (METHOD == instrx->unit->type)
 	{
 		instrx->unit->base_instrx = instrx->ptr_source;
