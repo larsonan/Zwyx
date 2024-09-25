@@ -89,3 +89,29 @@ l.each:@{b:n n:{n-1}}
 l.each:@{print.d:{a+b}}
 print.endl
 
+divmod~{ dd~int dv~int r~int q~int error~str:""
+        ;~{
+                {dv = 0} ? {
+                        error:"Cannot divide by zero!"
+                } ^ {
+                        q:{dd/dv}
+                        r:{dd%dv}
+                }
+        }
+}
+
+divmod_output~{
+        a~int
+        b~int
+        ;~{
+                result~divmod.{dd:a dv:b ;}
+                {result.error.count > 0} ? {
+                        print.line:result.error
+                } ^ {
+                        print.{s:"Result is " d:result.q s:" and " d:result.r endl}
+                }
+        }
+}
+
+divmod_output.{a:13 b:2 ; a:7 b:0 ;}
+

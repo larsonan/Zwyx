@@ -346,6 +346,20 @@ sub	rsp,	224
 call	f5
 add	rsp,	224
 mov	rbx,	[rsp]
+mov	qword	[rsp-200],	13
+mov	qword	[rsp-192],	2
+lea	rbx,	[rsp-200]
+sub	rsp,	200
+call	f36
+add	rsp,	200
+mov	rbx,	[rsp]
+mov	qword	[rsp-200],	7
+mov	qword	[rsp-192],	0
+lea	rbx,	[rsp-200]
+sub	rsp,	200
+call	f36
+add	rsp,	200
+mov	rbx,	[rsp]
 mov	rax,	60
 mov	rdi,	0
 syscall
@@ -1092,6 +1106,126 @@ mov	rbx,	[rsp]
 pop	rbx
 pop	rdx
 ret
+f35:
+push	rbx
+mov	rax,	[rbx+8]
+cmp	rax,	0
+sete	al
+movzx	rax,	al
+cmp	rax,	0
+je	b17
+mov	qword	[rbx+32],	s7
+mov	qword	[rbx+40],	22
+jmp	b18
+b17:
+mov	rax,	[rbx+0]
+xor	rdx,	rdx
+div	qword	[rbx+8]
+mov	[rbx+24],	rax
+mov	rax,	[rbx+0]
+xor	rdx,	rdx
+div	qword	[rbx+8]
+mov	rax,	rdx
+mov	[rbx+16],	rax
+b18:
+pop	rbx
+ret
+f36:
+push	rbx
+lea	rbx,	[rsp-48]
+mov	qword	[rbx+32],	s6
+mov	qword	[rbx+40],	0
+mov	rbx,	[rsp]
+mov	rax,	[rbx+0]
+mov	[rsp-48],	rax
+mov	rax,	[rbx+8]
+mov	[rsp-40],	rax
+lea	rbx,	[rsp-48]
+sub	rsp,	48
+call	f35
+add	rsp,	48
+mov	rbx,	[rsp]
+lea	rax,	[rsp-16]
+mov	[rsp-56],	rax
+lea	rbx,	[rsp-56]
+sub	rsp,	56
+call	f12
+add	rsp,	56
+mov	rbx,	[rsp]
+cmp	rax,	0
+setg	al
+movzx	rax,	al
+cmp	rax,	0
+je	b19
+mov	rax,	[rsp-16]
+mov	rdx,	[rsp-8]
+mov	[rsp-96],	rax
+mov	[rsp-88],	rdx
+lea	rax,	[rsp-80]
+mov	[rsp-104],	rax
+lea	rbx,	[rsp-80]
+lea	rax,	[rel+f8]
+mov	[rbx+0],	rax
+mov	[rbx+8],	rbx
+mov	rbx,	[rsp]
+lea	rbx,	[rsp-104]
+sub	rsp,	104
+call	f6
+add	rsp,	104
+mov	rbx,	[rsp]
+jmp	b20
+b19:
+lea	rbx,	[rsp-80]
+lea	rax,	[rel+f8]
+mov	[rbx+0],	rax
+mov	[rbx+8],	rbx
+mov	rbx,	[rsp]
+mov	qword	[rsp-96],	s8
+mov	qword	[rsp-88],	10
+lea	rax,	[rsp-80]
+mov	[rsp-104],	rax
+lea	rbx,	[rsp-104]
+sub	rsp,	104
+call	f3
+add	rsp,	104
+mov	rbx,	[rsp]
+mov	rax,	[rsp-24]
+mov	[rsp-88],	rax
+lea	rax,	[rsp-80]
+mov	[rsp-96],	rax
+lea	rbx,	[rsp-96]
+sub	rsp,	96
+call	f7
+add	rsp,	96
+mov	rbx,	[rsp]
+mov	qword	[rsp-96],	s9
+mov	qword	[rsp-88],	5
+lea	rax,	[rsp-80]
+mov	[rsp-104],	rax
+lea	rbx,	[rsp-104]
+sub	rsp,	104
+call	f3
+add	rsp,	104
+mov	rbx,	[rsp]
+mov	rax,	[rsp-32]
+mov	[rsp-88],	rax
+lea	rax,	[rsp-80]
+mov	[rsp-96],	rax
+lea	rbx,	[rsp-96]
+sub	rsp,	96
+call	f7
+add	rsp,	96
+mov	rbx,	[rsp]
+lea	rax,	[rsp-80]
+mov	[rsp-88],	rax
+lea	rbx,	[rsp-88]
+sub	rsp,	88
+call	f5
+add	rsp,	88
+mov	rbx,	[rsp]
+b20:
+pop	rbx
+ret
 f0:
 mov	rax,	[rbx+0]
 mov	rdx,	[rbx+8]
@@ -1105,3 +1239,7 @@ s2	db	'GREEN'
 s3	db	'ORANGE'
 s4	db	'YELLOW'
 s5	db	'BLUE'
+s6	db	''
+s7	db	'Cannot divide by zero!'
+s8	db	'Result is '
+s9	db	' and '
