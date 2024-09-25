@@ -8,7 +8,8 @@ g++ zwyx.cpp
 ./test update
 ./a.out shapes.zwyx
 ./test shapes
+./a.out temperature.zwyx
+./test temperature
 ./a.out first_test.zwyx
 ./test first_test
-
 

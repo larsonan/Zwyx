@@ -145,8 +145,8 @@ struct Unit
 
 string basic_unit_names[] = {"none", "", "", "int", "", "method", "", "", "bytes", "arg", "", "",
                               "", "_import", "", "", ""};
-string operators[] = {"", ":", "~", ".", "?", "=", "+", "/", "", "", "-", "", "^", "?*", "*", "%", 
-                "", "", ">", "<", "&", "|"};
+string operators[] = {"", ":", "~", ".", "?", "=", "+", "/", "!=", "", "-", "", "^", "?*", "*", "%", 
+                ">=", "<=", ">", "<", "&", "|"};
 
 Error errors[MAX_ERRORS];
 int num_errors;
@@ -526,6 +526,8 @@ void write_math_instrx(Instrx *instrx)
 	        break;
 	case COMPARE:
 	case COMPARE_NOT:
+	case LESS_THAN_OR_EQUAL:
+	case GREATER_THAN_OR_EQUAL:
 	case GREATER_THAN:
 	case LESS_THAN:
 	        (void)fprintf(xcfile, "cmp\t%s,\t", REG_TEMP);
@@ -1076,6 +1078,8 @@ void instantiate_method(Instrx *instrx)
 {
 	instrx->unit = new Unit(*instrx->unit);
 	instrx->unit->mem_used = parent_ptr->mem_used;
+	
+	dbg_out(instrx->unit->mem_used);
 	if (METHOD == instrx->unit->type)
 	{
 		instrx->unit->base_instrx = instrx->ptr_source;
@@ -1601,7 +1605,8 @@ void handle_new_superunit()
 			unit->base_instrx = new Instrx(*parent_ptr->instrxs.back());
 			unit->base_instrx->state = 0;
 			unit->base = parent_ptr->instrxs.back()->unit;
-			if (parent_ptr->instrxs.back()->unit->mem_offset > parent_ptr->mem_used)
+			if ((parent_ptr->instrxs.back()->unit->mem_offset >= parent_ptr->mem_used)
+			    && (METHOD == parent_ptr->instrxs.back()->unit->mem_base))
 			{
 			        unit->mem_used += handle_alignment(parent_ptr->instrxs.back()->unit->mem_used);
 			}

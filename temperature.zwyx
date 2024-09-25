@@ -1,0 +1,28 @@
+_import:"utilities_lib"
+
+
+react_to_temperature~{
+        temperature~int
+        ;~{
+                {temperature.{{$ >= 75} | {$ < 50}}} ? {
+                        print.s:"I am not going outside. "
+                } ^ {
+                        print.s:"I am going outside. "
+                }
+                print.{
+                        s:"The temperature is "
+                        temperature.{
+                                {$ <= 32} ? {s:"freezing!"}
+                                {{$ > 32} & {$ < 50}} ? {s:"too cold."}
+                                {{$ >= 50} & {$ < 65}} ? {s:"okay."}
+                                {{$ >= 65} & {$ < 75}} ? {s:"perfect."}
+                                {{$ >= 75} & {$ < 90}} ? {s:"too hot."}
+                                {$ >= 90} ? {s:"scorching!"}
+                        }
+                        endl
+                }
+        }
+}
+
+react_to_temperature.{ $:104 ; $:71 ; $:43 ; $:52 ; }
+
