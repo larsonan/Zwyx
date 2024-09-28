@@ -38,14 +38,14 @@ using namespace std;
 #define METHOD_PTR 6
 #define INT_CONST 7
 #define BYTES 8
-#define ARG 9
+#define COMPTIME_METHOD 9
 #define BYTES_PTR 10
 #define NAME 11
 #define BASE 12
 #define IMPORT 13
 #define IN 14
 #define STRING_LITERAL 15
-#define COMPTIME_METHOD 16
+#define INSERT_UNSAFE 16
 
 #define NO_ERROR 0
 #define INVALID_USE_OF_OPER 1
@@ -143,8 +143,8 @@ struct Unit
 	string str;
 };
 
-string basic_unit_names[] = {"none", "", "", "int", "", "method", "", "", "bytes", "arg", "", "",
-                              "", "_import", "", "", ""};
+string basic_unit_names[] = {"none", "", "", "int", "", "method", "", "", "bytes", "", "", "",
+                              "", "_import", "arg", "", "UNSAFE_CONVERSION"};
 string operators[] = {"", ":", "~", ".", "?", "=", "+", "/", "!=", "", "-", "", "^", "?*", "*", "%", 
                 ">=", "<=", ">", "<", "&", "|"};
 
@@ -248,6 +248,9 @@ void setup_basic_units(void)
 	count->mem_offset = WORD_SIZE;
 	basic_units[BYTES_PTR]->subunits.push_back(count);
 	basic_units[METHOD_PTR]->subunits.push_back(count);
+        
+        basic_units[IN]->typing = basic_units[COMPTIME_METHOD];
+        basic_units[INSERT_UNSAFE]->typing = basic_units[COMPTIME_METHOD];
 }
 
 void init(void)
@@ -1163,7 +1166,7 @@ void handle_instantiation(Instrx *instrx)
 	        size = data_section_strings.size();
 	        instrx->unit->f_num = size;
 	}
-	else if (!instrx->unit->mem_base && (instrx->unit->type != IMPORT) && (instrx->unit->type != ARG)
+	else if (!instrx->unit->mem_base && (instrx->unit->type != IMPORT) && (instrx->unit->type != IN)
 	                    && (instrx->oper != IGNORE) && (instrx->unit->type != COMPTIME_METHOD))
 	{
 		if (instrx->is_ptr)
@@ -1339,7 +1342,7 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
         temp_reg_mem = temp_temp_reg_mem;
 }
 
-void handle_arg(Instrx* instrx)
+void handle_in(Instrx* instrx)
 {
         handle_instantiation(instrx);
         parent_ptr->in_unit = instrx->unit;
@@ -1347,11 +1350,11 @@ void handle_arg(Instrx* instrx)
 
 void handle_compile_time_method(Instrx* method_struct, Instrx* arg)
 {
-        if (ARG == method_struct->unit->type)
+        if (IN == method_struct->unit->type)
         {
-                handle_arg(arg);
+                handle_in(arg);
         }
-        else
+        else if (method_struct->unit->type != INSERT_UNSAFE)
         {
                 handle_custom_compile_time_method(method_struct, arg);
         }
@@ -1360,6 +1363,20 @@ void handle_compile_time_method(Instrx* method_struct, Instrx* arg)
         delete(parent_ptr->instrxs.back());
         parent_ptr->instrxs.pop_back();
         parent_ptr->instrxs.push_back(arg);
+}
+
+bool is_comptime_method(Unit* unit)
+{
+        return ((COMPTIME_METHOD == unit->type)
+                || ((unit->typing != NULL) && (COMPTIME_METHOD == unit->typing->type)));
+}
+
+void check_types(Instrx* src, Instrx* dst)
+{
+        if ((!src->unit->mem_base && src->is_ptr) || ((INT == src->unit->type) && (METHOD_PTR == dst->unit->type)))
+        {
+                set_error(INVALID_USE_OF_OPER, line_num, operators[INSERTION]);
+        }
 }
 
 void handle_last_instrx()
@@ -1388,21 +1405,27 @@ void handle_last_instrx()
 		                handle_base_no_index(instrx);
 		        }
 		        Instrx* second_last_instrx = get_second_last_instrx();
-			if ((INSERTION == instrx->oper) && ((ARG == second_last_instrx->unit->type)
-			                              || (COMPTIME_METHOD == second_last_instrx->unit->type)))
+			if (INSERTION == instrx->oper)
 			{
-			        handle_compile_time_method(second_last_instrx, instrx);
-			        second_last_instrx = get_second_last_instrx();
+			        if (is_comptime_method(second_last_instrx->unit))
+			        {
+			                handle_compile_time_method(second_last_instrx, instrx);
+			                second_last_instrx = get_second_last_instrx();
+			        }
+			        else
+			        {
+			                check_types(instrx, second_last_instrx);
+			        }
 			}
 			if ((DEFINE == instrx->oper) && (NULL == second_last_instrx)
-			    && (instrx->unit->type != COMPTIME_METHOD))
+			    && !is_comptime_method(instrx->unit))
 			{
 			        handle_inheritance(instrx->unit);
 			        return;
 			}
 			handle_instantiation(instrx);
-			if ((DEFINE == instrx->oper) && (instrx->unit->type != ARG)
-			        && ((instrx->unit->type != COMPTIME_METHOD) || (INSERTION != new_instrx.oper)))
+			if ((DEFINE == instrx->oper)
+			        && (!is_comptime_method(instrx->unit) || (INSERTION != new_instrx.oper)))
 			{
 				handle_define_statement(second_last_instrx->unit, instrx->unit);
 				second_last_instrx->oper = IGNORE;
@@ -1528,7 +1551,7 @@ void handle_new_instrx()
 	}
 	else
 	{
-	        struct Instrx *temp = new Instrx(new_instrx);
+	        Instrx *temp = new Instrx(new_instrx);
 		
 		if ((INSERTION == new_instrx.oper) || (SUBUNIT == new_instrx.oper)
 		    || (WHILE == new_instrx.oper) || (ELSE == new_instrx.oper) || (BRANCH == new_instrx.oper))
