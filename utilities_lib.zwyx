@@ -75,7 +75,7 @@ print~{
 		_console_write:data
 	}
 }
-list~\ out~{
+list~\
 	b~bytes
 	set_buffer~{
 		in~int
@@ -129,7 +129,7 @@ list~\ out~{
 			}
 		}
 	}
-} \
+\
 
 
 
@@ -200,7 +200,7 @@ enum~{
 	}
 }
 
-emplacementList~\ out~{
+emplacementList~\
 	~list:$
 	membSize~int
 	membBuffer~int
@@ -221,5 +221,5 @@ emplacementList~\ out~{
 			add:ptr
 		}
 	}
-} \
+\
 

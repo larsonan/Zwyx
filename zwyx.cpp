@@ -1328,11 +1328,11 @@ void handle_base_no_index(Instrx* instrx)
 
 void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
 {
-        Unit parent;
-        parent.parent = parent_ptr;
-        parent.typing = NULL;
-        parent.base_instrx = arg;
-        parent_ptr = &parent;
+        Unit *parent = new Unit(*basic_units[STRUCT]);
+        parent->parent = parent_ptr;
+        parent->typing = NULL;
+        parent->base_instrx = arg;
+        parent_ptr = parent;
         Instrx temp = new_instrx;
         new_instrx.unit = NULL;
         new_instrx.oper = NO_OPER;
@@ -1341,9 +1341,9 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
         int outer_line_num = line_num;
         line_num = 0;
         parse_istream(str);
-        parent_ptr = parent.parent;
+        parent_ptr = parent->parent;
         line_num = outer_line_num;
-        arg->unit = parent.subunits[0];
+        arg->unit = parent;
         new_instrx = temp;
         temp_reg_mem = temp_temp_reg_mem;
 }
