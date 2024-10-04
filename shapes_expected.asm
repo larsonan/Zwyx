@@ -21,13 +21,14 @@ mov	[rbx+8],	rbx
 mov	rbx,	[rsp]
 mov	qword	[rsp-72],	2
 lea	rax,	[rsp-112]
-mov	[rsp-136],	rax
-lea	rax,	[rsp-128]
 mov	[rsp-144],	rax
-lea	rbx,	[rsp-144]
-sub	rsp,	144
+mov	qword	[rsp-136],	24
+lea	rax,	[rsp-128]
+mov	[rsp-152],	rax
+lea	rbx,	[rsp-152]
+sub	rsp,	152
 call	f20
-add	rsp,	144
+add	rsp,	152
 mov	rbx,	[rsp]
 lea	rax,	[rsp-128]
 mov	[rsp-144],	rax
@@ -405,6 +406,7 @@ ret
 f20:
 push	rbx
 mov	rax,	[rbx+8]
+mov	rdx,	[rbx+16]
 mov	rcx,	[rbx+0]
 mov	[rcx+0],	rax
 mov	[rcx+8],	rdx

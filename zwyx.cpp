@@ -225,6 +225,7 @@ void write_instrxs(vector<Instrx*> instrx);
 void write_line_with_control(Instrx *instrx);
 void parse_file(string parse_file_name);
 void parse_istream(istream &zyfile);
+void handle_last_instrx();
 
 void setup_basic_units(void)
 {
@@ -1314,16 +1315,7 @@ void handle_base(Instrx *instrx, int base_level)
 
 void handle_base_no_index(Instrx* instrx)
 {
-        if ((DEFINE == instrx->oper) && (STRUCT == parent_ptr->type))
-        {
-                parent_ptr->mem_used += WORD_SIZE;
-                instrx->oper = IGNORE;
-                parent_ptr->instrxs[parent_ptr->instrxs.size() - 2]->oper = IGNORE;
-        }
-        else
-        {
-                handle_base(instrx, 1);
-        }
+        handle_base(instrx, 1);
 }
 
 void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
@@ -1341,6 +1333,7 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
         int outer_line_num = line_num;
         line_num = 0;
         parse_istream(str);
+        handle_last_instrx();
         parent_ptr = parent->parent;
         line_num = outer_line_num;
         arg->unit = parent;
@@ -1366,6 +1359,7 @@ void handle_compile_time_method(Instrx* method_struct, Instrx* arg)
                 handle_custom_compile_time_method(method_struct, arg);
         }
         arg->oper = method_struct->oper;
+        arg->is_ptr = method_struct->is_ptr;
         parent_ptr->instrxs.pop_back();
         delete(parent_ptr->instrxs.back());
         parent_ptr->instrxs.pop_back();

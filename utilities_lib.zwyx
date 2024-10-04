@@ -1,15 +1,16 @@
-iter~{
-	el~int
-	
-}
-
 interface~{
 	fn~;
 	;~{fn}
 }
 
+boxed~\
+        el~@$
+
+\
+
 c_iter~{
 	el~int.8
+	
 }
 
 writenf~{
@@ -78,7 +79,7 @@ print~{
 list~\
 	b~bytes
 	set_buffer~{
-		in~int
+		in~bytes
 		;~{
 			b:in
 			b.count:0
@@ -87,20 +88,20 @@ list~\
 	get~{
 		at~int
 		;~{
-			it~@iter:{b+{at*8}}
+			it~@boxed:$:{b+{at*8}}
 			it.el
 		}
 	}
 	set~{
 		at~int
-		char~int
+		char~@$
 		;~{
-			it~@iter:{b+{at*8}}
+			it~@boxed:$:{b+{at*8}}
 			it.el:char
 		}
 	}
 	add~{
-		in~int
+		in~@$
 		;~{
 			set.{at:b.count char:in ;}
 			b.count:{b.count + 1}
@@ -115,12 +116,13 @@ list~\
 		
 		f~$.;
 		;~{
-			it~@iter:b
+			it~@boxed:$:b
+			
 			remaining~int
 			remaining:b.count
 			
 			{remaining > 0}?*{
-				mbr~@iter:it.el
+				mbr~@$:it.el
 				mbr.{f}
 				
 				
@@ -203,21 +205,20 @@ enum~{
 emplacementList~\
 	~list:$
 	membSize~int
-	membBuffer~int
-	membBufferN~int
+	membBuffer~bytes
 	set_membBuffer~{
-		buf~int
+		buf~bytes
 		;~{
 			membBuffer:buf
-			membBufferN:0
+			membBuffer.count:0
 		}
 	}
 	emplace~{
-		in~npair.;
+		in~$.;
 		;~{
-			ptr~@iter:{membBuffer+membBufferN}
+			ptr~@$:{membBuffer+membBuffer.count}
 			ptr.{in}
-			membBufferN:{membBufferN+membSize}
+			membBuffer.count:{membBuffer.count+membSize}
 			add:ptr
 		}
 	}

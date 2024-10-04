@@ -1,22 +1,24 @@
 global	_start
 _start:
 lea	rax,	[rsp-128]
-mov	[rsp-176],	rax
-lea	rax,	[rsp-168]
 mov	[rsp-184],	rax
-lea	rbx,	[rsp-184]
-sub	rsp,	184
+mov	qword	[rsp-176],	80
+lea	rax,	[rsp-168]
+mov	[rsp-192],	rax
+lea	rbx,	[rsp-192]
+sub	rsp,	192
 call	f22
-add	rsp,	184
+add	rsp,	192
 mov	rbx,	[rsp]
 lea	rax,	[rsp-48]
-mov	[rsp-176],	rax
-lea	rax,	[rsp-168]
 mov	[rsp-184],	rax
-lea	rbx,	[rsp-184]
-sub	rsp,	184
+mov	qword	[rsp-176],	48
+lea	rax,	[rsp-168]
+mov	[rsp-192],	rax
+lea	rbx,	[rsp-192]
+sub	rsp,	192
 call	f16
-add	rsp,	184
+add	rsp,	192
 mov	rbx,	[rsp]
 mov	qword	[rsp-152],	16
 lea	rax,	[rsp-168]
@@ -652,6 +654,7 @@ ret
 f16:
 push	rbx
 mov	rax,	[rbx+8]
+mov	rdx,	[rbx+16]
 mov	rcx,	[rbx+0]
 mov	[rcx+0],	rax
 mov	[rcx+8],	rdx
@@ -762,8 +765,10 @@ ret
 f22:
 push	rbx
 mov	rax,	[rbx+8]
+mov	rdx,	[rbx+16]
 mov	rcx,	[rbx+0]
 mov	[rcx+24],	rax
+mov	[rcx+32],	rdx
 mov	rcx,	[rbx+0]
 mov	qword	[rcx+32],	0
 pop	rbx
@@ -772,6 +777,7 @@ f23:
 push	rbx
 mov	rcx,	[rbx+0]
 mov	rax,	[rcx+24]
+mov	rdx,	[rcx+32]
 mov	rcx,	[rbx+0]
 add	rax,	[rcx+32]
 mov	[rsp-8],	rax
