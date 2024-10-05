@@ -45,7 +45,6 @@ using namespace std;
 #define IMPORT 13
 #define IN 14
 #define STRING_LITERAL 15
-#define INSERT_UNSAFE 16
 
 #define NO_ERROR 0
 #define INVALID_USE_OF_OPER 1
@@ -58,7 +57,7 @@ using namespace std;
 #define INVALID_IN_UNIT 8
 #define INVALID_USE_OF_IMPORT 9
 
-#define NUM_BASIC_UNITS 17
+#define NUM_BASIC_UNITS 16
 #define NUM_OPERS 22
 #define BASE_UNLOADED -2
 #define STRUCT_UNINITIALIZED -1
@@ -144,7 +143,7 @@ struct Unit
 };
 
 string basic_unit_names[] = {"none", "", "", "int", "", "method", "", "", "bytes", "", "", "",
-                              "", "_import", "arg", "", "UNSAFE_CONVERSION"};
+                              "", "_import", "arg", ""};
 string operators[] = {"", ":", "~", ".", "?", "=", "+", "/", "!=", "", "-", "", "^", "?*", "*", "%", 
                 ">=", "<=", ">", "<", "&", "|"};
 
@@ -247,11 +246,10 @@ void setup_basic_units(void)
 	count->mem_base = STRUCT;
 	count->mem_used = WORD_SIZE;
 	count->mem_offset = WORD_SIZE;
-	basic_units[BYTES_PTR]->subunits.push_back(count);
 	basic_units[METHOD_PTR]->subunits.push_back(count);
+	basic_units[BYTES_PTR]->subunits.push_back(count);
         
         basic_units[IN]->typing = basic_units[COMPTIME_METHOD];
-        basic_units[INSERT_UNSAFE]->typing = basic_units[COMPTIME_METHOD];
 }
 
 void init(void)
@@ -304,11 +302,16 @@ void write_array_count(Instrx *instrx)
         write_unit(&temp);
 }
 
+bool is_struct(Unit *unit)
+{
+        return (STRUCT == unit->type);
+}
+
 void write_do(Instrx *instrx)
 {
         struct Unit *unit;
         struct Instrx *base_instrx;
-        if (STRUCT == instrx->unit->type)
+        if (is_struct(instrx->unit))
         {
                 unit = instrx->unit->method;
                 base_instrx = instrx;
@@ -330,7 +333,7 @@ void write_do(Instrx *instrx)
 	
 	if (base_instrx != NULL)
 	{
-	        if ((STRUCT == base_instrx->unit->type)
+	        if ((is_struct(base_instrx->unit))
 	                      && ((base_instrx->unit->mem_base) || (METHOD_PTR == unit->type)))
 	        {
 	                (void)fprintf(xcfile, "lea\t");
@@ -429,7 +432,7 @@ void write_ptr_to_temp(Instrx *instrx)
 	}
 	else
 	{
-	        if ((STRUCT == instrx->unit->type) || (BYTES == instrx->unit->type))
+	        if ((is_struct(instrx->unit)) || (BYTES == instrx->unit->type))
 	        {
 		        (void)fprintf(xcfile, "lea\t%s,\t", REG_TEMP);
 		}
@@ -661,7 +664,7 @@ void write_do_instrx(Instrx *instrx)
 			write_do(instrx);
 		}
 	}
-	else if ((STRUCT == instrx->unit->type) && (instrx->unit->method != NULL) && (instrx->unit->method->mem_base))
+	else if (is_struct(instrx->unit) && (instrx->unit->method != NULL) && (instrx->unit->method->mem_base))
 	{
 		write_do(instrx);
 	}
@@ -669,7 +672,7 @@ void write_do_instrx(Instrx *instrx)
 
 struct Unit* in_unit(Unit *unit)
 {
-        if ((STRUCT == unit->type) && (unit->subunits.size() > 0))
+        if ((is_struct(unit)) && (unit->subunits.size() > 0))
         {
                 if (unit->in_unit != NULL)
                 {
@@ -696,7 +699,7 @@ void handle_instrx_default(Instrx *instrx)
 	{
 		write_ptr_to_temp(instrx);
 	}
-	else if (((STRUCT == instrx->unit->type) && (instrx->unit->method != NULL)) || (METHOD == instrx->unit->type)
+	else if ((is_struct(instrx->unit) && (instrx->unit->method != NULL)) || (METHOD == instrx->unit->type)
 		|| ((METHOD_PTR == instrx->unit->type) && (instrx->oper != INSERTION)))
 	{
 		write_do_instrx(instrx);
@@ -712,7 +715,7 @@ void handle_instrx_default(Instrx *instrx)
 int get_temp_offset(Unit *unit)
 {
 	int result;
-	if (STRUCT == unit->type)
+	if (is_struct(unit))
 	{
 		result = unit->mem_offset - unit->mem_used;
 		
@@ -731,7 +734,7 @@ int get_temp_offset(Unit *unit)
 
 void handle_math_oper(Instrx *instrx)
 {
-	if ((METHOD == instrx->unit->type) || (STRUCT == instrx->unit->type) || (METHOD_PTR == instrx->unit->type))
+	if ((is_struct(instrx->unit)) || (METHOD == instrx->unit->type) || (METHOD_PTR == instrx->unit->type))
 	{
 		write_do_instrx(instrx);
 		int temp_offset = get_temp_offset(instrx->unit);
@@ -750,9 +753,9 @@ bool is_default_instrx(Instrx *instrx)
 void initialize_unit(Instrx *instrx)
 {
         Unit *unit = instrx->unit;
-	if ((STRUCT == unit->type) || ((METHOD == unit->type) && (unit->f_num <= 0)))
+	if (((METHOD == unit->type) && (unit->f_num <= 0)) || is_struct(unit))
 	{
-		if ((unit->base != NULL) && ((PTR == unit->base->type) || (STRUCT == unit->base->type)))
+		if ((unit->base != NULL) && (is_struct(unit->base) || (PTR == unit->base->type)))
 		{
 			if (STRUCT_UNINITIALIZED == instrx->state)
 			{
@@ -783,7 +786,7 @@ void write_insertion_in_unit(Instrx *instrx)
 void write_line(Instrx *instrx)
 {
 	if (!is_default_instrx(instrx) && (instrx->oper != DEFINE)
-	  && ((METHOD == instrx->unit->type) || (STRUCT == instrx->unit->type) || (METHOD_PTR == instrx->unit->type)))
+	  && (is_struct(instrx->unit) || (METHOD == instrx->unit->type) || (METHOD_PTR == instrx->unit->type)))
 	{
 		store_temp(get_temp_offset(instrx->unit));
 	}
@@ -968,14 +971,14 @@ Unit *find_unit_in_superunit(string name, Unit *superunit)
 
 void handle_inheritance(Unit *unit)
 {
-        if ((parent_ptr->type != STRUCT) || (unit->type != STRUCT))
+        if (!is_struct(parent_ptr) || !is_struct(unit))
         {
                 set_error(INVALID_USE_OF_OPER, line_num, operators[DEFINE]);
         }
 	parent_ptr->mem_used = unit->mem_used;
 	parent_ptr->subunits = unit->subunits;
 	parent_ptr->in_unit = unit->in_unit;
-	if ((STRUCT == parent_ptr->parent->type) && (unit->parent->type != STRUCT))
+	if (is_struct(parent_ptr->parent) && !is_struct(unit->parent))
 	{
 	        parent_ptr->base_ptr_offset = parent_ptr->mem_used;
 	        parent_ptr->mem_used += WORD_SIZE;
@@ -1027,7 +1030,7 @@ Unit* instantiate_unit(Unit *unit, Unit *base, Unit *mem_ref_parent)
 	*instance = *unit;
 	instance->mem_base = mem_ref_parent->type;
 	if ((METHOD_PTR == mem_ref_parent->type) || (BYTES_PTR == mem_ref_parent->type)
-	    || (STRUCT == mem_ref_parent->type))
+	    || is_struct(mem_ref_parent))
 	{
 	        instance->mem_base = STRUCT;
 	}
@@ -1036,7 +1039,7 @@ Unit* instantiate_unit(Unit *unit, Unit *base, Unit *mem_ref_parent)
 	        instance->type = BYTES;
 	}
 	if (((METHOD_PTR == instance->type) || (BYTES_PTR == instance->type)
-	    || (BYTES == instance->type) || (STRUCT == instance->type))
+	    || (BYTES == instance->type) || is_struct(instance))
 	    && (METHOD == mem_ref_parent->type))
 	{
 		if ((base != NULL) && (METHOD == base->mem_base) && (base->mem_offset >= mem_ref_parent->mem_used))
@@ -1051,7 +1054,7 @@ Unit* instantiate_unit(Unit *unit, Unit *base, Unit *mem_ref_parent)
 		mem_ref_parent = instance;
 	}
 	else if (((METHOD_PTR == mem_ref_parent->type) || (BYTES_PTR == mem_ref_parent->type)
-	        || (STRUCT == mem_ref_parent->type)) && (METHOD == mem_ref_parent->mem_base))
+	        || is_struct(mem_ref_parent)) && (METHOD == mem_ref_parent->mem_base))
 	{
 	        instance->mem_base = METHOD;
 	        instance->mem_offset = mem_ref_parent->mem_offset - instance->mem_offset;
@@ -1076,7 +1079,7 @@ Unit* instantiate_unit(Unit *unit, Unit *base, Unit *mem_ref_parent)
 	{
 	        instance->in_unit = instantiate_unit(instance->in_unit, base, mem_ref_parent);
 	}
-	if ((METHOD_PTR == instance->type) || (BYTES_PTR == instance->type) || (STRUCT == instance->type))
+	if ((METHOD_PTR == instance->type) || (BYTES_PTR == instance->type) || is_struct(instance))
 	{
 		instance->subunits = instantiate_subunits(instance, mem_ref_parent);
 	}
@@ -1189,15 +1192,15 @@ void handle_instantiation(Instrx *instrx)
 		        }
 		        Unit *typing = instrx->unit;
 			instrx->unit = instantiate_unit(instrx->unit, base, parent_ptr);
-			if (STRUCT == typing->type)
+			if (is_struct(typing))
 			{
 			        instrx->unit->typing = typing;
 			}
-			if (STRUCT == parent_ptr->type)
+			if (is_struct(parent_ptr))
 			{
 			        instrx->base_level = 1;
 			}
-			if (STRUCT == instrx->unit->type)
+			if (is_struct(instrx->unit))
 			{
 			        instrx->state = STRUCT_UNINITIALIZED;
 			}
@@ -1226,7 +1229,7 @@ void id_unit(string name)
 		                new_instrx.unit = find_unit_in_superunit(name, superunit->parent);
 		                if ((new_instrx.unit != NULL) && new_instrx.unit->mem_base)
 		                {
-		                        if (STRUCT == superunit->parent->type)
+		                        if (is_struct(superunit->parent))
 		                        {
 		                                new_instrx.base_level = BASE_2_STRUCT;
 		                        }
@@ -1251,7 +1254,7 @@ void id_unit(string name)
 	if ((new_instrx.unit != NULL) && (superunit != NULL))
 	{
 	        new_instrx.base_level = base_level;
-	        if (STRUCT == parent_ptr->type)
+	        if (is_struct(parent_ptr))
 	        {
 	                new_instrx.base_level = 1;
 	        }
@@ -1324,6 +1327,7 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
         parent->parent = parent_ptr;
         parent->typing = NULL;
         parent->base_instrx = arg;
+        parent->type = STRUCT;
         parent_ptr = parent;
         Instrx temp = new_instrx;
         new_instrx.unit = NULL;
@@ -1354,7 +1358,7 @@ void handle_compile_time_method(Instrx* method_struct, Instrx* arg)
         {
                 handle_in(arg);
         }
-        else if (method_struct_type != INSERT_UNSAFE)
+        else
         {
                 handle_custom_compile_time_method(method_struct, arg);
         }
@@ -1363,10 +1367,6 @@ void handle_compile_time_method(Instrx* method_struct, Instrx* arg)
         parent_ptr->instrxs.pop_back();
         delete(parent_ptr->instrxs.back());
         parent_ptr->instrxs.pop_back();
-        if ((INSERT_UNSAFE == method_struct_type) && (parent_ptr->instrxs.size() > 0))
-        {
-                parent_ptr->instrxs.back()->insertion_source = arg;
-        }
         parent_ptr->instrxs.push_back(arg);
 }
 
@@ -1374,15 +1374,32 @@ bool check_types(Instrx* src, Instrx* dst)
 {
         int srct = in_unit(src->unit)->type;
         int dstt = in_unit(dst->unit)->type;
-        if ((BYTES_PTR == srct) || (BYTES_PTR == dstt)
-            || (METHOD == srct) || ((STRUCT == src->unit->type) && (src->unit->method != NULL)))
+        if ((BYTES_PTR == srct) || (BYTES_PTR == dstt) || (BYTES == srct)
+            || (METHOD == srct) || (is_struct(src->unit) && (src->unit->method != NULL)))
         {
                 return true;
+        }
+        if (PTR == dstt)
+        {
+                if ((srct != PTR) && !src->is_ptr)
+                {
+                        return false;
+                }
+                Unit* src_typing = src->unit;
+                Unit* dst_typing = dst->unit->typing;
+                while (src_typing != NULL)
+                {
+                        if (src_typing->type == dst_typing->type)
+                        {
+                                return true;
+                        }
+                        src_typing = src_typing->typing;
+                }
+                return false;
         }
         if ((!src->unit->mem_base && src->is_ptr)
             || (METHOD == dstt)
             || ((INT == dstt) && (srct != INT) && (srct != INT_CONST))
-            || ((PTR == dstt) && (srct != PTR) && !src->is_ptr)
             || ((METHOD_PTR == dstt) && (srct != METHOD_PTR) && (srct != METHOD)))
         {
                return false;
@@ -1458,7 +1475,7 @@ Unit *get_correct_method_type()
 		return basic_units[METHOD_PTR];
 	}
 	
-	if (STRUCT == parent_ptr->type)
+	if (is_struct(parent_ptr))
 	{
 	        return basic_units[METHOD];
 	}
@@ -1618,7 +1635,7 @@ void handle_new_superunit()
 	if (DEFINE == new_instrx.oper)
 	{
 		unit->base = parent_ptr;
-		if (STRUCT == parent_ptr->type)
+		if (is_struct(parent_ptr))
 		{
 		        unit->base_ptr_offset = 0;
 			unit->mem_used += WORD_SIZE;
@@ -1682,7 +1699,7 @@ void handle_new_oper(int oper)
 	{
 	        set_error(INVALID_USE_OF_OPER, line_num, operators[oper]);
 	}
-	if ((INSERTION == oper) && (STRUCT == parent_ptr->type)
+	if ((INSERTION == oper) && (is_struct(parent_ptr))
 	  && (parent_ptr->instrxs.back()->unit->type != COMPTIME_METHOD))
 	{
 	        parent_ptr->f_num = STRUCT_UNINITIALIZED;
