@@ -1370,12 +1370,23 @@ void handle_compile_time_method(Instrx* method_struct, Instrx* arg)
         parent_ptr->instrxs.push_back(arg);
 }
 
-void check_types(Instrx* src, Instrx* dst)
+bool check_types(Instrx* src, Instrx* dst)
 {
-        if ((!src->unit->mem_base && src->is_ptr) || ((INT == src->unit->type) && (METHOD_PTR == dst->unit->type)))
+        int srct = in_unit(src->unit)->type;
+        int dstt = in_unit(dst->unit)->type;
+        if ((BYTES_PTR == srct) || (BYTES_PTR == dstt)
+            || (METHOD == srct) || ((STRUCT == src->unit->type) && (src->unit->method != NULL)))
         {
-                set_error(INVALID_USE_OF_OPER, line_num, operators[INSERTION]);
+                return true;
         }
+        if ((!src->unit->mem_base && src->is_ptr)
+            || (METHOD == dstt)
+            || ((INT == dstt) && (srct != INT) && (srct != INT_CONST))
+            || ((METHOD_PTR == dstt) && (srct != METHOD_PTR) && (srct != METHOD)))
+        {
+               return false;
+        }
+        return true;
 }
 
 void handle_last_instrx()
@@ -1410,9 +1421,9 @@ void handle_last_instrx()
 			                handle_compile_time_method(second_last_instrx, instrx);
 			                second_last_instrx = get_second_last_instrx();
 			        }
-			        else
+			        else if (!check_types(instrx, second_last_instrx))
 			        {
-			                check_types(instrx, second_last_instrx);
+			                set_error(INVALID_USE_OF_OPER, instrx->unit_line, operators[INSERTION]);
 			        }
 			}
 			if ((DEFINE == instrx->oper) && (NULL == second_last_instrx)

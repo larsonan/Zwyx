@@ -16,13 +16,14 @@ call	f16
 add	rsp,	64
 mov	rbx,	[rsp]
 lea	rax,	[rsp-50]
-mov	[rsp-80],	rax
-lea	rax,	[rsp-72]
 mov	[rsp-88],	rax
-lea	rbx,	[rsp-88]
-sub	rsp,	88
+mov	qword	[rsp-80],	50
+lea	rax,	[rsp-72]
+mov	[rsp-96],	rax
+lea	rbx,	[rsp-96]
+sub	rsp,	96
 call	f9
-add	rsp,	88
+add	rsp,	96
 mov	rbx,	[rsp]
 lea	rax,	[rsp-72]
 mov	[rsp-80],	rax
@@ -247,6 +248,7 @@ ret
 f9:
 push	rbx
 mov	rax,	[rbx+8]
+mov	rdx,	[rbx+16]
 mov	rcx,	[rbx+0]
 mov	[rcx+0],	rax
 mov	[rcx+8],	rdx

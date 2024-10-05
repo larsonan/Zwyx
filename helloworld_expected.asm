@@ -195,6 +195,7 @@ ret
 f9:
 push	rbx
 mov	rax,	[rbx+8]
+mov	rdx,	[rbx+16]
 mov	rcx,	[rbx+0]
 mov	[rcx+0],	rax
 mov	[rcx+8],	rdx
