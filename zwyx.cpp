@@ -1382,6 +1382,7 @@ bool check_types(Instrx* src, Instrx* dst)
         if ((!src->unit->mem_base && src->is_ptr)
             || (METHOD == dstt)
             || ((INT == dstt) && (srct != INT) && (srct != INT_CONST))
+            || ((PTR == dstt) && (srct != PTR) && !src->is_ptr)
             || ((METHOD_PTR == dstt) && (srct != METHOD_PTR) && (srct != METHOD)))
         {
                return false;
