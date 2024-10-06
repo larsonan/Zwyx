@@ -169,7 +169,7 @@ int num_b = 0;
 vector<string> data_section_strings;
 int num_f = 0;
 int temp_reg_mem;
-
+int num_types;
 string file_name;
 
 void dbg_out_str(string msg)
@@ -257,6 +257,7 @@ void init(void)
 	instrx_idx = 0;
 	num_errors = 0;
 	parent_ptr = NULL;
+	num_types = NUM_BASIC_UNITS;
 	setup_basic_units();
 }
 
@@ -304,7 +305,7 @@ void write_array_count(Instrx *instrx)
 
 bool is_struct(Unit *unit)
 {
-        return (STRUCT == unit->type);
+        return ((STRUCT == unit->type) || ((unit->type < 1000) && (unit->type >= NUM_BASIC_UNITS)));
 }
 
 void write_do(Instrx *instrx)
@@ -978,6 +979,7 @@ void handle_inheritance(Unit *unit)
 	parent_ptr->mem_used = unit->mem_used;
 	parent_ptr->subunits = unit->subunits;
 	parent_ptr->in_unit = unit->in_unit;
+	parent_ptr->typing = unit;
 	if (is_struct(parent_ptr->parent) && !is_struct(unit->parent))
 	{
 	        parent_ptr->base_ptr_offset = parent_ptr->mem_used;
@@ -1372,10 +1374,14 @@ void handle_compile_time_method(Instrx* method_struct, Instrx* arg)
 
 bool check_types(Instrx* src, Instrx* dst)
 {
-        int srct = in_unit(src->unit)->type;
         int dstt = in_unit(dst->unit)->type;
+        int srct = in_unit(src->unit)->type;
+        if (src->is_ptr)
+        {
+                srct = src->unit->type;
+        }
         if ((BYTES_PTR == srct) || (BYTES_PTR == dstt) || (BYTES == srct)
-            || (METHOD == srct) || (is_struct(src->unit) && (src->unit->method != NULL)))
+            || (METHOD == srct) || (is_struct(src->unit) && !src->is_ptr && (src->unit->method != NULL)))
         {
                 return true;
         }
@@ -1385,8 +1391,12 @@ bool check_types(Instrx* src, Instrx* dst)
                 {
                         return false;
                 }
-                Unit* src_typing = src->unit;
-                Unit* dst_typing = dst->unit->typing;
+                Unit* dst_typing = in_unit(dst->unit)->typing;
+                Unit* src_typing = in_unit(src->unit)->typing;
+                if (src->is_ptr)
+                {
+                        src_typing = src->unit->typing;
+                }
                 while (src_typing != NULL)
                 {
                         if (src_typing->type == dst_typing->type)
@@ -1635,6 +1645,11 @@ void handle_new_superunit()
 	if (DEFINE == new_instrx.oper)
 	{
 		unit->base = parent_ptr;
+		if (parent_ptr->instrxs.back()->unit->type != METHOD)
+		{
+		        unit->type = num_types;
+		        num_types++;
+		}
 		if (is_struct(parent_ptr))
 		{
 		        unit->base_ptr_offset = 0;
