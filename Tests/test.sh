@@ -1,5 +1,5 @@
 #!/bin/bash
-g++ zwyx.cpp
+g++ ../zwyx.cpp
 ./a.out helloworld.zwyx
 ./test helloworld
 ./a.out fizzbuzz.zwyx
