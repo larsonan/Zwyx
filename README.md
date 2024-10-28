@@ -55,7 +55,7 @@ One final thing to note regarding the operators is that standard order of operat
 will actually set y to 36, rather than 26.
 
 ## Structs
-A **struct** is a compound unit containing integers or other structs. The following defines a struct named "Point" containing two members named "x" and "y":
+A **struct** is a compound unit containing any number of other data units. The following defines a struct named "Point" containing two members named "x" and "y":
 
 ```
 Point~{
@@ -67,6 +67,13 @@ Point~{
 This is the one special construction where braces do not indicate a method. This construction merely defines a **type**. To actually use this struct an **instance** of it must be created. The following creates an instance of the struct Point named "p":
 
 `p~Point`
+
+You can use the **subunit** operator (.) to access a struct instance's members:
+
+```
+p.x:1
+p.y:4
+```
 
 ## Default Methods
 The **default method** is a special method that can be defined in a struct.
