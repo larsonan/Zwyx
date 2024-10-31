@@ -156,5 +156,21 @@ Point.{
 When this happens, the struct's lifetime only lasts as long as the anonymous method that has it as a context. The struct and its members cannot be referred to outside of this. Here, nothing useful is occurring; x and y are set and then the struct is immediately deallocated. However, there are a number of important uses for this, which we will be discussing very soon.
 
 ## Default Methods
-The **default method** is a special method that can be defined in a struct.
+The **default method** is a special method that can be defined in a struct, whose context is that struct. It is represented using the ; character.
+
+```
+print_sum~{
+    a~int
+    b~int
+    ;~{
+        print.d:{a+b}
+    }
+}
+```
+
+This is how functions with arguments can be defined. To call this function, create an anonymous instance of print_sum, and then, in the associated anonymous method, set the arguments to the correct values and call the default method.
+
+`print_sum.{a:1 b:4 ;}`
+
+Note that the ; character is necessary. Without it, the arguments will be set but then nothing will actually happen.
 
