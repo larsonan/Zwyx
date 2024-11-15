@@ -174,3 +174,9 @@ This is how functions with arguments can be defined. To call this function, crea
 
 Note that the ; character is necessary. Without it, the arguments will be set but then nothing will actually happen.
 
+This can be thought of as similar to the named argument syntax used in other languages. However, it offers a great deal of flexibility in how the arguments are used.
+
+`print_sum.{a:1 b:1 ; b:2 ; b:3 ; b:4 ;}`
+
+This will print the numbers 2, 3, 4 and 5. The argument a only needs to be set to 1 once, and then that value will be used in every call to the method. This is because the method always uses the same struct. The argument b is the only one that needs to be changed.
+
