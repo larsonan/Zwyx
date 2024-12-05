@@ -180,3 +180,39 @@ This can be thought of as similar to the named argument syntax used in other lan
 
 This will print the numbers 2, 3, 4 and 5. The argument a only needs to be set to 1 once, and then that value will be used in every call to the method. This is because the method always uses the same struct. The argument b is the only one that needs to be changed.
 
+## Pointers
+
+A **pointer** is a variable that stores the memory address of a struct. Pointers are declared with the @ symbol, followed by the type of the struct being pointed to:
+
+`pt_ptr~@Point`
+
+The @ symbol is also used to assign the address of a struct to a pointer:
+
+`pt_ptr:@p`
+
+To access the members of the struct being pointed to, you can use the same . operator that you use on the struct itself:
+
+```
+pt_ptr.x:1
+pt_ptr.y:5
+```
+
+The same anonymous method construct that can be used on structs can also be used on pointers:
+
+```
+pt_ptr.{
+    x:1
+    y:5
+}
+```
+
+## Method Pointers
+
+A **method pointer** is a variable that stores the memory address of a method (that is, memory address where the method's instructions are.) Method pointers are declared with the type of struct that the pointed-to method should use as its context, followed by . and ; like so:
+
+`method_ptr~Point.;`
+
+To assign a value to a method pointer, you can prefix an anonymous method with @:
+
+`method_ptr:@{print.d:{x+y}}`
+
