@@ -216,3 +216,28 @@ To assign a value to a method pointer, you can prefix an anonymous method with @
 
 `method_ptr:@{print.d:{x+y}}`
 
+## Default Values
+
+A member of a struct can have a **default value**, which will be the value that the member will is set to when the struct is first instantiated. This can be assigned simply by using the insertion operator inside the definition of a struct:
+
+```
+Point~{
+    x~int:1
+    y~int
+}
+```
+
+If the struct has a default method, this construct can act the way default function arguments work in other languages:
+
+```
+print_sum~{
+    a~int:1
+    b~int
+    ;~{
+        print.d:{a+b}
+    }
+}
+```
+
+Now, if this method is called, but only b is set, a will automatically be set to 1.
+
