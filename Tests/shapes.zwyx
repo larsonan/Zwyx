@@ -33,18 +33,20 @@ circle~{
 	areaFn:@{radius*radius*3}
 }
 
-rect~rectangle.{height:6 length:7}
-tri~triangle.{height:6 length:7}
-circ~circle.{radius:2}
+;~{
+        rect~rectangle.{height:6 length:7}
+        tri~triangle.{height:6 length:7}
+        circ~circle.{radius:2}
+        
+        b0~bytes.24
+        
+        l~list:shape.{
+        	set_buffer:@b0
+	        add.{
+		        $:@rect ; $:@tri ; $:@circ ;
+	        }
+        }
 
-b0~bytes.24
-
-l~list:shape.{
-	set_buffer:@b0
-	add.{
-		$:@rect ; $:@tri ; $:@circ ;
-	}
+        l.each:@{print.{d:area endl}}
 }
-
-l.each:@{print.{d:area endl}}
 

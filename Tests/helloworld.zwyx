@@ -1,6 +1,6 @@
 _import:"utilities_lib"
 
 
-print.line:"Hello, World!"
+;~{ print.line:"Hello, World!" }
 
 

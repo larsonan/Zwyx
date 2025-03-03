@@ -11,7 +11,7 @@ give_bank_update~{
 }
 
 
-print.{give_bank_update.{write:@$.2 amount:500 intro_text:"Attention" ;}}
+
 
 increase_urgency~{
 	in~str
@@ -27,12 +27,16 @@ increase_urgency~{
 	}
 }
 
-buff~bytes.50
-str.{
-	set_buffer:@buff
-	writer~write
-	give_bank_update.{write:@writer amount:5 intro_text:"Warning" ;}
-	increase_urgency:$
-	print.s:$
+;~{
+        print.{give_bank_update.{write:@$.2 amount:500 intro_text:"Attention" ;}}
+        
+        buff~bytes.50
+        str.{
+	        set_buffer:@buff
+	        writer~write
+	        give_bank_update.{write:@writer amount:5 intro_text:"Warning" ;}
+	        increase_urgency:$
+	        print.s:$
+        }
 }
 

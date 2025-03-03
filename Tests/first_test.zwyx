@@ -2,44 +2,12 @@ _import:"utilities_lib"
 
 npair~{a~int b~int}
 
-
-b0~bytes.48
-
-mbuf~bytes.80
-
-l~emplacementList:npair.{
-	set_membBuffer:@mbuf
-	set_buffer:@b0
-	membSize:16
-	emplace.{
-		$:@{a:1 b:0} ;
-		$:@{a:2 b:5} ;
-		$:@{a:0 b:5} ;
-		$:@{a:2 b:7} ;
-		$:@{a:4 b:1} ;
-	}
-}
-
-l.each:@{print.d:{a+b}}
-
 getmsg~{
 	write~@writenf
 	;~{
 		write.{c:67 c:76 c:79 c:83 c:69}
 	}
 	
-}
-
-
-print.{
-	hello~bytes.40
-	msg~str
-	msg.set_buffer:@hello
-	msg.write.{getmsg:@$}
-	getmsg:@$
-	msg.setchar.{char:70 at:1 ; at:2 ; at:3 ; at:4 ;}
-	s:msg
-	d:1749 c:102 d:0 c:90 endl
 }
 
 factorial~{
@@ -49,8 +17,6 @@ factorial~{
 	}
 }
 
-print.{d:factorial:7 endl}
-
 color~{
 	~enum
 	red~{~op op_val:0}
@@ -59,10 +25,6 @@ color~{
 	yellow~{~op op_val:3}
 	blue~{~op op_val:4}
 }
-
-color_a~color
-color_a.blue.set
-print.{d:color_a.blue.is endl d:color_a.orange.is endl}
 
 write_color~{
 	write~@writenf
@@ -80,14 +42,6 @@ write_color~{
 		}
 	}
 }
-
-
-print.{write_color.{write:@$.2 colrw:color_a ; color_a.orange.set colrw:color_a ;}}
-
-n~int:4
-l.each:@{b:n n:{n-1}}
-l.each:@{print.d:{a+b}}
-print.endl
 
 divmod~{ dd~int dv~int r~int q~int error~str:""
         ;~{
@@ -113,5 +67,47 @@ divmod_output~{
         }
 }
 
-divmod_output.{a:13 b:2 ; a:7 b:0 ;}
+;~{
+        b0~bytes.48
+        mbuf~bytes.80
+        
+        l~emplacementList:npair.{
+	        set_membBuffer:@mbuf
+	        set_buffer:@b0
+	        membSize:16
+	        emplace.{
+		        $:@{a:1 b:0} ;
+		        $:@{a:2 b:5} ;
+		        $:@{a:0 b:5} ;
+		        $:@{a:2 b:7} ;
+		        $:@{a:4 b:1} ;
+	        }
+        }
+        l.each:@{print.d:{a+b}}
+        
+        print.{
+	        hello~bytes.40
+	        msg~str
+	        msg.set_buffer:@hello
+	        msg.write.{getmsg:@$}
+	        getmsg:@$
+	        msg.setchar.{char:70 at:1 ; at:2 ; at:3 ; at:4 ;}
+	        s:msg
+	        d:1749 c:102 d:0 c:90 endl
+        }
+        
+        print.{d:factorial:7 endl}
+        
+        color_a~color
+        color_a.blue.set
+        print.{d:color_a.blue.is endl d:color_a.orange.is endl}
+        print.{write_color.{write:@$.2 colrw:color_a ; color_a.orange.set colrw:color_a ;}}
+        
+        n~int:4
+        l.each:@{b:n n:{n-1}}
+        l.each:@{print.d:{a+b}}
+        print.endl
+        
+        divmod_output.{a:13 b:2 ; a:7 b:0 ;}
+}
 

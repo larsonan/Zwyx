@@ -43,14 +43,15 @@ fizzbuzz_classic~{
 	}
 }
 
-printer~print
-
-fizzbuzz_classic.{write:@printer end:100 ;}
-
-fizzbuzz_generic.{write:@printer start:0 end:100 replacements:@{
+;~{
+        printer~print
+        fizzbuzz_classic.{write:@printer end:100 ;}
+        
+        fizzbuzz_generic.{write:@printer start:0 end:100 replacements:@{
 								prime:3 with:"fizz" ;
 								prime:5 with:"buzz" ;
 								prime:7 with:"fuzz" ;
 								prime:11 with:"jazz" ;
 								} ;}
+}
 

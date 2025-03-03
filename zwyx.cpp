@@ -922,7 +922,7 @@ void write_xc(string format)
 	        (void)fprintf(xcfile, "global\t_start\n_start:\n");
 	}
 	
-	write_instrxs(parent_ptr->instrxs);
+	write_instrxs(parent_ptr->method->instrxs);
 	
 	if (format == "macho64")
 	{
@@ -1654,13 +1654,20 @@ void handle_new_superunit()
 		{
 		        unit->base_ptr_offset = 0;
 			unit->mem_used += WORD_SIZE;
-			if (METHOD == parent_ptr->instrxs.back()->unit->type)
-			{
-				unit->type = METHOD;
-				handle_new_method(unit);
-				parent_ptr->method = unit;
-			}
 		}
+	        if (METHOD == parent_ptr->instrxs.back()->unit->type)
+		{
+		        unit->type = METHOD;
+		        if (NAMESPACE == parent_ptr->type)
+		        {
+		                unit->mem_used += WORD_SIZE;
+		        }
+		        else
+		        {
+		                handle_new_method(unit);
+		        }
+			parent_ptr->method = unit;
+	        }
 		handle_define_statement(parent_ptr->instrxs.back()->unit, unit);
 		parent_ptr->instrxs.back()->oper = IGNORE;
 		new_instrx.oper = NO_OPER;
@@ -1795,10 +1802,10 @@ void start_base_unit()
 {
 	parent_ptr = new Unit;
 	*parent_ptr = *basic_units[NAMESPACE];
-	parent_ptr->parent = NULL;
-	parent_ptr->type = METHOD;
-	parent_ptr->mem_used += WORD_SIZE;
 	parent_ptr->base = NULL;
+	parent_ptr->parent = NULL;
+	parent_ptr->mem_used += WORD_SIZE;
+	
 }
 
 void end_base_unit()
