@@ -1,0 +1,10 @@
+_console_write~{
+	a~bytes
+	;~{_system.{rax:1 rdx:a.count rdi:1 rsi:a ;}}
+}
+_console_read~{
+        a~bytes
+        size~int
+        ;~{_system.{rax:0 rdx:size rdi:2 rsi:a ;}}
+}
+

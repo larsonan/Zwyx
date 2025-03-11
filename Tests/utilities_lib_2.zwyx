@@ -1,0 +1,237 @@
+interface~{
+	fn~;
+	;~{fn}
+}
+
+boxed~\
+        el~@$
+
+\
+
+c_iter~{
+	el~int.8
+	
+}
+
+writenf~{
+	~interface
+	data~arg:bytes
+	s~{
+		b~bytes
+		;~{
+			data:b
+			;
+		}
+	}
+	c~{
+		in~int
+		;~{
+			b~int.8
+			b:in
+			data:@b
+			data.count:1
+			;
+		}
+	}
+	
+	endl~{
+		;~{
+			c:10
+		}
+	}
+	line~{
+		b~bytes
+		;~{
+			s:b
+			endl
+		}
+	}
+	d~{
+		in~int
+		;~{
+			buff~bytes.48
+			it~@c_iter:@buff
+			it:{it+40}
+			it.el:{in%10+48}
+			in:{in/10}
+			it:{it-1}
+			size~int:1
+			
+			{in > 0}?*{
+				it.el:{in%10+48}
+				in:{in/10}
+				it:{it-1}
+				size:{size+1}
+			}
+			data:{it+1}
+			data.count:size
+			;
+		}
+	}
+}
+
+print~{
+	~writenf
+	fn:@{
+		_console_write:data
+	}
+}
+list~\
+	b~bytes
+	set_buffer~{
+		in~bytes
+		;~{
+			b:in
+			b.count:0
+		}
+	}
+	get~{
+		at~int
+		;~{
+			it~@boxed:$:{b+{at*8}}
+			it.el
+		}
+	}
+	set~{
+		at~int
+		char~@$
+		;~{
+			it~@boxed:$:{b+{at*8}}
+			it.el:char
+		}
+	}
+	add~{
+		in~@$
+		;~{
+			set.{at:b.count char:in ;}
+			b.count:{b.count + 1}
+		}
+	}
+	count~{
+		;~{
+			b.count
+		}
+	}
+	each~{
+		
+		f~$.;
+		;~{
+			it~@boxed:$:b
+			
+			remaining~int
+			remaining:b.count
+			
+			{remaining > 0}?*{
+				mbr~@$:it.el
+				mbr.{f}
+				
+				
+				it:{it+8}
+				remaining:{remaining-1}
+			}
+		}
+	}
+\
+
+
+
+
+
+
+
+
+
+str~{
+	b~bytes
+	set_buffer~{
+		in~bytes
+		;~{
+			b:in
+			b.count:0
+		}
+	}
+	setchar~{
+		at~int
+		char~int
+		;~{
+			it~@c_iter:{b+at}
+			it.el:char
+		}
+	}
+	getchar~{
+		at~int
+		;~{
+			it~@c_iter:{b+at}
+			it.el % 256
+		}
+	}
+	count~{
+		;~{
+			b.count
+		}
+	}
+	write~{
+		~writenf
+		fn:@{
+			in~@c_iter:data
+			self~@c_iter:b
+			self:{self+b.count}
+			countin~int:data.count
+			b.count:{b.count+countin}
+			{countin > 0}?*{
+				self.el:in.el
+				self:{self+1}
+				
+				in:{in+1}
+				countin:{countin-1}
+			}
+		}
+	}
+}
+
+enum~{
+	val~int
+	op~{
+		op_val~int
+		is~{
+			;~{val=op_val}
+		}
+		set~{
+			;~{val:op_val}
+		}
+	}
+}
+
+emplacementList~\
+	~list:$
+	membSize~int
+	membBuffer~bytes
+	set_membBuffer~{
+		buf~bytes
+		;~{
+			membBuffer:buf
+			membBuffer.count:0
+		}
+	}
+	emplace~{
+		in~$.;
+		;~{
+			ptr~@$:{membBuffer+membBuffer.count}
+			ptr.{in}
+			membBuffer.count:{membBuffer.count+membSize}
+			add:ptr
+		}
+	}
+\
+
+GetChar~{
+        ;~{
+                c~int.8
+                _console_read.{a:@c size:1 ;}
+                
+                result~int:0
+                result
+                c
+        }
+}
+

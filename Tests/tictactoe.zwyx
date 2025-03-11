@@ -1,0 +1,133 @@
+_import:"utilities_lib_2"
+
+
+Board~{
+        data~bytes.9
+        Cell~{
+                r~int
+                c~int
+                Symbol~{
+                        g~int
+                        Is~{
+                                ;~{
+                                        p~@c_iter:@data
+                                        p:{p+c+{r*3}}
+                                        t~int:0
+                                        t
+                                        p.el = g
+                                }
+                        }
+                        Set~{
+                                ;~{
+                                        p~@c_iter:@data
+                                        p:{p+c+{r*3}}
+                                        p.el:g
+                                }
+                        }
+                }
+                X~{
+                        ~Symbol
+                        g:88
+                }
+                O~{
+                        ~Symbol
+                        g:79
+                }
+                EMPTY~{
+                        ~Symbol
+                        g:46
+                }
+        }
+        Start~{
+                ;~{
+                        p~@c_iter:@data
+                        n~int:0
+                        c~int:46
+                        {n < 9}?*{
+                                p.el:c
+                                n:{n+1}
+                                p:{p+1}
+                        }
+                }
+        }
+        Print~{
+                ;~{
+                        p~@c_iter:@data
+                        n~int:0
+                        {n < 9}?*{
+                                print.c:p.el
+                                {{n % 3} = 2}?{
+                                        print.endl
+                                }
+                                n:{n+1}
+                                p:{p+1}
+                        }
+                }
+        }
+}
+
+GameState~{
+        ~enum
+        DEFAULT~{~op op_val:0}
+        TIE~{~op op_val:1}
+        WON~{~op op_val:2}
+}
+
+Game~{
+        board~Board
+        state~GameState
+        newR~int
+        newC~int
+        stateFn~;
+        start~;
+        center~;
+        top_or_bottom~;
+        side~;
+        corner~;
+        cats_game~;
+        side_2~;
+        start:@{
+                {{newR = 1} & {newC = 1}}  ? { newR:2 newC:2 stateFn:center }
+                ^{newR = 1}                ? { newR:1 newC:1 stateFn:side }
+                ^{newC = 1}                ? { newR:1 newC:1 stateFn:top_or_bottom }
+                ^{{newR = 2} & {newC = 2}} ? { newR:0 newC:2 stateFn:cats_game }
+                ^                            { newR:2 newC:2 stateFn:corner }
+        }
+        corner:@{ newR:0 newC:0 state.WON.set }
+        center:@{ newR:0 newC:0 state.WON.set }
+        top_or_bottom:@{ newR:0 newC:0 state.WON.set }
+        cats_game:@{ newR:0 newC:0 state.WON.set }
+        side:@{
+                {{newR = 2} & {newC = 2}} ? { newR:0 newC:2 stateFn:side_2 }
+                ^                           { newR:2 newC:2 state.WON.set }
+        }
+        side_2:@{ newR:0 newC:0 state.WON.set }
+}
+
+;~{
+        Game.{
+                board.{Start Cell.{r:0 c:0 X.Set}}
+                state.DEFAULT.set
+                stateFn:start
+                {state.DEFAULT.is}?*{
+                        board.Print
+                        playerR~int:GetChar
+                        playerC~int:GetChar
+                        {{playerR < 49} | {playerR > 51} | {playerC < 49} | {playerC > 51}} ? {
+                                print.line:"Illegal move."
+                        } ^ {
+                                newR:{playerR-49}
+                                newC:{playerC-49}
+                                {board.Cell.{r:newR c:newC EMPTY.Is}}?{
+                                        board.Cell.{r:newR c:newC O.Set}
+                                        stateFn
+                                        board.Cell.{r:newR c:newC X.Set}
+                                }^{
+                                        print.line:"Illegal move."
+                                }
+                        }
+                }
+                board.Print
+        }
+}
+
