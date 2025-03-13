@@ -112,7 +112,18 @@ Game~{
                 {state.DEFAULT.is}?*{
                         board.Print
                         playerR~int:GetChar
-                        playerC~int:GetChar
+                        newChar~int:GetChar
+                        {newChar = 44}?{
+                                newChar:GetChar
+                        }
+                        playerC~int:newChar
+                        endOfLine~int:0
+                        {endOfLine = 0}?*{
+                                newChar:GetChar
+                                {newChar = 10}?{
+                                        endOfLine:1
+                                }
+                        }
                         {{playerR < 49} | {playerR > 51} | {playerC < 49} | {playerC > 51}} ? {
                                 print.line:"Illegal move."
                         } ^ {
