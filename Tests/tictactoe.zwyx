@@ -83,25 +83,76 @@ Game~{
         center~;
         top_or_bottom~;
         side~;
-        corner~;
-        cats_game~;
+        opposite~;
+        lower_left~;
+        upper_right~;
         side_2~;
+        top_or_bottom_2~;
+        lower_left_2~;
+        upper_right_2~;
+        center_2~;
+        center_3~;
+        opposite_2~;
         start:@{
-                {{newR = 1} & {newC = 1}}  ? { newR:2 newC:2 stateFn:center }
+                {{newR = 1} & {newC = 1}}  ? { newR:0 newC:1 stateFn:center }
                 ^{newR = 1}                ? { newR:1 newC:1 stateFn:side }
                 ^{newC = 1}                ? { newR:1 newC:1 stateFn:top_or_bottom }
-                ^{{newR = 2} & {newC = 2}} ? { newR:0 newC:2 stateFn:cats_game }
-                ^                            { newR:2 newC:2 stateFn:corner }
+                ^{{newR = 0} & {newC = 2}} ? { newR:2 newC:2 stateFn:upper_right }
+                ^{{newR = 2} & {newC = 0}} ? { newR:2 newC:2 stateFn:lower_left }
+                ^                            { newR:2 newC:0 stateFn:opposite }
         }
-        corner:@{ newR:0 newC:0 state.WON.set }
-        center:@{ newR:0 newC:0 state.WON.set }
-        top_or_bottom:@{ newR:0 newC:0 state.WON.set }
-        cats_game:@{ newR:0 newC:0 state.WON.set }
+        top_or_bottom:@{
+                {{newR = 2} & {newC = 2}} ? { newR:2 newC:0 stateFn:top_or_bottom_2 }
+                ^                           { newR:2 newC:2 state.WON.set }
+        }
+        top_or_bottom_2:@{
+                {newC = 0} ? { newR:0 newC:2 state.WON.set}
+                ^            { newR:1 newC:0 state.WON.set}
+        }
+        upper_right:@{
+                {{newR = 1} & {newC = 1}} ? { newR:2 newC:0 stateFn:upper_right_2 }
+                ^                           { newR:1 newC:1 state.WON.set }
+        }
+        upper_right_2:@{
+                {newC = 0} ? { newR:2 newC:1 state.WON.set }
+                ^            { newR:1 newC:0 state.WON.set }
+        }
         side:@{
                 {{newR = 2} & {newC = 2}} ? { newR:0 newC:2 stateFn:side_2 }
                 ^                           { newR:2 newC:2 state.WON.set }
         }
-        side_2:@{ newR:0 newC:0 state.WON.set }
+        side_2:@{
+                {newR = 0} ? {newR:2 newC:0 state.WON.set}
+                ^            {newR:0 newC:1 state.WON.set}
+        }
+        lower_left:@{
+                {{newR = 1} & {newC = 1}} ? { newR:0 newC:2 stateFn:lower_left_2 }
+                ^                           { newR:1 newC:1 state.WON.set }
+        }
+        lower_left_2:@{
+                {newR = 0} ? { newR:1 newC:2 state.WON.set }
+                ^            { newR:0 newC:1 state.WON.set }
+        }
+        center:@{
+                {{newR = 0} & {newC = 2}} ? { newR:2 newC:0 stateFn:center_2 }
+                ^                           { newR:0 newC:2 state.WON.set }
+        }
+        center_2:@{
+                {newC = 0} ? { newR:1 newC:2 stateFn:center_3 }
+                ^            { newR:1 newC:0 state.WON.set }
+        }
+        center_3:@{
+                {newC = 1} ? { newR:2 newC:2 state.TIE.set }
+                ^            { newR:2 newC:1 state.TIE.set }
+        }
+        opposite:@{
+                {newC = 0} ? { newR:0 newC:2 stateFn:opposite_2 }
+                ^            { newR:1 newC:0 state.WON.set }
+        }
+        opposite_2:@{
+                {newR = 0} ? { newR:1 newC:1 state.WON.set }
+                ^            { newR:0 newC:1 state.WON.set }
+        }
 }
 
 ;~{
@@ -111,6 +162,7 @@ Game~{
                 stateFn:start
                 {state.DEFAULT.is}?*{
                         board.Print
+                        print:"Enter move (Row,Column):"
                         playerR~int:GetChar
                         newChar~int:GetChar
                         {newChar = 44}?{
@@ -139,6 +191,11 @@ Game~{
                         }
                 }
                 board.Print
+                {state.WON.is}?{
+                        print.line:"Game over"
+                }^{
+                        print.line:"Cats game"
+                }
         }
 }
 
