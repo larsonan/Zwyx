@@ -169,16 +169,12 @@ Game~{
                                 newChar:GetChar
                         }
                         CInput~int:newChar
-                        endOfLine~int:0
-                        {endOfLine = 0}?*{
+                        {newChar != 10}?*{
                                 newChar:GetChar
-                                {newChar = 10}?{
-                                        endOfLine:1
-                                }
                         }
                         {{RInput < 49} | {RInput > 51} | {CInput < 49} | {CInput > 51}} ? {
                                 print.line:"Illegal move."
-                        } ^ {
+                        }^{
                                 r:{RInput-49}
                                 c:{CInput-49}
                                 {board.Cell.{R:r C:c EMPTY.Is}}?{
