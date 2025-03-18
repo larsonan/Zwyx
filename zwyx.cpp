@@ -144,7 +144,7 @@ struct Unit
 
 string basic_unit_names[] = {"none", "", "", "int", "", "method", "", "", "bytes", "", "", "",
                               "", "_import", "arg", ""};
-string operators[] = {"", ":", "~", ".", "?", "=", "+", "/", "!=", "", "-", "", "^", "?*", "*", "%", 
+string operators[] = {"", ":", "~", ".", "?", "=", "+", "/", "!=", "!", "-", "", "^", "?*", "*", "%", 
                 ">=", "<=", ">", "<", "&", "|"};
 
 Error errors[MAX_ERRORS];
