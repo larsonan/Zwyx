@@ -1906,7 +1906,7 @@ void parse_istream(istream &zyfile)
 	        }
 	        else if (COMPTIME_METHOD == read_mode)
 	        {
-	                if ('\\' == c)
+	                if ('`' == c)
 	                {
 	                        handle_compile_time_method_def(unit_name_buffer);
 	                        unit_name_buffer.clear();
@@ -1959,7 +1959,7 @@ void parse_istream(istream &zyfile)
 					}
 					unit_name_buffer.clear();
 				}
-				if ('\\' == c)
+				if ('`' == c)
 				{
 				        read_mode = COMPTIME_METHOD;
 				}
