@@ -4,14 +4,14 @@ _import:"utilities_lib_2"
 Board~{
         data~bytes.9
         Cell~{
-                r~int
-                c~int
+                R~int
+                C~int
                 Symbol~{
                         g~int
                         Is~{
                                 ;~{
                                         p~@c_iter:@data
-                                        p:{p+c+{r*3}}
+                                        p:{p+C+{R*3}}
                                         t~int:0
                                         t
                                         p.el = g
@@ -20,7 +20,7 @@ Board~{
                         Set~{
                                 ;~{
                                         p~@c_iter:@data
-                                        p:{p+c+{r*3}}
+                                        p:{p+C+{R*3}}
                                         p.el:g
                                 }
                         }
@@ -76,8 +76,8 @@ GameState~{
 Game~{
         board~Board
         state~GameState
-        newR~int
-        newC~int
+        r~int
+        c~int
         stateFn~;
         start~;
         center~;
@@ -90,85 +90,85 @@ Game~{
         top_or_bottom_2~;
         lower_left_2~;
         upper_right_2~;
+        opposite_2~;
         center_2~;
         center_3~;
-        opposite_2~;
         start:@{
-                {{newR = 1} & {newC = 1}}  ? { newR:0 newC:1 stateFn:center }
-                ^{newR = 1}                ? { newR:1 newC:1 stateFn:side }
-                ^{newC = 1}                ? { newR:1 newC:1 stateFn:top_or_bottom }
-                ^{{newR = 0} & {newC = 2}} ? { newR:2 newC:2 stateFn:upper_right }
-                ^{{newR = 2} & {newC = 0}} ? { newR:2 newC:2 stateFn:lower_left }
-                ^                            { newR:2 newC:0 stateFn:opposite }
+                {{r = 1} & {c = 1}}  ? { r:0 c:1 stateFn:center }
+                ^{r = 1}             ? { r:1 c:1 stateFn:side }
+                ^{c = 1}             ? { r:1 c:1 stateFn:top_or_bottom }
+                ^{{r = 0} & {c = 2}} ? { r:2 c:2 stateFn:upper_right }
+                ^{{r = 2} & {c = 0}} ? { r:2 c:2 stateFn:lower_left }
+                ^                      { r:2 c:0 stateFn:opposite }
         }
         top_or_bottom:@{
-                {{newR = 2} & {newC = 2}} ? { newR:2 newC:0 stateFn:top_or_bottom_2 }
-                ^                           { newR:2 newC:2 state.WON.set }
+                {{r = 2} & {c = 2}} ? { r:2 c:0 stateFn:top_or_bottom_2 }
+                ^                     { r:2 c:2 state.WON.set }
         }
         top_or_bottom_2:@{
-                {newC = 0} ? { newR:0 newC:2 state.WON.set}
-                ^            { newR:1 newC:0 state.WON.set}
+                {c = 0} ? { r:0 c:2 state.WON.set}
+                ^         { r:1 c:0 state.WON.set}
         }
         upper_right:@{
-                {{newR = 1} & {newC = 1}} ? { newR:2 newC:0 stateFn:upper_right_2 }
-                ^                           { newR:1 newC:1 state.WON.set }
+                {{r = 1} & {c = 1}} ? { r:2 c:0 stateFn:upper_right_2 }
+                ^                     { r:1 c:1 state.WON.set }
         }
         upper_right_2:@{
-                {newC = 0} ? { newR:2 newC:1 state.WON.set }
-                ^            { newR:1 newC:0 state.WON.set }
+                {c = 0} ? { r:2 c:1 state.WON.set }
+                ^         { r:1 c:0 state.WON.set }
         }
         side:@{
-                {{newR = 2} & {newC = 2}} ? { newR:0 newC:2 stateFn:side_2 }
-                ^                           { newR:2 newC:2 state.WON.set }
+                {{r = 2} & {c = 2}} ? { r:0 c:2 stateFn:side_2 }
+                ^                     { r:2 c:2 state.WON.set }
         }
         side_2:@{
-                {newR = 0} ? {newR:2 newC:0 state.WON.set}
-                ^            {newR:0 newC:1 state.WON.set}
+                {r = 0} ? {r:2 c:0 state.WON.set}
+                ^         {r:0 c:1 state.WON.set}
         }
         lower_left:@{
-                {{newR = 1} & {newC = 1}} ? { newR:0 newC:2 stateFn:lower_left_2 }
-                ^                           { newR:1 newC:1 state.WON.set }
+                {{r = 1} & {c = 1}} ? { r:0 c:2 stateFn:lower_left_2 }
+                ^                     { r:1 c:1 state.WON.set }
         }
         lower_left_2:@{
-                {newR = 0} ? { newR:1 newC:2 state.WON.set }
-                ^            { newR:0 newC:1 state.WON.set }
-        }
-        center:@{
-                {{newR = 0} & {newC = 2}} ? { newR:2 newC:0 stateFn:center_2 }
-                ^                           { newR:0 newC:2 state.WON.set }
-        }
-        center_2:@{
-                {newC = 0} ? { newR:1 newC:2 stateFn:center_3 }
-                ^            { newR:1 newC:0 state.WON.set }
-        }
-        center_3:@{
-                {newC = 1} ? { newR:2 newC:2 state.TIE.set }
-                ^            { newR:2 newC:1 state.TIE.set }
+                {r = 0} ? { r:1 c:2 state.WON.set }
+                ^         { r:0 c:1 state.WON.set }
         }
         opposite:@{
-                {newC = 0} ? { newR:0 newC:2 stateFn:opposite_2 }
-                ^            { newR:1 newC:0 state.WON.set }
+                {c = 0} ? { r:0 c:2 stateFn:opposite_2 }
+                ^         { r:1 c:0 state.WON.set }
         }
         opposite_2:@{
-                {newR = 0} ? { newR:1 newC:1 state.WON.set }
-                ^            { newR:0 newC:1 state.WON.set }
+                {r = 0} ? { r:1 c:1 state.WON.set }
+                ^         { r:0 c:1 state.WON.set }
+        }
+        center:@{
+                {{r = 0} & {c = 2}} ? { r:2 c:0 stateFn:center_2 }
+                ^                     { r:0 c:2 state.WON.set }
+        }
+        center_2:@{
+                {c = 0} ? { r:1 c:2 stateFn:center_3 }
+                ^         { r:1 c:0 state.WON.set }
+        }
+        center_3:@{
+                {c = 1} ? { r:2 c:2 state.TIE.set }
+                ^         { r:2 c:1 state.TIE.set }
         }
 }
 
 ;~{
         Game.{
-                board.{Start Cell.{r:0 c:0 X.Set}}
+                board.{Start Cell.{R:0 C:0 X.Set}}
                 state.DEFAULT.set
                 stateFn:start
                 {state.DEFAULT.is}?*{
                         board.Print
                         print:"Enter move (Row,Column):"
-                        playerR~int:GetChar
+                        RInput~int:GetChar
                         newChar~int:GetChar
                         {newChar = 44}?{
                                 newChar:GetChar
                         }
-                        playerC~int:newChar
+                        CInput~int:newChar
                         endOfLine~int:0
                         {endOfLine = 0}?*{
                                 newChar:GetChar
@@ -176,15 +176,15 @@ Game~{
                                         endOfLine:1
                                 }
                         }
-                        {{playerR < 49} | {playerR > 51} | {playerC < 49} | {playerC > 51}} ? {
+                        {{RInput < 49} | {RInput > 51} | {CInput < 49} | {CInput > 51}} ? {
                                 print.line:"Illegal move."
                         } ^ {
-                                newR:{playerR-49}
-                                newC:{playerC-49}
-                                {board.Cell.{r:newR c:newC EMPTY.Is}}?{
-                                        board.Cell.{r:newR c:newC O.Set}
+                                r:{RInput-49}
+                                c:{CInput-49}
+                                {board.Cell.{R:r C:c EMPTY.Is}}?{
+                                        board.Cell.{R:r C:c O.Set}
                                         stateFn
-                                        board.Cell.{r:newR c:newC X.Set}
+                                        board.Cell.{R:r C:c X.Set}
                                 }^{
                                         print.line:"Illegal move."
                                 }
