@@ -103,55 +103,55 @@ Game~{
         }
         top_or_bottom:@{
                 {{r = 2} & {c = 2}} ? { r:2 c:0 stateFn:top_or_bottom_2 }
-                ^                     { r:2 c:2 state.WON.set }
+                                    ^ { r:2 c:2 state.WON.set }
         }
         top_or_bottom_2:@{
                 {c = 0} ? { r:0 c:2 state.WON.set}
-                ^         { r:1 c:0 state.WON.set}
+                        ^ { r:1 c:0 state.WON.set}
         }
         upper_right:@{
                 {{r = 1} & {c = 1}} ? { r:2 c:0 stateFn:upper_right_2 }
-                ^                     { r:1 c:1 state.WON.set }
+                                    ^ { r:1 c:1 state.WON.set }
         }
         upper_right_2:@{
                 {c = 0} ? { r:2 c:1 state.WON.set }
-                ^         { r:1 c:0 state.WON.set }
+                        ^ { r:1 c:0 state.WON.set }
         }
         side:@{
                 {{r = 2} & {c = 2}} ? { r:0 c:2 stateFn:side_2 }
-                ^                     { r:2 c:2 state.WON.set }
+                                    ^ { r:2 c:2 state.WON.set }
         }
         side_2:@{
                 {r = 0} ? {r:2 c:0 state.WON.set}
-                ^         {r:0 c:1 state.WON.set}
+                        ^ {r:0 c:1 state.WON.set}
         }
         lower_left:@{
                 {{r = 1} & {c = 1}} ? { r:0 c:2 stateFn:lower_left_2 }
-                ^                     { r:1 c:1 state.WON.set }
+                                    ^ { r:1 c:1 state.WON.set }
         }
         lower_left_2:@{
                 {r = 0} ? { r:1 c:2 state.WON.set }
-                ^         { r:0 c:1 state.WON.set }
+                        ^ { r:0 c:1 state.WON.set }
         }
         opposite:@{
                 {c = 0} ? { r:0 c:2 stateFn:opposite_2 }
-                ^         { r:1 c:0 state.WON.set }
+                        ^ { r:1 c:0 state.WON.set }
         }
         opposite_2:@{
                 {r = 0} ? { r:1 c:1 state.WON.set }
-                ^         { r:0 c:1 state.WON.set }
+                        ^ { r:0 c:1 state.WON.set }
         }
         center:@{
                 {{r = 0} & {c = 2}} ? { r:2 c:0 stateFn:center_2 }
-                ^                     { r:0 c:2 state.WON.set }
+                                    ^ { r:0 c:2 state.WON.set }
         }
         center_2:@{
                 {c = 0} ? { r:1 c:2 stateFn:center_3 }
-                ^         { r:1 c:0 state.WON.set }
+                        ^ { r:1 c:0 state.WON.set }
         }
         center_3:@{
                 {c = 1} ? { r:2 c:2 state.TIE.set }
-                ^         { r:2 c:1 state.TIE.set }
+                        ^ { r:2 c:1 state.TIE.set }
         }
 }
 
