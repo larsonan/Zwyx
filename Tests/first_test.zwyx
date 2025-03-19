@@ -4,6 +4,7 @@ npair~{a~int b~int}
 
 getmsg~{
 	write~@writenf
+	;~{}
 }
 getmsg.;~{
         write.{c:67 c:76 c:79 c:83 c:69}

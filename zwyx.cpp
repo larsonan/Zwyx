@@ -999,6 +999,19 @@ void handle_inheritance(Unit *unit)
 	}
 }
 
+void replace_method(Unit *unit)
+{
+        unit->f_num = unit->base->method->f_num;
+        for (int i = 0; i < funcs.size(); i++)
+        {
+                if (funcs[i]->f_num == unit->f_num)
+                {
+                        funcs[i] = unit;
+                        break;
+                }
+        }
+}
+
 void handle_new_method(Unit *unit)
 {
 	funcs.push_back(unit);
@@ -1671,10 +1684,17 @@ void handle_new_superunit()
 	        if (METHOD_PTR == parent_ptr->instrxs.back()->unit->type)
 	        {
 	                unit->type = METHOD;
-	                unit->base = parent_ptr->instrxs.back()->ptr_source->unit;
-	                handle_new_method(unit);
 	                unit->mem_used += WORD_SIZE;
-	                parent_ptr->instrxs.back()->ptr_source->unit->method = unit;
+	                unit->base = parent_ptr->instrxs.back()->ptr_source->unit;
+	                if (unit->base->method != NULL)
+	                {
+	                        replace_method(unit);
+	                }
+	                else
+	                {
+	                        handle_new_method(unit);
+	                }
+	                unit->base->method = unit;
 	        }
 		handle_define_statement(parent_ptr->instrxs.back()->unit, unit);
 		parent_ptr->instrxs.back()->oper = IGNORE;
