@@ -1668,6 +1668,14 @@ void handle_new_superunit()
 		        }
 			parent_ptr->method = unit;
 	        }
+	        if (METHOD_PTR == parent_ptr->instrxs.back()->unit->type)
+	        {
+	                unit->type = METHOD;
+	                unit->base = parent_ptr->instrxs.back()->ptr_source->unit;
+	                handle_new_method(unit);
+	                unit->mem_used += WORD_SIZE;
+	                parent_ptr->instrxs.back()->ptr_source->unit->method = unit;
+	        }
 		handle_define_statement(parent_ptr->instrxs.back()->unit, unit);
 		parent_ptr->instrxs.back()->oper = IGNORE;
 		new_instrx.oper = NO_OPER;
