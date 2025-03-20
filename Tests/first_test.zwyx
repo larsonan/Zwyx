@@ -8,19 +8,7 @@ getmsg~{
 }
 
 bmsg~{
-        ;~{
-                print.{
-	                hello~bytes.40
-	                msg~str
-	                msg.set_buffer:@hello
-	                msg.write.{getmsg:@$}
-	                getmsg:@$
-	                msg.setchar.{char:70 at:1 ; at:2 ; at:3 ; at:4 ;}
-	                s:msg
-	                d:1749 c:102 d:0 c:90
-	                endl
-                }
-        }
+        ;~{p~print getmsg:@p}
 }
 
 factorial~{
@@ -103,6 +91,16 @@ getmsg.;~{
         l.each:@{print.d:{a+b}}
         
         bmsg
+        print.{
+	        hello~bytes.40
+	        msg~str
+	        msg.set_buffer:@hello
+	        msg.write.{getmsg:@$}
+	        msg.setchar.{char:70 at:1 ; at:2 ; at:3 ; at:4 ;}
+	        s:msg
+	        d:1749 c:102 d:0 c:90
+	        endl
+        }
         
         print.{d:factorial:7 endl}
         

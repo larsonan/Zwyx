@@ -83,6 +83,112 @@ lea	rax,	[rel+f8]
 mov	[rbx+0],	rax
 mov	[rbx+8],	rbx
 mov	rbx,	[rsp]
+lea	rax,	[rsp-240]
+mov	[rsp-272],	rax
+mov	qword	[rsp-264],	40
+lea	rax,	[rsp-256]
+mov	[rsp-280],	rax
+lea	rbx,	[rsp-280]
+sub	rsp,	280
+call	f9
+add	rsp,	280
+mov	rbx,	[rsp]
+lea	rax,	[rsp-256]
+mov	[rsp-264],	rax
+lea	rbx,	[rsp-296]
+lea	rax,	[rel+f13]
+mov	[rbx+0],	rax
+mov	[rbx+8],	rbx
+mov	rbx,	[rsp]
+lea	rax,	[rsp-296]
+mov	[rsp-304],	rax
+lea	rbx,	[rsp-304]
+sub	rsp,	304
+call	f16
+add	rsp,	304
+mov	rbx,	[rsp]
+lea	rax,	[rsp-256]
+mov	[rsp-280],	rax
+mov	qword	[rsp-264],	70
+mov	qword	[rsp-272],	1
+lea	rbx,	[rsp-280]
+sub	rsp,	280
+call	f10
+add	rsp,	280
+mov	rbx,	[rsp]
+mov	qword	[rsp-272],	2
+lea	rbx,	[rsp-280]
+sub	rsp,	280
+call	f10
+add	rsp,	280
+mov	rbx,	[rsp]
+mov	qword	[rsp-272],	3
+lea	rbx,	[rsp-280]
+sub	rsp,	280
+call	f10
+add	rsp,	280
+mov	rbx,	[rsp]
+mov	qword	[rsp-272],	4
+lea	rbx,	[rsp-280]
+sub	rsp,	280
+call	f10
+add	rsp,	280
+mov	rbx,	[rsp]
+mov	rax,	[rsp-256]
+mov	rdx,	[rsp-248]
+mov	[rsp-272],	rax
+mov	[rsp-264],	rdx
+lea	rax,	[rsp-200]
+mov	[rsp-280],	rax
+lea	rbx,	[rsp-280]
+sub	rsp,	280
+call	f3
+add	rsp,	280
+mov	rbx,	[rsp]
+mov	qword	[rsp-264],	1749
+lea	rax,	[rsp-200]
+mov	[rsp-272],	rax
+lea	rbx,	[rsp-272]
+sub	rsp,	272
+call	f7
+add	rsp,	272
+mov	rbx,	[rsp]
+mov	qword	[rsp-264],	102
+lea	rax,	[rsp-200]
+mov	[rsp-272],	rax
+lea	rbx,	[rsp-272]
+sub	rsp,	272
+call	f4
+add	rsp,	272
+mov	rbx,	[rsp]
+mov	qword	[rsp-264],	0
+lea	rax,	[rsp-200]
+mov	[rsp-272],	rax
+lea	rbx,	[rsp-272]
+sub	rsp,	272
+call	f7
+add	rsp,	272
+mov	rbx,	[rsp]
+mov	qword	[rsp-264],	90
+lea	rax,	[rsp-200]
+mov	[rsp-272],	rax
+lea	rbx,	[rsp-272]
+sub	rsp,	272
+call	f4
+add	rsp,	272
+mov	rbx,	[rsp]
+lea	rax,	[rsp-200]
+mov	[rsp-264],	rax
+lea	rbx,	[rsp-264]
+sub	rsp,	264
+call	f5
+add	rsp,	264
+mov	rbx,	[rsp]
+lea	rbx,	[rsp-200]
+lea	rax,	[rel+f8]
+mov	[rbx+0],	rax
+mov	[rbx+8],	rbx
+mov	rbx,	[rsp]
 mov	qword	[rsp-208],	7
 lea	rbx,	[rsp-208]
 sub	rsp,	208
@@ -596,113 +702,12 @@ lea	rax,	[rel+f8]
 mov	[rbx+0],	rax
 mov	[rbx+8],	rbx
 mov	rbx,	[rsp]
-lea	rax,	[rsp-72]
-mov	[rsp-104],	rax
-mov	qword	[rsp-96],	40
-lea	rax,	[rsp-88]
-mov	[rsp-112],	rax
-lea	rbx,	[rsp-112]
-sub	rsp,	112
-call	f9
-add	rsp,	112
-mov	rbx,	[rsp]
-lea	rax,	[rsp-88]
-mov	[rsp-96],	rax
-lea	rbx,	[rsp-128]
-lea	rax,	[rel+f13]
-mov	[rbx+0],	rax
-mov	[rbx+8],	rbx
-mov	rbx,	[rsp]
-lea	rax,	[rsp-128]
-mov	[rsp-136],	rax
-lea	rbx,	[rsp-136]
-sub	rsp,	136
+lea	rax,	[rsp-32]
+mov	[rsp-40],	rax
+lea	rbx,	[rsp-40]
+sub	rsp,	40
 call	f16
-add	rsp,	136
-mov	rbx,	[rsp]
-lea	rax,	[rsp-32]
-mov	[rsp-96],	rax
-lea	rbx,	[rsp-96]
-sub	rsp,	96
-call	f16
-add	rsp,	96
-mov	rbx,	[rsp]
-lea	rax,	[rsp-88]
-mov	[rsp-112],	rax
-mov	qword	[rsp-96],	70
-mov	qword	[rsp-104],	1
-lea	rbx,	[rsp-112]
-sub	rsp,	112
-call	f10
-add	rsp,	112
-mov	rbx,	[rsp]
-mov	qword	[rsp-104],	2
-lea	rbx,	[rsp-112]
-sub	rsp,	112
-call	f10
-add	rsp,	112
-mov	rbx,	[rsp]
-mov	qword	[rsp-104],	3
-lea	rbx,	[rsp-112]
-sub	rsp,	112
-call	f10
-add	rsp,	112
-mov	rbx,	[rsp]
-mov	qword	[rsp-104],	4
-lea	rbx,	[rsp-112]
-sub	rsp,	112
-call	f10
-add	rsp,	112
-mov	rbx,	[rsp]
-mov	rax,	[rsp-88]
-mov	rdx,	[rsp-80]
-mov	[rsp-104],	rax
-mov	[rsp-96],	rdx
-lea	rax,	[rsp-32]
-mov	[rsp-112],	rax
-lea	rbx,	[rsp-112]
-sub	rsp,	112
-call	f3
-add	rsp,	112
-mov	rbx,	[rsp]
-mov	qword	[rsp-96],	1749
-lea	rax,	[rsp-32]
-mov	[rsp-104],	rax
-lea	rbx,	[rsp-104]
-sub	rsp,	104
-call	f7
-add	rsp,	104
-mov	rbx,	[rsp]
-mov	qword	[rsp-96],	102
-lea	rax,	[rsp-32]
-mov	[rsp-104],	rax
-lea	rbx,	[rsp-104]
-sub	rsp,	104
-call	f4
-add	rsp,	104
-mov	rbx,	[rsp]
-mov	qword	[rsp-96],	0
-lea	rax,	[rsp-32]
-mov	[rsp-104],	rax
-lea	rbx,	[rsp-104]
-sub	rsp,	104
-call	f7
-add	rsp,	104
-mov	rbx,	[rsp]
-mov	qword	[rsp-96],	90
-lea	rax,	[rsp-32]
-mov	[rsp-104],	rax
-lea	rbx,	[rsp-104]
-sub	rsp,	104
-call	f4
-add	rsp,	104
-mov	rbx,	[rsp]
-lea	rax,	[rsp-32]
-mov	[rsp-96],	rax
-lea	rbx,	[rsp-96]
-sub	rsp,	96
-call	f5
-add	rsp,	96
+add	rsp,	40
 mov	rbx,	[rsp]
 pop	rbx
 ret
