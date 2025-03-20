@@ -2,13 +2,17 @@ _import:"utilities_lib"
 
 npair~{a~int b~int}
 
-getmsg~{
+getmessage~{
 	write~@writenf
 	;~{}
 }
 
-bmsg~{
-        ;~{p~print getmsg:@p}
+bm~{
+        ;~{p~print getmessage:@p}
+}
+
+getmessage.;~{
+        write.{c:67 c:76 c:79 c:83 c:69}
 }
 
 factorial~{
@@ -68,10 +72,6 @@ divmod_output~{
         }
 }
 
-getmsg.;~{
-        write.{c:67 c:76 c:79 c:83 c:69}
-}
-
 ;~{
         b0~bytes.48
         mbuf~bytes.80
@@ -90,12 +90,12 @@ getmsg.;~{
         }
         l.each:@{print.d:{a+b}}
         
-        bmsg
+        bm
         print.{
 	        hello~bytes.40
 	        msg~str
 	        msg.set_buffer:@hello
-	        msg.write.{getmsg:@$}
+	        msg.write.{getmessage:@$}
 	        msg.setchar.{char:70 at:1 ; at:2 ; at:3 ; at:4 ;}
 	        s:msg
 	        d:1749 c:102 d:0 c:90
