@@ -359,9 +359,9 @@ mov	rcx,	[rbx+0]
 mov	rdx,	[rcx+8]
 mov	rax,	[rcx+0]
 lea	rbx,	[rbx+0]
-sub	rsp,	0
+sub	rsp,	8
 call	rax
-add	rsp,	0
+add	rsp,	8
 mov	rbx,	[rsp]
 pop	rbx
 ret

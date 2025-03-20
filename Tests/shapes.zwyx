@@ -2,14 +2,11 @@ _import:"utilities_lib"
 
 
 shape~{
-	areaStruct~{
-	}
-	areaFn~areaStruct.;
 	area~{
-		~areaStruct
-		;~{
-			areaFn
-		}
+	}
+	areaFn~area.;
+	area.;~{
+		areaFn
 	}
 }
 

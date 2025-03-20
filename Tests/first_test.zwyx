@@ -6,8 +6,21 @@ getmsg~{
 	write~@writenf
 	;~{}
 }
-getmsg.;~{
-        write.{c:67 c:76 c:79 c:83 c:69}
+
+bmsg~{
+        ;~{
+                print.{
+	                hello~bytes.40
+	                msg~str
+	                msg.set_buffer:@hello
+	                msg.write.{getmsg:@$}
+	                getmsg:@$
+	                msg.setchar.{char:70 at:1 ; at:2 ; at:3 ; at:4 ;}
+	                s:msg
+	                d:1749 c:102 d:0 c:90
+	                endl
+                }
+        }
 }
 
 factorial~{
@@ -67,6 +80,10 @@ divmod_output~{
         }
 }
 
+getmsg.;~{
+        write.{c:67 c:76 c:79 c:83 c:69}
+}
+
 ;~{
         b0~bytes.48
         mbuf~bytes.80
@@ -85,16 +102,7 @@ divmod_output~{
         }
         l.each:@{print.d:{a+b}}
         
-        print.{
-	        hello~bytes.40
-	        msg~str
-	        msg.set_buffer:@hello
-	        msg.write.{getmsg:@$}
-	        getmsg:@$
-	        msg.setchar.{char:70 at:1 ; at:2 ; at:3 ; at:4 ;}
-	        s:msg
-	        d:1749 c:102 d:0 c:90 endl
-        }
+        bmsg
         
         print.{d:factorial:7 endl}
         
