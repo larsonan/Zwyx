@@ -45,6 +45,7 @@ using namespace std;
 #define IMPORT 13
 #define IN 14
 #define STRING_LITERAL 15
+#define RETURN 16
 
 #define NO_ERROR 0
 #define INVALID_USE_OF_OPER 1
@@ -57,7 +58,7 @@ using namespace std;
 #define INVALID_IN_UNIT 8
 #define INVALID_USE_OF_IMPORT 9
 
-#define NUM_BASIC_UNITS 16
+#define NUM_BASIC_UNITS 17
 #define NUM_OPERS 22
 #define BASE_UNLOADED -2
 #define STRUCT_UNINITIALIZED -1
@@ -143,7 +144,7 @@ struct Unit
 };
 
 string basic_unit_names[] = {"none", "", "", "int", "", "method", "", "", "bytes", "", "", "",
-                              "", "_import", "arg", ""};
+                              "", "_import", "arg", "", "return"};
 string operators[] = {"", ":", "~", ".", "?", "=", "+", "/", "!=", "!", "-", "", "^", "?*", "*", "%", 
                 ">=", "<=", ">", "<", "&", "|"};
 
@@ -161,6 +162,8 @@ vector<Unit*> funcs;
 string compiled_instrxs;
 
 int line_num;
+
+Unit *unit_for_return;
 
 Instrx new_instrx;
 FILE* err_out;
@@ -1031,12 +1034,19 @@ int handle_alignment(int mem_offset)
 
 void handle_define_statement(Unit *defined_unit, Unit *definition_unit)
 {
-	definition_unit->name = defined_unit->name;
-	if ((STRUCT == definition_unit->mem_base) || (METHOD == definition_unit->mem_base))
-	{
-		parent_ptr->mem_used += handle_alignment(definition_unit->mem_used);
+        if (RETURN == defined_unit->type)
+        {
+                unit_for_return = definition_unit;
+        }
+        else
+        {
+	        definition_unit->name = defined_unit->name;
+	        if ((STRUCT == definition_unit->mem_base) || (METHOD == definition_unit->mem_base))
+	        {
+		        parent_ptr->mem_used += handle_alignment(definition_unit->mem_used);
+	        }
+	        parent_ptr->subunits.push_back(definition_unit);
 	}
-	parent_ptr->subunits.push_back(definition_unit);
 }
 
 Unit* instantiate_unit(Unit *unit, Unit *base, Unit *mem_ref_parent)
@@ -1344,12 +1354,12 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
         parent->base_instrx = arg;
         parent->type = STRUCT;
         parent_ptr = parent;
+        istringstream str(method_struct->unit->str);
         Instrx temp = new_instrx;
+        int outer_line_num = line_num;
+        int temp_temp_reg_mem = temp_reg_mem;
         new_instrx.unit = NULL;
         new_instrx.oper = NO_OPER;
-        int temp_temp_reg_mem = temp_reg_mem;
-        istringstream str(method_struct->unit->str);
-        int outer_line_num = line_num;
         line_num = 0;
         parse_istream(str);
         handle_last_instrx();
