@@ -1352,20 +1352,23 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
         parent->parent = parent_ptr;
         parent->typing = NULL;
         parent->base_instrx = arg;
-        parent->type = STRUCT;
+        parent->type = NAMESPACE;
         parent_ptr = parent;
         istringstream str(method_struct->unit->str);
         Instrx temp = new_instrx;
-        int outer_line_num = line_num;
-        int temp_temp_reg_mem = temp_reg_mem;
+        Unit *temp_unit_for_return = unit_for_return;
+        unit_for_return = NULL;
         new_instrx.unit = NULL;
         new_instrx.oper = NO_OPER;
+        int outer_line_num = line_num;
         line_num = 0;
+        int temp_temp_reg_mem = temp_reg_mem;
         parse_istream(str);
         handle_last_instrx();
         parent_ptr = parent->parent;
         line_num = outer_line_num;
-        arg->unit = parent;
+        arg->unit = unit_for_return;
+        unit_for_return = temp_unit_for_return;
         new_instrx = temp;
         temp_reg_mem = temp_temp_reg_mem;
 }
@@ -1594,6 +1597,11 @@ void handle_new_instrx()
         {
                 new_instrx.unit = basic_units[BYTES_PTR];
         }
+        if ((RETURN == new_instrx.unit->type) && (unit_for_return != NULL))
+        {
+                new_instrx.unit = unit_for_return;
+        }
+        
 	if (SUBUNIT == new_instrx.oper)
 	{
 		handle_subunit();
