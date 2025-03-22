@@ -229,4 +229,14 @@ virtual~`
         return~$.;
         $.;~{return}
 `
+GetChar~{
+        ;~{
+                c~int.8
+                _console_read.{a:@c size:1 ;}
+                
+                result~int:0
+                result
+                c
+        }
+}
 
