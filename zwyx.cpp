@@ -144,7 +144,7 @@ struct Unit
 };
 
 string basic_unit_names[] = {"none", "", "", "int", "", "method", "", "", "bytes", "", "", "",
-                              "", "_import", "arg", "", "return"};
+                              "", "_import", "arg", "", ""};
 string operators[] = {"", ":", "~", ".", "?", "=", "+", "/", "!=", "!", "-", "", "^", "?*", "*", "%", 
                 ">=", "<=", ">", "<", "&", "|"};
 
@@ -1034,19 +1034,21 @@ int handle_alignment(int mem_offset)
 
 void handle_define_statement(Unit *defined_unit, Unit *definition_unit)
 {
-        if (RETURN == defined_unit->type)
+        if ("return" == defined_unit->name)
         {
                 unit_for_return = definition_unit;
+                if (!definition_unit->mem_base)
+                {
+                        return;
+                }
         }
-        else
-        {
-	        definition_unit->name = defined_unit->name;
-	        if ((STRUCT == definition_unit->mem_base) || (METHOD == definition_unit->mem_base))
-	        {
-		        parent_ptr->mem_used += handle_alignment(definition_unit->mem_used);
-	        }
-	        parent_ptr->subunits.push_back(definition_unit);
+        
+	definition_unit->name = defined_unit->name;
+	if ((STRUCT == definition_unit->mem_base) || (METHOD == definition_unit->mem_base))
+	{
+		parent_ptr->mem_used += handle_alignment(definition_unit->mem_used);
 	}
+	parent_ptr->subunits.push_back(definition_unit);
 }
 
 Unit* instantiate_unit(Unit *unit, Unit *base, Unit *mem_ref_parent)
@@ -1486,8 +1488,7 @@ void handle_last_instrx()
 			{
 			        handle_inheritance(instrx->unit);
 			}
-			else if ((DEFINE == instrx->oper) && instrx->unit->mem_base
-			    && !is_comptime_method(instrx->unit) && (second_last_instrx->unit->type != RETURN))
+			else if ((DEFINE == instrx->oper) && instrx->unit->mem_base)
 			{
 			        instrx->unit->name = second_last_instrx->unit->name;
 			}
@@ -1602,10 +1603,6 @@ void handle_new_instrx()
         {
                 new_instrx.unit = basic_units[BYTES_PTR];
         }
-        if ((RETURN == new_instrx.unit->type) && (unit_for_return != NULL))
-        {
-                new_instrx.unit = unit_for_return;
-        }
         
 	if (SUBUNIT == new_instrx.oper)
 	{
@@ -1686,7 +1683,7 @@ void handle_new_superunit()
 		        unit->type = num_types;
 		        num_types++;
 		}
-		if (is_struct(parent_ptr) && (parent_ptr->instrxs.back()->unit->type != RETURN))
+		if (is_struct(parent_ptr) && (parent_ptr->instrxs.back()->unit->name != "return"))
 		{
 		        unit->base_ptr_offset = 0;
 			unit->mem_used += WORD_SIZE;
