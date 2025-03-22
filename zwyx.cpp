@@ -1240,6 +1240,23 @@ void handle_instantiation(Instrx *instrx)
 	}
 }
 
+void find_unit_in_method_ptr_parent(string name, Unit *superunit)
+{
+        new_instrx.unit = find_unit_in_superunit(name, superunit);
+        if ((new_instrx.unit != NULL) && new_instrx.unit->mem_base)
+        {
+                if (is_struct(superunit))
+                {
+                        new_instrx.base_level = BASE_2_STRUCT;
+                }
+                else
+                {
+                        new_instrx.base_level = BASE_2_METHOD;
+                }
+                return;
+        }
+}
+
 void id_unit(string name)
 {
 	Unit *superunit = parent_ptr;
@@ -1254,17 +1271,9 @@ void id_unit(string name)
 		{
 		        if ((METHOD_PTR == superunit->mem_base) && (NULL == new_instrx.unit))
 		        {
-		                new_instrx.unit = find_unit_in_superunit(name, superunit->parent);
+		                find_unit_in_method_ptr_parent(name, superunit->parent);
 		                if ((new_instrx.unit != NULL) && new_instrx.unit->mem_base)
 		                {
-		                        if (is_struct(superunit->parent))
-		                        {
-		                                new_instrx.base_level = BASE_2_STRUCT;
-		                        }
-		                        else
-		                        {
-		                                new_instrx.base_level = BASE_2_METHOD;
-		                        }
 		                        return;
 		                }
 		        }
