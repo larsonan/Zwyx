@@ -2,12 +2,8 @@ _import:"utilities_lib"
 
 
 shape~{
-	area~{
-	}
-	areaFn~area.;
-	area.;~{
-	        areaFn
-	}
+	area~{}
+	areaFn~virtual:area
 }
 
 rectangle~{

@@ -1188,7 +1188,8 @@ bool is_comptime_method(Unit* unit)
 
 void handle_instantiation(Instrx *instrx)
 {
-	if (((METHOD_PTR == instrx->unit->type) && instrx->unit->mem_base && (new_instrx.oper != INSERTION))
+	if (((METHOD_PTR == instrx->unit->type) && instrx->unit->mem_base
+	    && (instrx->oper != DEFINE) && (new_instrx.oper != INSERTION))
 		|| ((METHOD == instrx->unit->type) && !instrx->unit->mem_base))
 	{
 		instantiate_method(instrx);
@@ -1348,25 +1349,24 @@ void handle_base_no_index(Instrx* instrx)
 
 void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
 {
-        Unit *parent = new Unit(*basic_units[STRUCT]);
-        parent->parent = parent_ptr;
-        parent->typing = NULL;
-        parent->base_instrx = arg;
-        parent->type = NAMESPACE;
-        parent_ptr = parent;
-        istringstream str(method_struct->unit->str);
+        vector<Instrx*> temp_instrx_list = parent_ptr->instrxs;
+        parent_ptr->instrxs.clear();
         Instrx temp = new_instrx;
         Unit *temp_unit_for_return = unit_for_return;
-        unit_for_return = NULL;
         new_instrx.unit = NULL;
+        unit_for_return = NULL;
         new_instrx.oper = NO_OPER;
         int outer_line_num = line_num;
         line_num = 0;
         int temp_temp_reg_mem = temp_reg_mem;
+        Instrx* temp_base_instrx = parent_ptr->base_instrx;
+        parent_ptr->base_instrx = arg;
+        istringstream str(method_struct->unit->str);
         parse_istream(str);
         handle_last_instrx();
-        parent_ptr = parent->parent;
+        parent_ptr->instrxs = temp_instrx_list;
         line_num = outer_line_num;
+        parent_ptr->base_instrx = temp_base_instrx;
         arg->unit = unit_for_return;
         unit_for_return = temp_unit_for_return;
         new_instrx = temp;
@@ -1377,6 +1377,7 @@ void handle_in(Instrx* instrx)
 {
         handle_instantiation(instrx);
         parent_ptr->in_unit = instrx->unit;
+        handle_define_statement(instrx->unit, instrx->unit);
 }
 
 void handle_compile_time_method(Instrx* method_struct, Instrx* arg)
@@ -1485,6 +1486,11 @@ void handle_last_instrx()
 			{
 			        handle_inheritance(instrx->unit);
 			}
+			else if ((DEFINE == instrx->oper) && instrx->unit->mem_base
+			    && !is_comptime_method(instrx->unit) && (second_last_instrx->unit->type != RETURN))
+			{
+			        instrx->unit->name = second_last_instrx->unit->name;
+			}
 			else if ((instrx->unit->type != INT_CONST) || (DEFINE == instrx->oper))
 			{
 			        handle_instantiation(instrx);
@@ -1550,7 +1556,6 @@ void handle_oper_errors()
         if (((PTR == new_instrx.unit->type) && (new_instrx.oper != NO_OPER)
             && (new_instrx.oper != DEFINE) && (new_instrx.oper != SUBUNIT)
             && (new_instrx.oper != INSERTION))
-            || (new_instrx.unit->mem_base && (DEFINE == new_instrx.oper))
             || ((IMPORT == new_instrx.unit->type) && (new_instrx.oper != NO_OPER))
             || ((INT_CONST == new_instrx.unit->type) && (DEFINE == new_instrx.oper)))
         {
@@ -1681,7 +1686,7 @@ void handle_new_superunit()
 		        unit->type = num_types;
 		        num_types++;
 		}
-		if (is_struct(parent_ptr))
+		if (is_struct(parent_ptr) && (parent_ptr->instrxs.back()->unit->type != RETURN))
 		{
 		        unit->base_ptr_offset = 0;
 			unit->mem_used += WORD_SIZE;

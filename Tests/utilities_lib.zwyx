@@ -225,3 +225,10 @@ emplacementList~`return~{
 	}
 }`
 
+virtual~`
+        fd~$.;
+        $.;~{fd}
+        
+        return~fd
+`
+
