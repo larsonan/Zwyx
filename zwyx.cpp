@@ -1557,6 +1557,7 @@ void handle_oper_errors()
         if (((PTR == new_instrx.unit->type) && (new_instrx.oper != NO_OPER)
             && (new_instrx.oper != DEFINE) && (new_instrx.oper != SUBUNIT)
             && (new_instrx.oper != INSERTION))
+            || (new_instrx.unit->mem_base && (DEFINE == new_instrx.oper))
             || ((IMPORT == new_instrx.unit->type) && (new_instrx.oper != NO_OPER))
             || ((INT_CONST == new_instrx.unit->type) && (DEFINE == new_instrx.oper)))
         {
