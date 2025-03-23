@@ -10,6 +10,8 @@ g++ ../zwyx.cpp
 ./test shapes
 ./a.out temperature.zwyx
 ./test temperature
+./a.out tictactoe.zwyx
+./test tictactoe
 ./a.out first_test.zwyx
 ./test first_test
 
