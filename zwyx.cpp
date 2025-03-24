@@ -1937,14 +1937,18 @@ void handle_unit_name(string name)
 			}
 			else
 			{
+			        if (BASE == parent_ptr->instrxs.back()->unit->type)
+			        {
+			                handle_base_no_index(parent_ptr->instrxs.back());
+			        }
 				new_instrx.unit = find_unit_in_superunit(name, parent_ptr->instrxs.back()->unit);
 			}
 		}
 		if (NULL == new_instrx.unit)
 		{
 			new_instrx.unit = new Unit;
-			new_instrx.unit->type = DEF_NONE;
 			new_instrx.unit->name = name;
+			new_instrx.unit->type = DEF_NONE;
 		}
 	}
 	handle_new_instrx();

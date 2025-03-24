@@ -4,14 +4,14 @@ _import:"utilities_lib"
 Board~{
         data~bytes.9
         Cell~{
-                R~int
-                C~int
+                r~int
+                c~int
                 Symbol~{
                         g~int
                         Is~{
                                 ;~{
                                         p~@c_iter:@data
-                                        p:{p+C+{R*3}}
+                                        p:{p+c+{r*3}}
                                         t~int:0
                                         t
                                         p.el = g
@@ -20,7 +20,7 @@ Board~{
                         Set~{
                                 ;~{
                                         p~@c_iter:@data
-                                        p:{p+C+{R*3}}
+                                        p:{p+c+{r*3}}
                                         p.el:g
                                 }
                         }
@@ -157,7 +157,7 @@ Game~{
 
 ;~{
         Game.{
-                board.{Start Cell.{R:0 C:0 X.Set}}
+                board.{Start Cell.{$.r:0 $.c:0 X.Set}}
                 state.DEFAULT.set
                 stateFn:start
                 {state.DEFAULT.is}?*{
@@ -177,10 +177,10 @@ Game~{
                         }^{
                                 r:{RInput-49}
                                 c:{CInput-49}
-                                {board.Cell.{R:r C:c EMPTY.Is}}?{
-                                        board.Cell.{R:r C:c O.Set}
+                                {board.Cell.{r:$.2.r c:$.2.c EMPTY.Is}}?{
+                                        board.Cell.{r:$.2.r c:$.2.c O.Set}
                                         stateFn
-                                        board.Cell.{R:r C:c X.Set}
+                                        board.Cell.{r:$.2.r c:$.2.c X.Set}
                                 }^{
                                         print.line:"Illegal move."
                                 }
