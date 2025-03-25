@@ -62,7 +62,7 @@ using namespace std;
 #define NUM_OPERS 22
 #define BASE_UNLOADED -2
 #define STRUCT_UNINITIALIZED -1
-#define BASE_2_METHOD -4
+#define BASE_2_METHOD 100
 #define BASE_2_STRUCT -5
 #define WORD_SIZE 8
 #define MAX_ERRORS 100
@@ -604,7 +604,15 @@ void write_jump_conditional(int b_num)
 
 void decrease_base_level(int base_level, Unit* base)
 {
-        (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_BASE, base->base_ptr_offset);
+        if (base_level < BASE_2_METHOD)
+        {
+                (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_BASE, base->base_ptr_offset);
+        }
+        else
+        {
+                (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_DEFAULT, WORD_SIZE);
+                base_level -= BASE_2_METHOD;
+        }
         for (int i = 2; i < base_level; i++)
         {
                 base = base->parent;
@@ -799,11 +807,15 @@ void write_line(Instrx *instrx)
 	{
 		write_line(instrx->insertion_source);
 	}
-	if ((BASE_2_STRUCT == instrx->base_level) || (BASE_2_METHOD == instrx->base_level))
+	if (instrx->base_level >= BASE_2_METHOD)
+	{
+	        decrease_base_level(instrx->base_level, NULL);
+	}
+	else if (BASE_2_STRUCT == instrx->base_level)
 	{
 	        load_base_2();
 	}
-	if ((instrx->base_level > 1) && (instrx->unit->mem_base != METHOD))
+        else if ((instrx->base_level > 1) && (instrx->unit->mem_base != METHOD))
 	{
 	        decrease_base_level(instrx->base_level, instrx->ptr_source->unit);
 	}
