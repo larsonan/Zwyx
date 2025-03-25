@@ -1243,7 +1243,7 @@ void handle_instantiation(Instrx *instrx)
 void find_unit_in_method_ptr_parent(string name, Unit *superunit)
 {
         new_instrx.unit = find_unit_in_superunit(name, superunit);
-        while ((new_instrx.unit != NULL) && (METHOD == superunit->type) && (METHOD == superunit->mem_base))
+        while ((NULL == new_instrx.unit) && (METHOD == superunit->type) && (METHOD == superunit->mem_base))
         {
                 superunit = superunit->parent;
                 new_instrx.unit = find_unit_in_superunit(name, superunit);
