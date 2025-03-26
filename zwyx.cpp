@@ -272,7 +272,7 @@ void write_unit(Instrx *instrx)
 	}
 	else
 	{
-	        if (BASE_2_METHOD == instrx->base_level)
+	        if (instrx->base_level >= BASE_2_METHOD)
 	        {
 	                (void)fprintf(xcfile, "[%s-%d]", REG_PTR, instrx->unit->mem_offset);
 	        }
@@ -1273,6 +1273,31 @@ void find_unit_in_method_ptr_parent(string name, Unit *superunit)
         }
 }
 
+void find_unit_in_unit_base(string name, Unit *superunit)
+{
+        int base_level = 0;
+	Unit* superunit_level_1 = superunit;
+	while ((NULL == new_instrx.unit) && (superunit != NULL))
+	{
+		new_instrx.unit = find_unit_in_superunit(name, superunit);
+		superunit = superunit->parent;
+		base_level++;
+	}
+	if ((new_instrx.unit != NULL) && (superunit != NULL))
+	{
+	        new_instrx.base_level = base_level;
+	        if (is_struct(parent_ptr))
+	        {
+	                new_instrx.base_level = 1;
+	        }
+	        if (new_instrx.base_level > 1)
+	        {
+	                new_instrx.ptr_source = new Instrx;
+	                new_instrx.ptr_source->unit = superunit_level_1;
+	        }
+	}
+}
+
 void id_unit(string name)
 {
 	Unit *superunit = parent_ptr;
@@ -1296,27 +1321,9 @@ void id_unit(string name)
 		        superunit = superunit->base;
 		}
 	}
-	int base_level = 0;
-	Unit* superunit_level_1 = superunit;
-	while ((NULL == new_instrx.unit) && (superunit != NULL))
-	{
-		new_instrx.unit = find_unit_in_superunit(name, superunit);
-		superunit = superunit->parent;
-		base_level++;
-	}
-	if ((new_instrx.unit != NULL) && (superunit != NULL))
-	{
-	        new_instrx.base_level = base_level;
-	        if (is_struct(parent_ptr))
-	        {
-	                new_instrx.base_level = 1;
-	        }
-	        if (new_instrx.base_level > 1)
-	        {
-	                new_instrx.ptr_source = new Instrx;
-	                new_instrx.ptr_source->unit = superunit_level_1;
-	        }
-	}
+        
+        find_unit_in_unit_base(name, superunit);
+        
 	superunit = parent_ptr;
 	
 	while ((NULL == new_instrx.unit) && (superunit != NULL) && (METHOD == superunit->mem_base))
