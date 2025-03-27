@@ -1277,50 +1277,11 @@ void find_unit_in_unit_base(string name, Unit *superunit)
 	}
 }
 
-void find_unit_method_ptr(string name, Unit *superunit)
-{
-        Unit *method_ptr_unit = superunit;
-        superunit = superunit->parent;
-        if (is_struct(superunit))
-        {
-                new_instrx.unit = find_unit_in_superunit(name, superunit);
-                if ((new_instrx.unit != NULL) && new_instrx.unit->mem_base)
-                {
-                        new_instrx.base_level = BASE_2_STRUCT;
-                }
-                return;
-        }
-        while ((NULL == new_instrx.unit) && (METHOD == superunit->type))
-        {
-                new_instrx.unit = find_unit_in_superunit(name, superunit);
-                if ((new_instrx.unit != NULL) && new_instrx.unit->mem_base)
-                {
-                        new_instrx.base_level = BASE_2_METHOD;
-                }
-                
-                if (METHOD == superunit->mem_base)
-                {
-                        superunit = superunit->parent;
-                }
-                else
-                {
-                        superunit = superunit->base;
-                }
-        }
-        
-        if (NULL == new_instrx.unit)
-        {
-                find_unit_in_unit_base(name, superunit);
-                if ((new_instrx.unit != NULL) && new_instrx.unit->mem_base)
-                {
-                        new_instrx.base_level += BASE_2_METHOD + 2;
-                }
-        }
-}
-
 void id_unit(string name)
 {
 	Unit *superunit = parent_ptr;
+	int num_method_ptrs = 0;
+	
 	while ((NULL == new_instrx.unit) && (superunit != NULL) && (METHOD == superunit->type))
 	{
 		new_instrx.unit = find_unit_in_superunit(name, superunit);
@@ -1332,8 +1293,20 @@ void id_unit(string name)
 		{
 		        if ((METHOD_PTR == superunit->mem_base) && (NULL == new_instrx.unit))
 		        {
-		                find_unit_method_ptr(name, superunit);
-		                break;
+		                if (is_struct(superunit->parent))
+		                {
+		                        new_instrx.unit = find_unit_in_superunit(name, superunit->parent);
+		                        if ((new_instrx.unit != NULL) && new_instrx.unit->mem_base)
+		                        {
+		                                new_instrx.base_level = BASE_2_STRUCT;
+		                        }
+		                        break;
+		                }
+		                else
+		                {
+		                        num_method_ptrs++;
+		                        superunit = superunit->parent;
+		                }
 		        }
 		        else
 		        {
@@ -1345,6 +1318,11 @@ void id_unit(string name)
         if ((NULL == new_instrx.unit) && (superunit->mem_base != METHOD_PTR))
         {
                 find_unit_in_unit_base(name, superunit);
+        }
+        
+        if ((new_instrx.unit != NULL) && new_instrx.unit->mem_base)
+        {
+                new_instrx.base_level += num_method_ptrs * BASE_2_METHOD;
         }
         
 	superunit = parent_ptr;
