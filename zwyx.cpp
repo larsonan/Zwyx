@@ -627,7 +627,11 @@ void load_base_2()
 
 void load_pointer_base(Instrx *instrx)
 {
-        if (instrx->base_level > 1)
+        if (instrx->base_level >= BASE_2_METHOD)
+        {
+                decrease_base_level(instrx->base_level, NULL);
+        }
+        else if (instrx->base_level > 1)
         {
                 decrease_base_level(instrx->base_level, instrx->ptr_source->unit);
         }
