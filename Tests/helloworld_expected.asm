@@ -336,6 +336,31 @@ mov	rax,	[rsp-16]
 mov	al,	[rsp-1]
 pop	rbx
 ret
+f18:
+push	rbx
+mov	rax,	[rbx+0]
+mov	[rbx+24],	rax
+b4:
+mov	rax,	[rbx+24]
+cmp	rax,	[rbx+8]
+setl	al
+movzx	rax,	al
+cmp	rax,	0
+je	b5
+mov	rdx,	[rbx+40]
+mov	rax,	[rbx+32]
+lea	rbx,	[rbx+0]
+sub	rsp,	0
+call	rax
+add	rsp,	0
+mov	rbx,	[rsp]
+mov	rax,	[rbx+24]
+add	rax,	[rbx+16]
+mov	[rbx+24],	rax
+jmp	b4
+b5:
+pop	rbx
+ret
 f0:
 mov	rax,	[rbx+0]
 mov	rdx,	[rbx+8]

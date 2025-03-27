@@ -41,26 +41,28 @@ Board~{
         Start~{
                 ;~{
                         p~@c_iter:@data
-                        n~int:0
                         c~int:46
-                        {n < 9}?*{
-                                p.el:c
-                                n:{n+1}
-                                p:{p+1}
+                        Counter.{
+                                end:9
+                                do:@{
+                                        p.el:c
+                                        p:{p+1}
+                                }  ;
                         }
                 }
         }
         Print~{
                 ;~{
                         p~@c_iter:@data
-                        n~int:0
-                        {n < 9}?*{
-                                print.c:p.el
-                                {{n % 3} = 2}?{
-                                        print.endl
-                                }
-                                n:{n+1}
-                                p:{p+1}
+                        Counter.{
+                                end:9
+                                do:@{
+                                        print.c:p.el
+                                        p:{p+1}
+                                        {{i % 3} = 2}?{
+                                                print.endl
+                                        }
+                                }  ;
                         }
                 }
         }

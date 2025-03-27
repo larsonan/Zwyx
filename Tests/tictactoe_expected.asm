@@ -1,46 +1,46 @@
 global	_start
 _start:
 lea	rbx,	[rsp-280]
-lea	rax,	[rel+f22]
+lea	rax,	[rel+f25]
 mov	[rbx+56],	rax
 mov	[rbx+64],	rbx
-lea	rax,	[rel+f23]
+lea	rax,	[rel+f26]
 mov	[rbx+88],	rax
 mov	[rbx+96],	rbx
-lea	rax,	[rel+f24]
+lea	rax,	[rel+f27]
 mov	[rbx+184],	rax
 mov	[rbx+192],	rbx
-lea	rax,	[rel+f25]
+lea	rax,	[rel+f28]
 mov	[rbx+152],	rax
 mov	[rbx+160],	rbx
-lea	rax,	[rel+f26]
+lea	rax,	[rel+f29]
 mov	[rbx+216],	rax
 mov	[rbx+224],	rbx
-lea	rax,	[rel+f27]
+lea	rax,	[rel+f30]
 mov	[rbx+104],	rax
 mov	[rbx+112],	rbx
-lea	rax,	[rel+f28]
+lea	rax,	[rel+f31]
 mov	[rbx+168],	rax
 mov	[rbx+176],	rbx
-lea	rax,	[rel+f29]
+lea	rax,	[rel+f32]
 mov	[rbx+136],	rax
 mov	[rbx+144],	rbx
-lea	rax,	[rel+f30]
+lea	rax,	[rel+f33]
 mov	[rbx+200],	rax
 mov	[rbx+208],	rbx
-lea	rax,	[rel+f31]
+lea	rax,	[rel+f34]
 mov	[rbx+120],	rax
 mov	[rbx+128],	rbx
-lea	rax,	[rel+f32]
+lea	rax,	[rel+f35]
 mov	[rbx+232],	rax
 mov	[rbx+240],	rbx
-lea	rax,	[rel+f33]
+lea	rax,	[rel+f36]
 mov	[rbx+72],	rax
 mov	[rbx+80],	rbx
-lea	rax,	[rel+f34]
+lea	rax,	[rel+f37]
 mov	[rbx+248],	rax
 mov	[rbx+256],	rbx
-lea	rax,	[rel+f35]
+lea	rax,	[rel+f38]
 mov	[rbx+264],	rax
 mov	[rbx+272],	rbx
 mov	rbx,	[rsp]
@@ -48,7 +48,7 @@ lea	rax,	[rsp-280]
 mov	[rsp-288],	rax
 lea	rbx,	[rsp-288]
 sub	rsp,	288
-call	f20
+call	f21
 add	rsp,	288
 mov	rbx,	[rsp]
 lea	rax,	[rsp-280]
@@ -64,7 +64,7 @@ mov	qword	[rbx+8],	88
 mov	rbx,	[rsp]
 lea	rbx,	[rsp-328]
 sub	rsp,	328
-call	f19
+call	f20
 add	rsp,	328
 mov	rbx,	[rsp]
 lea	rax,	[rsp-296]
@@ -102,7 +102,7 @@ lea	rax,	[rsp-280]
 mov	[rsp-288],	rax
 lea	rbx,	[rsp-288]
 sub	rsp,	288
-call	f21
+call	f23
 add	rsp,	288
 mov	rbx,	[rsp]
 mov	qword	[rsp-296],	s1
@@ -226,7 +226,7 @@ mov	qword	[rbx+8],	46
 mov	rbx,	[rsp]
 lea	rbx,	[rsp-352]
 sub	rsp,	352
-call	f18
+call	f19
 add	rsp,	352
 mov	rbx,	[rsp]
 cmp	rax,	0
@@ -246,7 +246,7 @@ mov	qword	[rbx+8],	79
 mov	rbx,	[rsp]
 lea	rbx,	[rsp-352]
 sub	rsp,	352
-call	f19
+call	f20
 add	rsp,	352
 mov	rbx,	[rsp]
 mov	rdx,	[rsp-232]
@@ -271,7 +271,7 @@ mov	qword	[rbx+8],	88
 mov	rbx,	[rsp]
 lea	rbx,	[rsp-352]
 sub	rsp,	352
-call	f19
+call	f20
 add	rsp,	352
 mov	rbx,	[rsp]
 jmp	b8
@@ -298,7 +298,7 @@ lea	rax,	[rsp-280]
 mov	[rsp-288],	rax
 lea	rbx,	[rsp-288]
 sub	rsp,	288
-call	f21
+call	f23
 add	rsp,	288
 mov	rbx,	[rsp]
 lea	rax,	[rsp-296]
@@ -670,6 +670,31 @@ pop	rbx
 ret
 f18:
 push	rbx
+mov	rax,	[rbx+0]
+mov	[rbx+24],	rax
+b15:
+mov	rax,	[rbx+24]
+cmp	rax,	[rbx+8]
+setl	al
+movzx	rax,	al
+cmp	rax,	0
+je	b16
+mov	rdx,	[rbx+40]
+mov	rax,	[rbx+32]
+lea	rbx,	[rbx+0]
+sub	rsp,	0
+call	rax
+add	rsp,	0
+mov	rbx,	[rsp]
+mov	rax,	[rbx+24]
+add	rax,	[rbx+16]
+mov	[rbx+24],	rax
+jmp	b15
+b16:
+pop	rbx
+ret
+f19:
+push	rbx
 mov	rcx,	[rbx+0]
 mov	rcx,	[rcx+0]
 mov	rcx,	[rcx+0]
@@ -700,7 +725,7 @@ sete	al
 movzx	rax,	al
 pop	rbx
 ret
-f19:
+f20:
 push	rbx
 mov	rcx,	[rbx+0]
 mov	rcx,	[rcx+0]
@@ -728,62 +753,88 @@ mov	rcx,	[rsp-8]
 mov	[rcx+0],	al
 pop	rbx
 ret
-f20:
-push	rbx
-mov	rcx,	[rbx+0]
-lea	rax,	[rcx+0]
-mov	[rsp-8],	rax
-mov	qword	[rsp-16],	0
-mov	qword	[rsp-24],	46
-b15:
-mov	rax,	[rsp-16]
-cmp	rax,	9
-setl	al
-movzx	rax,	al
-cmp	rax,	0
-je	b16
-mov	rax,	[rsp-24]
-mov	rcx,	[rsp-8]
-mov	[rcx+0],	al
-mov	rax,	[rsp-16]
-add	rax,	1
-mov	[rsp-16],	rax
-mov	rax,	[rsp-8]
-add	rax,	1
-mov	[rsp-8],	rax
-jmp	b15
-b16:
-pop	rbx
-ret
 f21:
 push	rbx
 mov	rcx,	[rbx+0]
 lea	rax,	[rcx+0]
 mov	[rsp-8],	rax
-mov	qword	[rsp-16],	0
-b17:
-mov	rax,	[rsp-16]
-cmp	rax,	9
-setl	al
-movzx	rax,	al
-cmp	rax,	0
-je	b18
-mov	rcx,	[rsp-8]
+mov	qword	[rsp-16],	46
+lea	rbx,	[rsp-64]
+mov	qword	[rbx+0],	0
+mov	qword	[rbx+16],	1
+mov	rbx,	[rsp]
+mov	qword	[rsp-56],	9
+lea	rax,	[rel+f22]
+mov	[rsp-32],	rax
+mov	[rsp-24],	rsp
+lea	rbx,	[rsp-64]
+sub	rsp,	64
+call	f18
+add	rsp,	64
+mov	rbx,	[rsp]
+pop	rbx
+ret
+f22:
+push	rdx
+push	rbx
+mov	rcx,	[rsp+8]
+mov	rax,	[rcx-16]
+mov	rcx,	[rsp+8]
+mov	rcx,	[rcx-8]
+mov	[rcx+0],	al
+mov	rcx,	[rsp+8]
+mov	rax,	[rcx-8]
+add	rax,	1
+mov	rcx,	[rsp+8]
+mov	[rcx-8],	rax
+pop	rbx
+pop	rdx
+ret
+f23:
+push	rbx
+mov	rcx,	[rbx+0]
+lea	rax,	[rcx+0]
+mov	[rsp-8],	rax
+lea	rbx,	[rsp-56]
+mov	qword	[rbx+0],	0
+mov	qword	[rbx+16],	1
+mov	rbx,	[rsp]
+mov	qword	[rsp-48],	9
+lea	rax,	[rel+f24]
+mov	[rsp-24],	rax
+mov	[rsp-16],	rsp
+lea	rbx,	[rsp-56]
+sub	rsp,	56
+call	f18
+add	rsp,	56
+mov	rbx,	[rsp]
+pop	rbx
+ret
+f24:
+push	rdx
+push	rbx
+mov	rcx,	[rsp+8]
+mov	rcx,	[rcx-8]
 mov	al,	[rcx+0]
-mov	[rsp-56],	rax
-lea	rax,	[rsp-48]
-mov	[rsp-64],	rax
-lea	rbx,	[rsp-48]
+mov	[rsp-40],	rax
+lea	rax,	[rsp-32]
+mov	[rsp-48],	rax
+lea	rbx,	[rsp-32]
 lea	rax,	[rel+f9]
 mov	[rbx+0],	rax
 mov	[rbx+8],	rbx
 mov	rbx,	[rsp]
-lea	rbx,	[rsp-64]
-sub	rsp,	64
+lea	rbx,	[rsp-48]
+sub	rsp,	48
 call	f5
-add	rsp,	64
+add	rsp,	48
 mov	rbx,	[rsp]
-mov	rax,	[rsp-16]
+mov	rcx,	[rsp+8]
+mov	rax,	[rcx-8]
+add	rax,	1
+mov	rcx,	[rsp+8]
+mov	[rcx-8],	rax
+mov	rax,	[rbx+24]
 xor	rdx,	rdx
 mov	qword	rcx,	3
 div	qword	rcx
@@ -792,269 +843,20 @@ cmp	rax,	2
 sete	al
 movzx	rax,	al
 cmp	rax,	0
-je	b19
-lea	rax,	[rsp-48]
-mov	[rsp-56],	rax
-lea	rbx,	[rsp-48]
+je	b17
+lea	rax,	[rsp-32]
+mov	[rsp-40],	rax
+lea	rbx,	[rsp-32]
 lea	rax,	[rel+f9]
 mov	[rbx+0],	rax
 mov	[rbx+8],	rbx
 mov	rbx,	[rsp]
-lea	rbx,	[rsp-56]
-sub	rsp,	56
+lea	rbx,	[rsp-40]
+sub	rsp,	40
 call	f6
-add	rsp,	56
+add	rsp,	40
 mov	rbx,	[rsp]
-b19:
-mov	rax,	[rsp-16]
-add	rax,	1
-mov	[rsp-16],	rax
-mov	rax,	[rsp-8]
-add	rax,	1
-mov	[rsp-8],	rax
-jmp	b17
-b18:
-pop	rbx
-ret
-f22:
-push	rdx
-push	rbx
-mov	rcx,	[rsp+8]
-mov	rax,	[rcx+24]
-cmp	rax,	1
-sete	al
-movzx	rax,	al
-mov	[rsp-8],	rax
-mov	rcx,	[rsp+8]
-mov	rax,	[rcx+32]
-cmp	rax,	1
-sete	al
-movzx	rax,	al
-mov	[rsp-16],	rax
-mov	rax,	[rsp-8]
-and	rax,	[rsp-16]
-cmp	rax,	0
-je	b20
-mov	rcx,	[rsp+8]
-mov	qword	[rcx+24],	0
-mov	rcx,	[rsp+8]
-mov	qword	[rcx+32],	1
-mov	rcx,	[rsp+8]
-mov	rax,	[rcx+72]
-mov	rdx,	[rcx+80]
-mov	rcx,	[rsp+8]
-mov	[rcx+40],	rax
-mov	[rcx+48],	rdx
-jmp	b21
-b20:
-mov	rcx,	[rsp+8]
-mov	rax,	[rcx+24]
-cmp	rax,	1
-sete	al
-movzx	rax,	al
-cmp	rax,	0
-je	b22
-mov	rcx,	[rsp+8]
-mov	qword	[rcx+24],	1
-mov	rcx,	[rsp+8]
-mov	qword	[rcx+32],	1
-mov	rcx,	[rsp+8]
-mov	rax,	[rcx+104]
-mov	rdx,	[rcx+112]
-mov	rcx,	[rsp+8]
-mov	[rcx+40],	rax
-mov	[rcx+48],	rdx
-jmp	b23
-b22:
-mov	rcx,	[rsp+8]
-mov	rax,	[rcx+32]
-cmp	rax,	1
-sete	al
-movzx	rax,	al
-cmp	rax,	0
-je	b24
-mov	rcx,	[rsp+8]
-mov	qword	[rcx+24],	1
-mov	rcx,	[rsp+8]
-mov	qword	[rcx+32],	1
-mov	rcx,	[rsp+8]
-mov	rax,	[rcx+88]
-mov	rdx,	[rcx+96]
-mov	rcx,	[rsp+8]
-mov	[rcx+40],	rax
-mov	[rcx+48],	rdx
-jmp	b25
-b24:
-mov	rcx,	[rsp+8]
-mov	rax,	[rcx+24]
-cmp	rax,	0
-sete	al
-movzx	rax,	al
-mov	[rsp-8],	rax
-mov	rcx,	[rsp+8]
-mov	rax,	[rcx+32]
-cmp	rax,	2
-sete	al
-movzx	rax,	al
-mov	[rsp-16],	rax
-mov	rax,	[rsp-8]
-and	rax,	[rsp-16]
-cmp	rax,	0
-je	b26
-mov	rcx,	[rsp+8]
-mov	qword	[rcx+24],	2
-mov	rcx,	[rsp+8]
-mov	qword	[rcx+32],	2
-mov	rcx,	[rsp+8]
-mov	rax,	[rcx+152]
-mov	rdx,	[rcx+160]
-mov	rcx,	[rsp+8]
-mov	[rcx+40],	rax
-mov	[rcx+48],	rdx
-jmp	b27
-b26:
-mov	rcx,	[rsp+8]
-mov	rax,	[rcx+24]
-cmp	rax,	2
-sete	al
-movzx	rax,	al
-mov	[rsp-8],	rax
-mov	rcx,	[rsp+8]
-mov	rax,	[rcx+32]
-cmp	rax,	0
-sete	al
-movzx	rax,	al
-mov	[rsp-16],	rax
-mov	rax,	[rsp-8]
-and	rax,	[rsp-16]
-cmp	rax,	0
-je	b28
-mov	rcx,	[rsp+8]
-mov	qword	[rcx+24],	2
-mov	rcx,	[rsp+8]
-mov	qword	[rcx+32],	2
-mov	rcx,	[rsp+8]
-mov	rax,	[rcx+136]
-mov	rdx,	[rcx+144]
-mov	rcx,	[rsp+8]
-mov	[rcx+40],	rax
-mov	[rcx+48],	rdx
-jmp	b29
-b28:
-mov	rcx,	[rsp+8]
-mov	qword	[rcx+24],	2
-mov	rcx,	[rsp+8]
-mov	qword	[rcx+32],	0
-mov	rcx,	[rsp+8]
-mov	rax,	[rcx+120]
-mov	rdx,	[rcx+128]
-mov	rcx,	[rsp+8]
-mov	[rcx+40],	rax
-mov	[rcx+48],	rdx
-b29:
-b27:
-b25:
-b23:
-b21:
-pop	rbx
-pop	rdx
-ret
-f23:
-push	rdx
-push	rbx
-mov	rcx,	[rsp+8]
-mov	rax,	[rcx+24]
-cmp	rax,	2
-sete	al
-movzx	rax,	al
-mov	[rsp-8],	rax
-mov	rcx,	[rsp+8]
-mov	rax,	[rcx+32]
-cmp	rax,	2
-sete	al
-movzx	rax,	al
-mov	[rsp-16],	rax
-mov	rax,	[rsp-8]
-and	rax,	[rsp-16]
-cmp	rax,	0
-je	b30
-mov	rcx,	[rsp+8]
-mov	qword	[rcx+24],	2
-mov	rcx,	[rsp+8]
-mov	qword	[rcx+32],	0
-mov	rcx,	[rsp+8]
-mov	rax,	[rcx+184]
-mov	rdx,	[rcx+192]
-mov	rcx,	[rsp+8]
-mov	[rcx+40],	rax
-mov	[rcx+48],	rdx
-jmp	b31
-b30:
-mov	rcx,	[rsp+8]
-mov	qword	[rcx+24],	2
-mov	rcx,	[rsp+8]
-mov	qword	[rcx+32],	2
-lea	rax,	[rsp-16]
-mov	[rsp-24],	rax
-lea	rax,	[rcx+16]
-mov	[rsp-16],	rax
-lea	rbx,	[rsp-16]
-mov	qword	[rbx+8],	2
-mov	rbx,	[rsp]
-lea	rbx,	[rsp-24]
-sub	rsp,	24
-call	f16
-add	rsp,	24
-mov	rbx,	[rsp]
-b31:
-pop	rbx
-pop	rdx
-ret
-f24:
-push	rdx
-push	rbx
-mov	rcx,	[rsp+8]
-mov	rax,	[rcx+32]
-cmp	rax,	0
-sete	al
-movzx	rax,	al
-cmp	rax,	0
-je	b32
-mov	rcx,	[rsp+8]
-mov	qword	[rcx+24],	0
-mov	rcx,	[rsp+8]
-mov	qword	[rcx+32],	2
-lea	rax,	[rsp-16]
-mov	[rsp-24],	rax
-lea	rax,	[rcx+16]
-mov	[rsp-16],	rax
-lea	rbx,	[rsp-16]
-mov	qword	[rbx+8],	2
-mov	rbx,	[rsp]
-lea	rbx,	[rsp-24]
-sub	rsp,	24
-call	f16
-add	rsp,	24
-mov	rbx,	[rsp]
-jmp	b33
-b32:
-mov	rcx,	[rsp+8]
-mov	qword	[rcx+24],	1
-mov	rcx,	[rsp+8]
-mov	qword	[rcx+32],	0
-lea	rax,	[rsp-16]
-mov	[rsp-24],	rax
-lea	rax,	[rcx+16]
-mov	[rsp-16],	rax
-lea	rbx,	[rsp-16]
-mov	qword	[rbx+8],	2
-mov	rbx,	[rsp]
-lea	rbx,	[rsp-24]
-sub	rsp,	24
-call	f16
-add	rsp,	24
-mov	rbx,	[rsp]
-b33:
+b17:
 pop	rbx
 pop	rdx
 ret
@@ -1076,88 +878,132 @@ mov	[rsp-16],	rax
 mov	rax,	[rsp-8]
 and	rax,	[rsp-16]
 cmp	rax,	0
-je	b34
+je	b18
 mov	rcx,	[rsp+8]
-mov	qword	[rcx+24],	2
+mov	qword	[rcx+24],	0
 mov	rcx,	[rsp+8]
-mov	qword	[rcx+32],	0
+mov	qword	[rcx+32],	1
 mov	rcx,	[rsp+8]
-mov	rax,	[rcx+216]
-mov	rdx,	[rcx+224]
+mov	rax,	[rcx+72]
+mov	rdx,	[rcx+80]
 mov	rcx,	[rsp+8]
 mov	[rcx+40],	rax
 mov	[rcx+48],	rdx
-jmp	b35
-b34:
+jmp	b19
+b18:
+mov	rcx,	[rsp+8]
+mov	rax,	[rcx+24]
+cmp	rax,	1
+sete	al
+movzx	rax,	al
+cmp	rax,	0
+je	b20
 mov	rcx,	[rsp+8]
 mov	qword	[rcx+24],	1
 mov	rcx,	[rsp+8]
 mov	qword	[rcx+32],	1
-lea	rax,	[rsp-16]
-mov	[rsp-24],	rax
-lea	rax,	[rcx+16]
+mov	rcx,	[rsp+8]
+mov	rax,	[rcx+104]
+mov	rdx,	[rcx+112]
+mov	rcx,	[rsp+8]
+mov	[rcx+40],	rax
+mov	[rcx+48],	rdx
+jmp	b21
+b20:
+mov	rcx,	[rsp+8]
+mov	rax,	[rcx+32]
+cmp	rax,	1
+sete	al
+movzx	rax,	al
+cmp	rax,	0
+je	b22
+mov	rcx,	[rsp+8]
+mov	qword	[rcx+24],	1
+mov	rcx,	[rsp+8]
+mov	qword	[rcx+32],	1
+mov	rcx,	[rsp+8]
+mov	rax,	[rcx+88]
+mov	rdx,	[rcx+96]
+mov	rcx,	[rsp+8]
+mov	[rcx+40],	rax
+mov	[rcx+48],	rdx
+jmp	b23
+b22:
+mov	rcx,	[rsp+8]
+mov	rax,	[rcx+24]
+cmp	rax,	0
+sete	al
+movzx	rax,	al
+mov	[rsp-8],	rax
+mov	rcx,	[rsp+8]
+mov	rax,	[rcx+32]
+cmp	rax,	2
+sete	al
+movzx	rax,	al
 mov	[rsp-16],	rax
-lea	rbx,	[rsp-16]
-mov	qword	[rbx+8],	2
-mov	rbx,	[rsp]
-lea	rbx,	[rsp-24]
-sub	rsp,	24
-call	f16
-add	rsp,	24
-mov	rbx,	[rsp]
-b35:
-pop	rbx
-pop	rdx
-ret
-f26:
-push	rdx
-push	rbx
+mov	rax,	[rsp-8]
+and	rax,	[rsp-16]
+cmp	rax,	0
+je	b24
+mov	rcx,	[rsp+8]
+mov	qword	[rcx+24],	2
+mov	rcx,	[rsp+8]
+mov	qword	[rcx+32],	2
+mov	rcx,	[rsp+8]
+mov	rax,	[rcx+152]
+mov	rdx,	[rcx+160]
+mov	rcx,	[rsp+8]
+mov	[rcx+40],	rax
+mov	[rcx+48],	rdx
+jmp	b25
+b24:
+mov	rcx,	[rsp+8]
+mov	rax,	[rcx+24]
+cmp	rax,	2
+sete	al
+movzx	rax,	al
+mov	[rsp-8],	rax
 mov	rcx,	[rsp+8]
 mov	rax,	[rcx+32]
 cmp	rax,	0
 sete	al
 movzx	rax,	al
+mov	[rsp-16],	rax
+mov	rax,	[rsp-8]
+and	rax,	[rsp-16]
 cmp	rax,	0
-je	b36
+je	b26
 mov	rcx,	[rsp+8]
 mov	qword	[rcx+24],	2
 mov	rcx,	[rsp+8]
-mov	qword	[rcx+32],	1
-lea	rax,	[rsp-16]
-mov	[rsp-24],	rax
-lea	rax,	[rcx+16]
-mov	[rsp-16],	rax
-lea	rbx,	[rsp-16]
-mov	qword	[rbx+8],	2
-mov	rbx,	[rsp]
-lea	rbx,	[rsp-24]
-sub	rsp,	24
-call	f16
-add	rsp,	24
-mov	rbx,	[rsp]
-jmp	b37
-b36:
+mov	qword	[rcx+32],	2
 mov	rcx,	[rsp+8]
-mov	qword	[rcx+24],	1
+mov	rax,	[rcx+136]
+mov	rdx,	[rcx+144]
+mov	rcx,	[rsp+8]
+mov	[rcx+40],	rax
+mov	[rcx+48],	rdx
+jmp	b27
+b26:
+mov	rcx,	[rsp+8]
+mov	qword	[rcx+24],	2
 mov	rcx,	[rsp+8]
 mov	qword	[rcx+32],	0
-lea	rax,	[rsp-16]
-mov	[rsp-24],	rax
-lea	rax,	[rcx+16]
-mov	[rsp-16],	rax
-lea	rbx,	[rsp-16]
-mov	qword	[rbx+8],	2
-mov	rbx,	[rsp]
-lea	rbx,	[rsp-24]
-sub	rsp,	24
-call	f16
-add	rsp,	24
-mov	rbx,	[rsp]
-b37:
+mov	rcx,	[rsp+8]
+mov	rax,	[rcx+120]
+mov	rdx,	[rcx+128]
+mov	rcx,	[rsp+8]
+mov	[rcx+40],	rax
+mov	[rcx+48],	rdx
+b27:
+b25:
+b23:
+b21:
+b19:
 pop	rbx
 pop	rdx
 ret
-f27:
+f26:
 push	rdx
 push	rbx
 mov	rcx,	[rsp+8]
@@ -1175,19 +1021,19 @@ mov	[rsp-16],	rax
 mov	rax,	[rsp-8]
 and	rax,	[rsp-16]
 cmp	rax,	0
-je	b38
+je	b28
 mov	rcx,	[rsp+8]
-mov	qword	[rcx+24],	0
+mov	qword	[rcx+24],	2
 mov	rcx,	[rsp+8]
-mov	qword	[rcx+32],	2
+mov	qword	[rcx+32],	0
 mov	rcx,	[rsp+8]
-mov	rax,	[rcx+168]
-mov	rdx,	[rcx+176]
+mov	rax,	[rcx+184]
+mov	rdx,	[rcx+192]
 mov	rcx,	[rsp+8]
 mov	[rcx+40],	rax
 mov	[rcx+48],	rdx
-jmp	b39
-b38:
+jmp	b29
+b28:
 mov	rcx,	[rsp+8]
 mov	qword	[rcx+24],	2
 mov	rcx,	[rsp+8]
@@ -1204,7 +1050,55 @@ sub	rsp,	24
 call	f16
 add	rsp,	24
 mov	rbx,	[rsp]
-b39:
+b29:
+pop	rbx
+pop	rdx
+ret
+f27:
+push	rdx
+push	rbx
+mov	rcx,	[rsp+8]
+mov	rax,	[rcx+32]
+cmp	rax,	0
+sete	al
+movzx	rax,	al
+cmp	rax,	0
+je	b30
+mov	rcx,	[rsp+8]
+mov	qword	[rcx+24],	0
+mov	rcx,	[rsp+8]
+mov	qword	[rcx+32],	2
+lea	rax,	[rsp-16]
+mov	[rsp-24],	rax
+lea	rax,	[rcx+16]
+mov	[rsp-16],	rax
+lea	rbx,	[rsp-16]
+mov	qword	[rbx+8],	2
+mov	rbx,	[rsp]
+lea	rbx,	[rsp-24]
+sub	rsp,	24
+call	f16
+add	rsp,	24
+mov	rbx,	[rsp]
+jmp	b31
+b30:
+mov	rcx,	[rsp+8]
+mov	qword	[rcx+24],	1
+mov	rcx,	[rsp+8]
+mov	qword	[rcx+32],	0
+lea	rax,	[rsp-16]
+mov	[rsp-24],	rax
+lea	rax,	[rcx+16]
+mov	[rsp-16],	rax
+lea	rbx,	[rsp-16]
+mov	qword	[rbx+8],	2
+mov	rbx,	[rsp]
+lea	rbx,	[rsp-24]
+sub	rsp,	24
+call	f16
+add	rsp,	24
+mov	rbx,	[rsp]
+b31:
 pop	rbx
 pop	rdx
 ret
@@ -1213,11 +1107,161 @@ push	rdx
 push	rbx
 mov	rcx,	[rsp+8]
 mov	rax,	[rcx+24]
+cmp	rax,	1
+sete	al
+movzx	rax,	al
+mov	[rsp-8],	rax
+mov	rcx,	[rsp+8]
+mov	rax,	[rcx+32]
+cmp	rax,	1
+sete	al
+movzx	rax,	al
+mov	[rsp-16],	rax
+mov	rax,	[rsp-8]
+and	rax,	[rsp-16]
+cmp	rax,	0
+je	b32
+mov	rcx,	[rsp+8]
+mov	qword	[rcx+24],	2
+mov	rcx,	[rsp+8]
+mov	qword	[rcx+32],	0
+mov	rcx,	[rsp+8]
+mov	rax,	[rcx+216]
+mov	rdx,	[rcx+224]
+mov	rcx,	[rsp+8]
+mov	[rcx+40],	rax
+mov	[rcx+48],	rdx
+jmp	b33
+b32:
+mov	rcx,	[rsp+8]
+mov	qword	[rcx+24],	1
+mov	rcx,	[rsp+8]
+mov	qword	[rcx+32],	1
+lea	rax,	[rsp-16]
+mov	[rsp-24],	rax
+lea	rax,	[rcx+16]
+mov	[rsp-16],	rax
+lea	rbx,	[rsp-16]
+mov	qword	[rbx+8],	2
+mov	rbx,	[rsp]
+lea	rbx,	[rsp-24]
+sub	rsp,	24
+call	f16
+add	rsp,	24
+mov	rbx,	[rsp]
+b33:
+pop	rbx
+pop	rdx
+ret
+f29:
+push	rdx
+push	rbx
+mov	rcx,	[rsp+8]
+mov	rax,	[rcx+32]
 cmp	rax,	0
 sete	al
 movzx	rax,	al
 cmp	rax,	0
-je	b40
+je	b34
+mov	rcx,	[rsp+8]
+mov	qword	[rcx+24],	2
+mov	rcx,	[rsp+8]
+mov	qword	[rcx+32],	1
+lea	rax,	[rsp-16]
+mov	[rsp-24],	rax
+lea	rax,	[rcx+16]
+mov	[rsp-16],	rax
+lea	rbx,	[rsp-16]
+mov	qword	[rbx+8],	2
+mov	rbx,	[rsp]
+lea	rbx,	[rsp-24]
+sub	rsp,	24
+call	f16
+add	rsp,	24
+mov	rbx,	[rsp]
+jmp	b35
+b34:
+mov	rcx,	[rsp+8]
+mov	qword	[rcx+24],	1
+mov	rcx,	[rsp+8]
+mov	qword	[rcx+32],	0
+lea	rax,	[rsp-16]
+mov	[rsp-24],	rax
+lea	rax,	[rcx+16]
+mov	[rsp-16],	rax
+lea	rbx,	[rsp-16]
+mov	qword	[rbx+8],	2
+mov	rbx,	[rsp]
+lea	rbx,	[rsp-24]
+sub	rsp,	24
+call	f16
+add	rsp,	24
+mov	rbx,	[rsp]
+b35:
+pop	rbx
+pop	rdx
+ret
+f30:
+push	rdx
+push	rbx
+mov	rcx,	[rsp+8]
+mov	rax,	[rcx+24]
+cmp	rax,	2
+sete	al
+movzx	rax,	al
+mov	[rsp-8],	rax
+mov	rcx,	[rsp+8]
+mov	rax,	[rcx+32]
+cmp	rax,	2
+sete	al
+movzx	rax,	al
+mov	[rsp-16],	rax
+mov	rax,	[rsp-8]
+and	rax,	[rsp-16]
+cmp	rax,	0
+je	b36
+mov	rcx,	[rsp+8]
+mov	qword	[rcx+24],	0
+mov	rcx,	[rsp+8]
+mov	qword	[rcx+32],	2
+mov	rcx,	[rsp+8]
+mov	rax,	[rcx+168]
+mov	rdx,	[rcx+176]
+mov	rcx,	[rsp+8]
+mov	[rcx+40],	rax
+mov	[rcx+48],	rdx
+jmp	b37
+b36:
+mov	rcx,	[rsp+8]
+mov	qword	[rcx+24],	2
+mov	rcx,	[rsp+8]
+mov	qword	[rcx+32],	2
+lea	rax,	[rsp-16]
+mov	[rsp-24],	rax
+lea	rax,	[rcx+16]
+mov	[rsp-16],	rax
+lea	rbx,	[rsp-16]
+mov	qword	[rbx+8],	2
+mov	rbx,	[rsp]
+lea	rbx,	[rsp-24]
+sub	rsp,	24
+call	f16
+add	rsp,	24
+mov	rbx,	[rsp]
+b37:
+pop	rbx
+pop	rdx
+ret
+f31:
+push	rdx
+push	rbx
+mov	rcx,	[rsp+8]
+mov	rax,	[rcx+24]
+cmp	rax,	0
+sete	al
+movzx	rax,	al
+cmp	rax,	0
+je	b38
 mov	rcx,	[rsp+8]
 mov	qword	[rcx+24],	2
 mov	rcx,	[rsp+8]
@@ -1234,10 +1278,61 @@ sub	rsp,	24
 call	f16
 add	rsp,	24
 mov	rbx,	[rsp]
+jmp	b39
+b38:
+mov	rcx,	[rsp+8]
+mov	qword	[rcx+24],	0
+mov	rcx,	[rsp+8]
+mov	qword	[rcx+32],	1
+lea	rax,	[rsp-16]
+mov	[rsp-24],	rax
+lea	rax,	[rcx+16]
+mov	[rsp-16],	rax
+lea	rbx,	[rsp-16]
+mov	qword	[rbx+8],	2
+mov	rbx,	[rsp]
+lea	rbx,	[rsp-24]
+sub	rsp,	24
+call	f16
+add	rsp,	24
+mov	rbx,	[rsp]
+b39:
+pop	rbx
+pop	rdx
+ret
+f32:
+push	rdx
+push	rbx
+mov	rcx,	[rsp+8]
+mov	rax,	[rcx+24]
+cmp	rax,	1
+sete	al
+movzx	rax,	al
+mov	[rsp-8],	rax
+mov	rcx,	[rsp+8]
+mov	rax,	[rcx+32]
+cmp	rax,	1
+sete	al
+movzx	rax,	al
+mov	[rsp-16],	rax
+mov	rax,	[rsp-8]
+and	rax,	[rsp-16]
+cmp	rax,	0
+je	b40
+mov	rcx,	[rsp+8]
+mov	qword	[rcx+24],	0
+mov	rcx,	[rsp+8]
+mov	qword	[rcx+32],	2
+mov	rcx,	[rsp+8]
+mov	rax,	[rcx+200]
+mov	rdx,	[rcx+208]
+mov	rcx,	[rsp+8]
+mov	[rcx+40],	rax
+mov	[rcx+48],	rdx
 jmp	b41
 b40:
 mov	rcx,	[rsp+8]
-mov	qword	[rcx+24],	0
+mov	qword	[rcx+24],	1
 mov	rcx,	[rsp+8]
 mov	qword	[rcx+32],	1
 lea	rax,	[rsp-16]
@@ -1256,39 +1351,36 @@ b41:
 pop	rbx
 pop	rdx
 ret
-f29:
+f33:
 push	rdx
 push	rbx
 mov	rcx,	[rsp+8]
 mov	rax,	[rcx+24]
-cmp	rax,	1
+cmp	rax,	0
 sete	al
 movzx	rax,	al
-mov	[rsp-8],	rax
-mov	rcx,	[rsp+8]
-mov	rax,	[rcx+32]
-cmp	rax,	1
-sete	al
-movzx	rax,	al
-mov	[rsp-16],	rax
-mov	rax,	[rsp-8]
-and	rax,	[rsp-16]
 cmp	rax,	0
 je	b42
 mov	rcx,	[rsp+8]
-mov	qword	[rcx+24],	0
+mov	qword	[rcx+24],	1
 mov	rcx,	[rsp+8]
 mov	qword	[rcx+32],	2
-mov	rcx,	[rsp+8]
-mov	rax,	[rcx+200]
-mov	rdx,	[rcx+208]
-mov	rcx,	[rsp+8]
-mov	[rcx+40],	rax
-mov	[rcx+48],	rdx
+lea	rax,	[rsp-16]
+mov	[rsp-24],	rax
+lea	rax,	[rcx+16]
+mov	[rsp-16],	rax
+lea	rbx,	[rsp-16]
+mov	qword	[rbx+8],	2
+mov	rbx,	[rsp]
+lea	rbx,	[rsp-24]
+sub	rsp,	24
+call	f16
+add	rsp,	24
+mov	rbx,	[rsp]
 jmp	b43
 b42:
 mov	rcx,	[rsp+8]
-mov	qword	[rcx+24],	1
+mov	qword	[rcx+24],	0
 mov	rcx,	[rsp+8]
 mov	qword	[rcx+32],	1
 lea	rax,	[rsp-16]
@@ -1307,55 +1399,7 @@ b43:
 pop	rbx
 pop	rdx
 ret
-f30:
-push	rdx
-push	rbx
-mov	rcx,	[rsp+8]
-mov	rax,	[rcx+24]
-cmp	rax,	0
-sete	al
-movzx	rax,	al
-cmp	rax,	0
-je	b44
-mov	rcx,	[rsp+8]
-mov	qword	[rcx+24],	1
-mov	rcx,	[rsp+8]
-mov	qword	[rcx+32],	2
-lea	rax,	[rsp-16]
-mov	[rsp-24],	rax
-lea	rax,	[rcx+16]
-mov	[rsp-16],	rax
-lea	rbx,	[rsp-16]
-mov	qword	[rbx+8],	2
-mov	rbx,	[rsp]
-lea	rbx,	[rsp-24]
-sub	rsp,	24
-call	f16
-add	rsp,	24
-mov	rbx,	[rsp]
-jmp	b45
-b44:
-mov	rcx,	[rsp+8]
-mov	qword	[rcx+24],	0
-mov	rcx,	[rsp+8]
-mov	qword	[rcx+32],	1
-lea	rax,	[rsp-16]
-mov	[rsp-24],	rax
-lea	rax,	[rcx+16]
-mov	[rsp-16],	rax
-lea	rbx,	[rsp-16]
-mov	qword	[rbx+8],	2
-mov	rbx,	[rsp]
-lea	rbx,	[rsp-24]
-sub	rsp,	24
-call	f16
-add	rsp,	24
-mov	rbx,	[rsp]
-b45:
-pop	rbx
-pop	rdx
-ret
-f31:
+f34:
 push	rdx
 push	rbx
 mov	rcx,	[rsp+8]
@@ -1364,7 +1408,7 @@ cmp	rax,	0
 sete	al
 movzx	rax,	al
 cmp	rax,	0
-je	b46
+je	b44
 mov	rcx,	[rsp+8]
 mov	qword	[rcx+24],	0
 mov	rcx,	[rsp+8]
@@ -1375,8 +1419,8 @@ mov	rdx,	[rcx+240]
 mov	rcx,	[rsp+8]
 mov	[rcx+40],	rax
 mov	[rcx+48],	rdx
-jmp	b47
-b46:
+jmp	b45
+b44:
 mov	rcx,	[rsp+8]
 mov	qword	[rcx+24],	1
 mov	rcx,	[rsp+8]
@@ -1393,11 +1437,11 @@ sub	rsp,	24
 call	f16
 add	rsp,	24
 mov	rbx,	[rsp]
-b47:
+b45:
 pop	rbx
 pop	rdx
 ret
-f32:
+f35:
 push	rdx
 push	rbx
 mov	rcx,	[rsp+8]
@@ -1406,7 +1450,7 @@ cmp	rax,	0
 sete	al
 movzx	rax,	al
 cmp	rax,	0
-je	b48
+je	b46
 mov	rcx,	[rsp+8]
 mov	qword	[rcx+24],	1
 mov	rcx,	[rsp+8]
@@ -1423,8 +1467,8 @@ sub	rsp,	24
 call	f16
 add	rsp,	24
 mov	rbx,	[rsp]
-jmp	b49
-b48:
+jmp	b47
+b46:
 mov	rcx,	[rsp+8]
 mov	qword	[rcx+24],	0
 mov	rcx,	[rsp+8]
@@ -1441,11 +1485,11 @@ sub	rsp,	24
 call	f16
 add	rsp,	24
 mov	rbx,	[rsp]
-b49:
+b47:
 pop	rbx
 pop	rdx
 ret
-f33:
+f36:
 push	rdx
 push	rbx
 mov	rcx,	[rsp+8]
@@ -1463,7 +1507,7 @@ mov	[rsp-16],	rax
 mov	rax,	[rsp-8]
 and	rax,	[rsp-16]
 cmp	rax,	0
-je	b50
+je	b48
 mov	rcx,	[rsp+8]
 mov	qword	[rcx+24],	2
 mov	rcx,	[rsp+8]
@@ -1474,8 +1518,8 @@ mov	rdx,	[rcx+256]
 mov	rcx,	[rsp+8]
 mov	[rcx+40],	rax
 mov	[rcx+48],	rdx
-jmp	b51
-b50:
+jmp	b49
+b48:
 mov	rcx,	[rsp+8]
 mov	qword	[rcx+24],	0
 mov	rcx,	[rsp+8]
@@ -1492,11 +1536,11 @@ sub	rsp,	24
 call	f16
 add	rsp,	24
 mov	rbx,	[rsp]
-b51:
+b49:
 pop	rbx
 pop	rdx
 ret
-f34:
+f37:
 push	rdx
 push	rbx
 mov	rcx,	[rsp+8]
@@ -1505,7 +1549,7 @@ cmp	rax,	0
 sete	al
 movzx	rax,	al
 cmp	rax,	0
-je	b52
+je	b50
 mov	rcx,	[rsp+8]
 mov	qword	[rcx+24],	1
 mov	rcx,	[rsp+8]
@@ -1516,8 +1560,8 @@ mov	rdx,	[rcx+272]
 mov	rcx,	[rsp+8]
 mov	[rcx+40],	rax
 mov	[rcx+48],	rdx
-jmp	b53
-b52:
+jmp	b51
+b50:
 mov	rcx,	[rsp+8]
 mov	qword	[rcx+24],	1
 mov	rcx,	[rsp+8]
@@ -1534,11 +1578,11 @@ sub	rsp,	24
 call	f16
 add	rsp,	24
 mov	rbx,	[rsp]
-b53:
+b51:
 pop	rbx
 pop	rdx
 ret
-f35:
+f38:
 push	rdx
 push	rbx
 mov	rcx,	[rsp+8]
@@ -1547,7 +1591,7 @@ cmp	rax,	1
 sete	al
 movzx	rax,	al
 cmp	rax,	0
-je	b54
+je	b52
 mov	rcx,	[rsp+8]
 mov	qword	[rcx+24],	2
 mov	rcx,	[rsp+8]
@@ -1564,8 +1608,8 @@ sub	rsp,	24
 call	f16
 add	rsp,	24
 mov	rbx,	[rsp]
-jmp	b55
-b54:
+jmp	b53
+b52:
 mov	rcx,	[rsp+8]
 mov	qword	[rcx+24],	2
 mov	rcx,	[rsp+8]
@@ -1582,7 +1626,7 @@ sub	rsp,	24
 call	f16
 add	rsp,	24
 mov	rbx,	[rsp]
-b55:
+b53:
 pop	rbx
 pop	rdx
 ret

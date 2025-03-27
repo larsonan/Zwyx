@@ -3,25 +3,25 @@ _start:
 mov	qword	[rsp-8],	104
 lea	rbx,	[rsp-8]
 sub	rsp,	8
-call	f18
+call	f19
 add	rsp,	8
 mov	rbx,	[rsp]
 mov	qword	[rsp-8],	71
 lea	rbx,	[rsp-8]
 sub	rsp,	8
-call	f18
+call	f19
 add	rsp,	8
 mov	rbx,	[rsp]
 mov	qword	[rsp-8],	43
 lea	rbx,	[rsp-8]
 sub	rsp,	8
-call	f18
+call	f19
 add	rsp,	8
 mov	rbx,	[rsp]
 mov	qword	[rsp-8],	52
 lea	rbx,	[rsp-8]
 sub	rsp,	8
-call	f18
+call	f19
 add	rsp,	8
 mov	rbx,	[rsp]
 mov	rax,	60
@@ -349,6 +349,31 @@ ret
 f18:
 push	rbx
 mov	rax,	[rbx+0]
+mov	[rbx+24],	rax
+b4:
+mov	rax,	[rbx+24]
+cmp	rax,	[rbx+8]
+setl	al
+movzx	rax,	al
+cmp	rax,	0
+je	b5
+mov	rdx,	[rbx+40]
+mov	rax,	[rbx+32]
+lea	rbx,	[rbx+0]
+sub	rsp,	0
+call	rax
+add	rsp,	0
+mov	rbx,	[rsp]
+mov	rax,	[rbx+24]
+add	rax,	[rbx+16]
+mov	[rbx+24],	rax
+jmp	b4
+b5:
+pop	rbx
+ret
+f19:
+push	rbx
+mov	rax,	[rbx+0]
 cmp	rax,	75
 setge	al
 movzx	rax,	al
@@ -361,7 +386,7 @@ mov	[rsp-16],	rax
 mov	rax,	[rsp-8]
 or	rax,	[rsp-16]
 cmp	rax,	0
-je	b4
+je	b6
 mov	qword	[rsp-16],	s1
 mov	qword	[rsp-8],	24
 lea	rbx,	[rsp-32]
@@ -374,8 +399,8 @@ sub	rsp,	32
 call	f3
 add	rsp,	32
 mov	rbx,	[rsp]
-jmp	b5
-b4:
+jmp	b7
+b6:
 mov	qword	[rsp-16],	s2
 mov	qword	[rsp-8],	20
 lea	rbx,	[rsp-32]
@@ -388,7 +413,7 @@ sub	rsp,	32
 call	f3
 add	rsp,	32
 mov	rbx,	[rsp]
-b5:
+b7:
 lea	rbx,	[rsp-32]
 lea	rax,	[rel+f9]
 mov	[rbx+0],	rax
@@ -408,7 +433,7 @@ cmp	rax,	32
 setle	al
 movzx	rax,	al
 cmp	rax,	0
-je	b6
+je	b8
 mov	qword	[rsp-48],	s4
 mov	qword	[rsp-40],	9
 lea	rax,	[rsp-32]
@@ -418,7 +443,7 @@ sub	rsp,	56
 call	f4
 add	rsp,	56
 mov	rbx,	[rsp]
-b6:
+b8:
 mov	rax,	[rbx+0]
 cmp	rax,	32
 setg	al
@@ -432,7 +457,7 @@ mov	[rsp-48],	rax
 mov	rax,	[rsp-40]
 and	rax,	[rsp-48]
 cmp	rax,	0
-je	b7
+je	b9
 mov	qword	[rsp-48],	s5
 mov	qword	[rsp-40],	9
 lea	rax,	[rsp-32]
@@ -442,7 +467,7 @@ sub	rsp,	56
 call	f4
 add	rsp,	56
 mov	rbx,	[rsp]
-b7:
+b9:
 mov	rax,	[rbx+0]
 cmp	rax,	50
 setge	al
@@ -456,7 +481,7 @@ mov	[rsp-48],	rax
 mov	rax,	[rsp-40]
 and	rax,	[rsp-48]
 cmp	rax,	0
-je	b8
+je	b10
 mov	qword	[rsp-48],	s6
 mov	qword	[rsp-40],	5
 lea	rax,	[rsp-32]
@@ -466,7 +491,7 @@ sub	rsp,	56
 call	f4
 add	rsp,	56
 mov	rbx,	[rsp]
-b8:
+b10:
 mov	rax,	[rbx+0]
 cmp	rax,	65
 setge	al
@@ -480,7 +505,7 @@ mov	[rsp-48],	rax
 mov	rax,	[rsp-40]
 and	rax,	[rsp-48]
 cmp	rax,	0
-je	b9
+je	b11
 mov	qword	[rsp-48],	s7
 mov	qword	[rsp-40],	8
 lea	rax,	[rsp-32]
@@ -490,7 +515,7 @@ sub	rsp,	56
 call	f4
 add	rsp,	56
 mov	rbx,	[rsp]
-b9:
+b11:
 mov	rax,	[rbx+0]
 cmp	rax,	75
 setge	al
@@ -504,7 +529,7 @@ mov	[rsp-48],	rax
 mov	rax,	[rsp-40]
 and	rax,	[rsp-48]
 cmp	rax,	0
-je	b10
+je	b12
 mov	qword	[rsp-48],	s8
 mov	qword	[rsp-40],	8
 lea	rax,	[rsp-32]
@@ -514,13 +539,13 @@ sub	rsp,	56
 call	f4
 add	rsp,	56
 mov	rbx,	[rsp]
-b10:
+b12:
 mov	rax,	[rbx+0]
 cmp	rax,	90
 setge	al
 movzx	rax,	al
 cmp	rax,	0
-je	b11
+je	b13
 mov	qword	[rsp-48],	s9
 mov	qword	[rsp-40],	10
 lea	rax,	[rsp-32]
@@ -530,7 +555,7 @@ sub	rsp,	56
 call	f4
 add	rsp,	56
 mov	rbx,	[rsp]
-b11:
+b13:
 lea	rax,	[rsp-32]
 mov	[rsp-40],	rax
 lea	rbx,	[rsp-40]
