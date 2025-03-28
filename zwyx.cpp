@@ -1427,18 +1427,21 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
         handle_last_instrx();
         line_num = outer_line_num;
         parent_ptr->base_instrx = temp_base_instrx;
-        arg->unit = unit_for_return;
-        unit_for_return = temp_unit_for_return;
         new_instrx = temp;
         temp_reg_mem = temp_temp_reg_mem;
-        arg->oper = method_struct->oper;
-        arg->is_ptr = method_struct->is_ptr;
+        if (arg != NULL)
+        {
+                arg->unit = unit_for_return;
+                arg->oper = method_struct->oper;
+                arg->is_ptr = method_struct->is_ptr;
+        }
+        unit_for_return = temp_unit_for_return;
         if (defined_unit != NULL)
         {
                 parent_ptr->instrxs.push_back(defined_unit);
         }
         delete(method_struct);
-        if (arg->unit != NULL)
+        if (arg != NULL)
         {
                 parent_ptr->instrxs.push_back(arg);
         }
@@ -1543,8 +1546,7 @@ void handle_last_instrx()
 		        if (is_comptime_method(instrx->unit) && (new_instrx.oper != INSERTION)
 		          && (instrx->unit->name != ""))
 		        {
-		                Instrx temp;
-		                handle_compile_time_method(instrx, &temp);
+		                handle_compile_time_method(instrx, NULL);
 		        }
 			if (INSERTION == instrx->oper)
 			{
