@@ -1355,7 +1355,15 @@ Instrx* get_second_last_instrx()
 {
         if (parent_ptr->instrxs.size() > 1)
         {
-                return parent_ptr->instrxs[parent_ptr->instrxs.size() - 2];
+                Instrx* instrx = parent_ptr->instrxs[parent_ptr->instrxs.size() - 2];
+                if (instrx->oper != IGNORE)
+                {
+                        return instrx;
+                }
+                else
+                {
+                        return NULL;
+                }
         }
         else
         {
@@ -1392,8 +1400,18 @@ void handle_base_no_index(Instrx* instrx)
 
 void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
 {
-        vector<Instrx*> temp_instrx_list = parent_ptr->instrxs;
-        parent_ptr->instrxs.clear();
+        Instrx* defined_unit = NULL;
+        parent_ptr->instrxs.pop_back();
+        parent_ptr->instrxs.pop_back();
+        if ((DEFINE == method_struct->oper) && (parent_ptr->instrxs.size() > 0))
+        {
+                defined_unit = parent_ptr->instrxs.back();
+                parent_ptr->instrxs.pop_back();
+        }
+        Instrx* dummy = new Instrx;
+        parent_ptr->instrxs.push_back(dummy);
+        dummy->oper = IGNORE;
+        dummy->unit = basic_units[COMPTIME_METHOD];
         Instrx temp = new_instrx;
         Unit *temp_unit_for_return = unit_for_return;
         new_instrx.unit = NULL;
@@ -1407,13 +1425,23 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
         istringstream str(method_struct->unit->str);
         parse_istream(str);
         handle_last_instrx();
-        parent_ptr->instrxs = temp_instrx_list;
         line_num = outer_line_num;
         parent_ptr->base_instrx = temp_base_instrx;
         arg->unit = unit_for_return;
         unit_for_return = temp_unit_for_return;
         new_instrx = temp;
         temp_reg_mem = temp_temp_reg_mem;
+        arg->oper = method_struct->oper;
+        arg->is_ptr = method_struct->is_ptr;
+        if (defined_unit != NULL)
+        {
+                parent_ptr->instrxs.push_back(defined_unit);
+        }
+        delete(method_struct);
+        if (arg->unit != NULL)
+        {
+                parent_ptr->instrxs.push_back(arg);
+        }
 }
 
 void handle_in(Instrx* instrx)
@@ -1429,17 +1457,17 @@ void handle_compile_time_method(Instrx* method_struct, Instrx* arg)
         if (IN == method_struct->unit->type)
         {
                 handle_in(arg);
+                arg->oper = method_struct->oper;
+                arg->is_ptr = method_struct->is_ptr;
+                parent_ptr->instrxs.pop_back();
+                delete(parent_ptr->instrxs.back());
+                parent_ptr->instrxs.pop_back();
+                parent_ptr->instrxs.push_back(arg);
         }
         else
         {
                 handle_custom_compile_time_method(method_struct, arg);
         }
-        arg->oper = method_struct->oper;
-        arg->is_ptr = method_struct->is_ptr;
-        parent_ptr->instrxs.pop_back();
-        delete(parent_ptr->instrxs.back());
-        parent_ptr->instrxs.pop_back();
-        parent_ptr->instrxs.push_back(arg);
 }
 
 bool check_types(Instrx* src, Instrx* dst)
@@ -1512,6 +1540,12 @@ void handle_last_instrx()
 		                handle_base_no_index(instrx);
 		        }
 		        Instrx* second_last_instrx = get_second_last_instrx();
+		        if (is_comptime_method(instrx->unit) && (new_instrx.oper != INSERTION)
+		          && (instrx->unit->name != ""))
+		        {
+		                Instrx temp;
+		                handle_compile_time_method(instrx, &temp);
+		        }
 			if (INSERTION == instrx->oper)
 			{
 			        if (is_comptime_method(second_last_instrx->unit))
