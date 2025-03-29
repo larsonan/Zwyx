@@ -37,7 +37,7 @@ writenf~{
 	
 	endl~{
 		;~{
-			c:10
+			_endl
 		}
 	}
 	line~{

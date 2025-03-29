@@ -2,6 +2,9 @@ _console_write~{
 	a~bytes
 	;~{_system.{rax:1 rdx:a.count rdi:1 rsi:a ;}}
 }
+
+_endl~` c:10 `
+
 _console_read~{
         a~bytes
         size~int
