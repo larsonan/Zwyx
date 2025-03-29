@@ -1402,7 +1402,10 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
 {
         Instrx* defined_unit = NULL;
         parent_ptr->instrxs.pop_back();
-        parent_ptr->instrxs.pop_back();
+        if (arg != NULL)
+        {
+                parent_ptr->instrxs.pop_back();
+        }
         if ((DEFINE == method_struct->oper) && (parent_ptr->instrxs.size() > 0))
         {
                 defined_unit = parent_ptr->instrxs.back();
@@ -1547,6 +1550,7 @@ void handle_last_instrx()
 		          && (instrx->unit->name != ""))
 		        {
 		                handle_compile_time_method(instrx, NULL);
+		                return;
 		        }
 			if (INSERTION == instrx->oper)
 			{
