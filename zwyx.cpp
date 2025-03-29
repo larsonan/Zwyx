@@ -1428,26 +1428,25 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
         istringstream str(method_struct->unit->str);
         parse_istream(str);
         handle_last_instrx();
-        line_num = outer_line_num;
         parent_ptr->base_instrx = temp_base_instrx;
         new_instrx = temp;
         temp_reg_mem = temp_temp_reg_mem;
+        method_struct->insertion_source = NULL;
+        line_num = outer_line_num;
         if (arg != NULL)
         {
-                arg->unit = unit_for_return;
-                arg->oper = method_struct->oper;
-                arg->is_ptr = method_struct->is_ptr;
+                delete(arg);
         }
-        unit_for_return = temp_unit_for_return;
         if (defined_unit != NULL)
         {
                 parent_ptr->instrxs.push_back(defined_unit);
         }
-        delete(method_struct);
-        if (arg != NULL)
+        if (unit_for_return != NULL)
         {
-                parent_ptr->instrxs.push_back(arg);
+                method_struct->unit = unit_for_return;
+                parent_ptr->instrxs.push_back(method_struct);
         }
+        unit_for_return = temp_unit_for_return;
 }
 
 void handle_in(Instrx* instrx)
@@ -1557,6 +1556,7 @@ void handle_last_instrx()
 			        if (is_comptime_method(second_last_instrx->unit))
 			        {
 			                handle_compile_time_method(second_last_instrx, instrx);
+			                instrx = parent_ptr->instrxs.back();
 			                second_last_instrx = get_second_last_instrx();
 			        }
 			        else if (!check_types(instrx, second_last_instrx))
