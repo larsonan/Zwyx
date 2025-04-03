@@ -1682,7 +1682,7 @@ void handle_subunit()
 
 bool has_precedence(int oper_1, int oper_2)
 {
-        return false;
+        return ((oper_1 == MULTIPLY) && (oper_2 == ADD));
 }
 
 void handle_precedence(Instrx *temp)
@@ -1696,13 +1696,19 @@ void handle_precedence(Instrx *temp)
 		parent_ptr->instrxs.pop_back();
 		handle_new_superunit();
 		parent_ptr->base_instrx = new Instrx;
+		parent_ptr->base_instrx->unit = NULL;
 		parent_ptr->base_instrx->oper = first_oper;
 		parent_ptr->instrxs.push_back(first);
 	}
-	else if ((parent_ptr->base_instrx != NULL) && (NULL == parent_ptr->base_instrx->unit)
+        else if ((parent_ptr->base_instrx != NULL) && (NULL == parent_ptr->base_instrx->unit)
 	        && !has_precedence(temp->oper, parent_ptr->base_instrx->oper))
 	{
-	        handle_end_superunit();
+	        handle_last_instrx();
+	        while ((parent_ptr->base_instrx != NULL) && (NULL == parent_ptr->base_instrx->unit)
+	              && !has_precedence(temp->oper, parent_ptr->base_instrx->oper))
+	        {
+	                parent_ptr = parent_ptr->parent;
+	        }
 	}
 }
 
@@ -1770,11 +1776,17 @@ void handle_unit(Unit *unit)
 
 void handle_end_superunit()
 {
+        while ((parent_ptr->base_instrx != NULL) && (NULL == parent_ptr->base_instrx->unit))
+        {
+                parent_ptr = parent_ptr->parent;
+        }
+        
 	if (NULL == parent_ptr)
 	{
 		set_error(UNMATCHED_END_BRACE, line_num, "}");
 		return;
 	}
+	
 	handle_last_instrx();
 	
 	if (parent_ptr->parent != NULL)
