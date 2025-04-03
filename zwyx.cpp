@@ -483,7 +483,7 @@ void restore_base_to_reg()
 
 void write_insertion_src(Instrx *instrx)
 {
-        if (instrx->unit->mem_used < WORD_SIZE)
+        if ((instrx->unit->mem_used < WORD_SIZE) && (instrx->unit->type != INT_CONST))
         {
                 (void)fprintf(xcfile, "mov\t%s,\t", REG_TEMP_ONE_BYTE);
         }

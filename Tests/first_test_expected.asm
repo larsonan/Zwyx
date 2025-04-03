@@ -776,7 +776,7 @@ setl	al
 movzx	rax,	al
 cmp	rax,	0
 je	b6
-mov	al,	1
+mov	rax,	1
 jmp	b7
 b6:
 mov	rax,	[rbx+0]
