@@ -228,6 +228,8 @@ void write_line_with_control(Instrx *instrx);
 void parse_file(string parse_file_name);
 void parse_istream(istream &zyfile);
 void handle_last_instrx();
+void handle_new_superunit();
+void handle_end_superunit();
 
 void setup_basic_units(void)
 {
@@ -1622,7 +1624,7 @@ Unit *get_correct_method_type()
 		        new_instrx.ptr_source->base_level = 1;
 			return superunit->base->base->method;
 		}
-		if (superunit->base_instrx != NULL)
+		if ((superunit->base_instrx != NULL) && (superunit->base_instrx->unit != NULL))
 		{
 		        new_instrx.ptr_source = superunit->base_instrx;
 			return superunit->base_instrx->unit->method;
@@ -1678,6 +1680,32 @@ void handle_subunit()
 	parent_ptr->instrxs.back()->unit = new_instrx.unit;
 }
 
+bool has_precedence(int oper_1, int oper_2)
+{
+        return false;
+}
+
+void handle_precedence(Instrx *temp)
+{
+	if ((parent_ptr->instrxs.size() > 0) && has_precedence(new_instrx.oper, parent_ptr->instrxs.back()->oper))
+	{
+		Instrx *first = new Instrx(*(parent_ptr->instrxs.back()));
+		int first_oper = first->oper;
+		new_instrx.oper = first_oper;
+		first->oper = NO_OPER;
+		parent_ptr->instrxs.pop_back();
+		handle_new_superunit();
+		parent_ptr->base_instrx = new Instrx;
+		parent_ptr->base_instrx->oper = first_oper;
+		parent_ptr->instrxs.push_back(first);
+	}
+	else if ((parent_ptr->base_instrx != NULL) && (NULL == parent_ptr->base_instrx->unit)
+	        && !has_precedence(temp->oper, parent_ptr->base_instrx->oper))
+	{
+	        handle_end_superunit();
+	}
+}
+
 void handle_new_instrx()
 {
         handle_oper_errors();
@@ -1721,6 +1749,9 @@ void handle_new_instrx()
 		{
 			temp_reg_mem = 0;
 		}
+		
+		handle_precedence(temp);
+		
 		parent_ptr->instrxs.push_back(temp);
 	}
 	new_instrx.oper = NO_OPER;
