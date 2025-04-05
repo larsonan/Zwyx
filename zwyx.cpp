@@ -855,7 +855,7 @@ void write_line_with_branch(Instrx* instrx)
         int b_num = num_b;
         num_b++;
         write_jump_conditional(b_num);
-        write_line(instrx);
+        write_line_with_control(instrx);
         if ((instrx->insertion_source != NULL) && (ELSE == instrx->insertion_source->oper))
         {
                 int b_num2 = num_b;
@@ -1744,6 +1744,8 @@ void handle_new_instrx()
 	else
 	{
 	        Instrx *temp = new Instrx(new_instrx);
+	        
+	        handle_precedence(temp);
 		
 		if ((INSERTION == new_instrx.oper) || (SUBUNIT == new_instrx.oper)
 		    || (WHILE == new_instrx.oper) || (ELSE == new_instrx.oper) || (BRANCH == new_instrx.oper))
@@ -1759,8 +1761,6 @@ void handle_new_instrx()
 		{
 			temp_reg_mem = 0;
 		}
-		
-		handle_precedence(temp);
 		
 		parent_ptr->instrxs.push_back(temp);
 	}
