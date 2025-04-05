@@ -145,6 +145,9 @@ struct Unit
 
 string basic_unit_names[] = {"none", "", "", "int", "", "method", "", "", "bytes", "", "", "",
                               "", "_import", "arg", "", ""};
+
+int precedences[] = {0, 0, 0, 0, 1, 2, 3, 4, 2, 0, 3, 0, 1, 1, 4, 4, 2, 2, 2, 2, 5, 5};
+
 string operators[] = {"", ":", "~", ".", "?", "=", "+", "/", "!=", "!", "-", "", "^", "?*", "*", "%", 
                 ">=", "<=", ">", "<", "&", "|"};
 
@@ -1682,7 +1685,8 @@ void handle_subunit()
 
 bool has_precedence(int oper_1, int oper_2)
 {
-        return ((oper_1 == MULTIPLY) && (oper_2 == ADD));
+        return ((precedences[oper_1] > 0) && (precedences[oper_2] > 0)
+                && (precedences[oper_1] > precedences[oper_2]));
 }
 
 void handle_precedence(Instrx *temp)
