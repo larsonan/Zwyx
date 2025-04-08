@@ -144,7 +144,7 @@ struct Unit
 };
 
 string basic_unit_names[] = {"none", "", "", "int", "", "method", "", "", "bytes", "", "", "_in",
-                              "ins", "_import", "", "", ""};
+                              "insrt", "_import", "", "", ""};
 
 int precedences[] = {0, 0, 0, 0, 2, 5, 6, 7, 5, 0, 6, 0, 2, 1, 7, 7, 5, 5, 5, 5, 4, 3};
 

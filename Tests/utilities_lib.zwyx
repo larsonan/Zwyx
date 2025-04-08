@@ -16,7 +16,7 @@ c_iter~{
 
 writenf~{
 	~interface
-	data~ins:bytes
+	data~insrt:bytes
 	s~{
 		b~bytes
 		;~{
