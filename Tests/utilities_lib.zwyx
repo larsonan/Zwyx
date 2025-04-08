@@ -5,7 +5,7 @@ interface~{
 
 boxed~`
         return~{
-                el~@cm_in
+                el~@_in
         }
 `
 
@@ -89,20 +89,20 @@ list~`return~{
 	get~{
 		at~int
 		;~{
-			it~@boxed:cm_in:{b+{at*8}}
+			it~@boxed:_in:{b+{at*8}}
 			it.el
 		}
 	}
 	set~{
 		at~int
-		char~@cm_in
+		char~@_in
 		;~{
-			it~@boxed:cm_in:{b+{at*8}}
+			it~@boxed:_in:{b+{at*8}}
 			it.el:char
 		}
 	}
 	add~{
-		in~@cm_in
+		in~@_in
 		;~{
 			set.{at:b.count char:in ;}
 			b.count:{b.count + 1}
@@ -115,15 +115,15 @@ list~`return~{
 	}
 	each~{
 		
-		f~cm_in.;
+		f~_in.;
 		;~{
-			it~@boxed:cm_in:b
+			it~@boxed:_in:b
 			
 			remaining~int
 			remaining:b.count
 			
 			{remaining > 0}?*{
-				mbr~@cm_in:it.el
+				mbr~@_in:it.el
 				mbr.{f}
 				
 				
@@ -204,7 +204,7 @@ enum~{
 }
 
 emplacementList~`return~{
-	~list:cm_in
+	~list:_in
 	membSize~int
 	membBuffer~bytes
 	set_membBuffer~{
@@ -215,9 +215,9 @@ emplacementList~`return~{
 		}
 	}
 	emplace~{
-		in~cm_in.;
+		in~_in.;
 		;~{
-			ptr~@cm_in:{membBuffer+membBuffer.count}
+			ptr~@_in:{membBuffer+membBuffer.count}
 			ptr.{in}
 			membBuffer.count:{membBuffer.count+membSize}
 			add:ptr
@@ -226,8 +226,8 @@ emplacementList~`return~{
 }`
 
 virtual~`
-        return~cm_in.;
-        cm_in.;~{return}
+        return~_in.;
+        _in.;~{return}
 `
 GetChar~{
         ;~{

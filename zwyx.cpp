@@ -35,15 +35,15 @@ using namespace std;
 #define INT 3
 #define STRUCT 4
 #define METHOD 5
-#define METHOD_PTR 6
-#define INT_CONST 7
+#define BASE 6
+#define METHOD_PTR 7
 #define BYTES 8
 #define COMPTIME_METHOD 9
 #define BYTES_PTR 10
 #define IN 11
-#define BASE 12
-#define INS 13
-#define IMPORT 14
+#define INS 12
+#define IMPORT 13
+#define INT_CONST 14
 #define STRING_LITERAL 15
 #define RETURN 16
 
@@ -143,8 +143,8 @@ struct Unit
 	string str;
 };
 
-string basic_unit_names[] = {"none", "", "", "int", "", "method", "", "", "bytes", "", "", "cm_in",
-                              "", "ins", "_import", "", ""};
+string basic_unit_names[] = {"none", "", "", "int", "", "method", "", "", "bytes", "", "", "_in",
+                              "ins", "_import", "", "", ""};
 
 int precedences[] = {0, 0, 0, 0, 2, 5, 6, 7, 5, 0, 6, 0, 2, 1, 7, 7, 5, 5, 5, 5, 4, 3};
 
