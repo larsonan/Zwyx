@@ -40,10 +40,10 @@ using namespace std;
 #define BYTES 8
 #define COMPTIME_METHOD 9
 #define BYTES_PTR 10
-#define NAME 11
+#define IN 11
 #define BASE 12
-#define IMPORT 13
-#define IN 14
+#define INS 13
+#define IMPORT 14
 #define STRING_LITERAL 15
 #define RETURN 16
 
@@ -143,8 +143,8 @@ struct Unit
 	string str;
 };
 
-string basic_unit_names[] = {"none", "", "", "int", "", "method", "", "", "bytes", "", "", "",
-                              "", "_import", "arg", "", ""};
+string basic_unit_names[] = {"none", "", "", "int", "", "method", "", "", "bytes", "", "", "cm_in",
+                              "", "ins", "_import", "", ""};
 
 int precedences[] = {0, 0, 0, 0, 2, 5, 6, 7, 5, 0, 6, 0, 2, 1, 7, 7, 5, 5, 5, 5, 4, 3};
 
@@ -167,6 +167,7 @@ string compiled_instrxs;
 int line_num;
 
 Unit *unit_for_return;
+Unit *arg_unit;
 
 Instrx new_instrx;
 FILE* err_out;
@@ -257,7 +258,7 @@ void setup_basic_units(void)
 	basic_units[METHOD_PTR]->subunits.push_back(count);
 	basic_units[BYTES_PTR]->subunits.push_back(count);
         
-        basic_units[IN]->typing = basic_units[COMPTIME_METHOD];
+        basic_units[INS]->typing = basic_units[COMPTIME_METHOD];
 }
 
 void init(void)
@@ -1225,7 +1226,7 @@ void handle_instantiation(Instrx *instrx)
 	        size = data_section_strings.size();
 	        instrx->unit->f_num = size;
 	}
-	else if (!instrx->unit->mem_base && (instrx->unit->type != IMPORT) && (instrx->unit->type != IN)
+	else if (!instrx->unit->mem_base && (instrx->unit->type != IMPORT) && (instrx->unit->type != INS)
 	                    && (instrx->oper != IGNORE) && !is_comptime_method(instrx->unit))
 	{
 		if (instrx->is_ptr)
@@ -1426,10 +1427,15 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
         unit_for_return = NULL;
         new_instrx.oper = NO_OPER;
         int outer_line_num = line_num;
+        Unit *temp_arg = arg_unit;
         line_num = 0;
         int temp_temp_reg_mem = temp_reg_mem;
         Instrx* temp_base_instrx = parent_ptr->base_instrx;
         parent_ptr->base_instrx = arg;
+        if (arg != NULL)
+        {
+                arg_unit = arg->unit;
+        }
         istringstream str(method_struct->unit->str);
         parse_istream(str);
         handle_last_instrx();
@@ -1438,6 +1444,7 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
         temp_reg_mem = temp_temp_reg_mem;
         method_struct->insertion_source = NULL;
         line_num = outer_line_num;
+        arg_unit = temp_arg;
         if (arg != NULL)
         {
                 delete(arg);
@@ -1464,7 +1471,7 @@ void handle_in(Instrx* instrx)
 void handle_compile_time_method(Instrx* method_struct, Instrx* arg)
 {
         int method_struct_type = method_struct->unit->type;
-        if (IN == method_struct->unit->type)
+        if (INS == method_struct->unit->type)
         {
                 handle_in(arg);
                 arg->oper = method_struct->oper;
@@ -2048,6 +2055,10 @@ void handle_unit_name(string name)
 	else
 	{
 		new_instrx.unit = find_unit_from_list(basic_units, name);
+		if ((new_instrx.unit != NULL) && (IN == new_instrx.unit->type))
+		{
+		        new_instrx.unit = arg_unit;
+		}
 		if (NULL == new_instrx.unit)
 		{
 			if (new_instrx.oper != SUBUNIT)
