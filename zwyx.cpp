@@ -144,7 +144,7 @@ struct Unit
 };
 
 string basic_unit_names[] = {"none", "", "", "int", "", "method", "", "", "bytes", "", "", "_in",
-                              "insrt", "_import", "", "", ""};
+                              "inset", "_import", "", "", ""};
 
 int precedences[] = {0, 0, 0, 0, 2, 5, 6, 7, 5, 0, 6, 0, 2, 1, 7, 7, 5, 5, 5, 5, 4, 3};
 
@@ -1466,6 +1466,7 @@ void handle_in(Instrx* instrx)
         handle_instantiation(instrx);
         parent_ptr->in_unit = instrx->unit;
         handle_define_statement(instrx->unit, instrx->unit);
+        instrx->unit->name = "return";
 }
 
 void handle_compile_time_method(Instrx* method_struct, Instrx* arg)
@@ -1473,7 +1474,9 @@ void handle_compile_time_method(Instrx* method_struct, Instrx* arg)
         int method_struct_type = method_struct->unit->type;
         if (INS == method_struct->unit->type)
         {
+                Unit* temp_unit_for_return = unit_for_return;
                 handle_in(arg);
+                unit_for_return = temp_unit_for_return;
                 arg->oper = method_struct->oper;
                 arg->is_ptr = method_struct->is_ptr;
                 parent_ptr->instrxs.pop_back();
@@ -1583,7 +1586,17 @@ void handle_last_instrx()
 			}
 			else if ((DEFINE == instrx->oper) && instrx->unit->mem_base)
 			{
-			        instrx->unit->name = second_last_instrx->unit->name;
+			        if ("return" == instrx->unit->name)
+			        {
+			                instrx->unit->name = second_last_instrx->unit->name;
+			        }
+			        else
+			        {
+			                string name = second_last_instrx->unit->name;
+			                *second_last_instrx->unit = *instrx->unit;
+			                second_last_instrx->unit->name = name;
+			                parent_ptr->subunits.push_back(second_last_instrx->unit);
+			        }
 			}
 			else if ((instrx->unit->type != INT_CONST) || (DEFINE == instrx->oper))
 			{
