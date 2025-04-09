@@ -1890,7 +1890,11 @@ void handle_new_superunit()
 		else if (new_instrx.is_ptr)
 		{
 		        unit->base = in_unit(parent_ptr->instrxs.back()->unit)->base;
-			unit->mem_base = METHOD_PTR;
+		        unit->mem_base = METHOD_PTR;
+		        unit->base_instrx = new Instrx;
+		        unit->base_instrx->unit = new Unit(*basic_units[PTR]);
+		        unit->base_instrx->unit->mem_base = BASE;
+		        unit->base_instrx->unit->typing = in_unit(parent_ptr->instrxs.back()->unit)->base;
 			handle_new_method(unit);
 			unit->mem_used = WORD_SIZE;
 			unit->typing = basic_units[METHOD_PTR];
