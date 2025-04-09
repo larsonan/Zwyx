@@ -1463,10 +1463,14 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
 
 void handle_in(Instrx* instrx)
 {
+        int old_mem_base = instrx->unit->mem_base;
         handle_instantiation(instrx);
         parent_ptr->in_unit = instrx->unit;
         handle_define_statement(instrx->unit, instrx->unit);
-        instrx->unit->name = "return";
+        if (!old_mem_base)
+        {
+                instrx->unit->name = "return";
+        }
 }
 
 void handle_compile_time_method(Instrx* method_struct, Instrx* arg)
@@ -1584,19 +1588,16 @@ void handle_last_instrx()
 			{
 			        handle_inheritance(instrx->unit);
 			}
+			else if ((DEFINE == instrx->oper) && ("return" == instrx->unit->name))
+			{
+			        instrx->unit->name = second_last_instrx->unit->name;
+			}
 			else if ((DEFINE == instrx->oper) && instrx->unit->mem_base)
 			{
-			        if ("return" == instrx->unit->name)
-			        {
-			                instrx->unit->name = second_last_instrx->unit->name;
-			        }
-			        else
-			        {
-			                string name = second_last_instrx->unit->name;
-			                *second_last_instrx->unit = *instrx->unit;
-			                second_last_instrx->unit->name = name;
-			                parent_ptr->subunits.push_back(second_last_instrx->unit);
-			        }
+			        string name = second_last_instrx->unit->name;
+			        *second_last_instrx->unit = *instrx->unit;
+			        second_last_instrx->unit->name = name;
+			        parent_ptr->subunits.push_back(second_last_instrx->unit);
 			}
 			else if ((instrx->unit->type != INT_CONST) || (DEFINE == instrx->oper))
 			{

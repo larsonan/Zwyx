@@ -361,6 +361,71 @@ sub	rsp,	200
 call	f24
 add	rsp,	200
 mov	rbx,	[rsp]
+mov	qword	[rsp-200],	0
+lea	rax,	[rsp-168]
+mov	[rsp-208],	rax
+lea	rbx,	[rsp-208]
+sub	rsp,	208
+call	f26
+add	rsp,	208
+mov	rbx,	[rsp]
+mov	[rsp-192],	rax
+mov	rcx,	[rsp-192]
+mov	qword	[rcx+0],	0
+mov	rcx,	[rsp-192]
+mov	qword	[rcx+8],	1
+mov	qword	[rsp-200],	1
+lea	rax,	[rsp-168]
+mov	[rsp-208],	rax
+lea	rbx,	[rsp-208]
+sub	rsp,	208
+call	f26
+add	rsp,	208
+mov	rbx,	[rsp]
+mov	[rsp-192],	rax
+mov	rcx,	[rsp-192]
+mov	qword	[rcx+0],	2
+mov	rcx,	[rsp-192]
+mov	qword	[rcx+8],	4
+mov	qword	[rsp-200],	2
+lea	rax,	[rsp-168]
+mov	[rsp-208],	rax
+lea	rbx,	[rsp-208]
+sub	rsp,	208
+call	f26
+add	rsp,	208
+mov	rbx,	[rsp]
+mov	[rsp-192],	rax
+mov	rcx,	[rsp-192]
+mov	qword	[rcx+0],	2
+mov	rcx,	[rsp-192]
+mov	qword	[rcx+8],	4
+mov	qword	[rsp-200],	3
+lea	rax,	[rsp-168]
+mov	[rsp-208],	rax
+lea	rbx,	[rsp-208]
+sub	rsp,	208
+call	f26
+add	rsp,	208
+mov	rbx,	[rsp]
+mov	[rsp-192],	rax
+mov	rcx,	[rsp-192]
+mov	qword	[rcx+0],	0
+mov	rcx,	[rsp-192]
+mov	qword	[rcx+8],	1
+mov	qword	[rsp-200],	4
+lea	rax,	[rsp-168]
+mov	[rsp-208],	rax
+lea	rbx,	[rsp-208]
+sub	rsp,	208
+call	f26
+add	rsp,	208
+mov	rbx,	[rsp]
+mov	[rsp-192],	rax
+mov	rcx,	[rsp-192]
+mov	qword	[rcx+0],	2
+mov	rcx,	[rsp-192]
+mov	qword	[rcx+8],	4
 mov	rax,	60
 mov	rdi,	0
 syscall

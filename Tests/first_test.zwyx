@@ -115,5 +115,14 @@ divmod_output~{
         print.endl
         
         divmod_output.{a:13 b:2 ; a:7 b:0 ;}
+        
+        np~@npair
+        np.{
+                $:l.get:0 a:0 b:1
+                $:l.get:1 a:2 b:4
+                $:l.get:2 a:2 b:4
+                $:l.get:3 a:0 b:1
+                $:l.get:4 a:2 b:4
+        }
 }
 
