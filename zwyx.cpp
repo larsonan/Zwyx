@@ -648,6 +648,22 @@ void load_pointer_base(Instrx *instrx)
         write_load_ptr_base(instrx);
 }
 
+void handle_base_level(Instrx *instrx)
+{
+        if (instrx->base_level >= BASE_2_METHOD)
+	{
+	        decrease_base_level(instrx->base_level, NULL);
+	}
+	else if (BASE_2_STRUCT == instrx->base_level)
+	{
+	        load_base_2();
+	}
+        else if ((instrx->base_level > 1) && (instrx->unit->mem_base != METHOD))
+	{
+	        decrease_base_level(instrx->base_level, instrx->ptr_source->unit);
+	} 
+}
+
 void load_base(Instrx *instrx)
 {
         if (instrx->base_level > 1)
@@ -660,7 +676,11 @@ void load_base(Instrx *instrx)
         }
         else
         {
-                if (instrx->ptr_source->base_level > 1)
+                if (instrx->ptr_source->base_level >= BASE_2_METHOD)
+                {
+                        handle_base_level(instrx->ptr_source);
+                }
+                else if (instrx->ptr_source->base_level > 1)
                 {
                         decrease_base_level(2, instrx->ptr_source->ptr_source->unit);
                 }
@@ -817,17 +837,9 @@ void write_line(Instrx *instrx)
 	{
 		write_line(instrx->insertion_source);
 	}
-	if (instrx->base_level >= BASE_2_METHOD)
+	if ((instrx->base_level > 1) || (BASE_2_STRUCT == instrx->base_level))
 	{
-	        decrease_base_level(instrx->base_level, NULL);
-	}
-	else if (BASE_2_STRUCT == instrx->base_level)
-	{
-	        load_base_2();
-	}
-        else if ((instrx->base_level > 1) && (instrx->unit->mem_base != METHOD))
-	{
-	        decrease_base_level(instrx->base_level, instrx->ptr_source->unit);
+	        handle_base_level(instrx);
 	}
 	else if ((instrx->ptr_source != NULL) && instrx->unit->mem_base && (instrx->unit->mem_base != METHOD))
 	{
@@ -1598,6 +1610,8 @@ void handle_last_instrx()
 			        *second_last_instrx->unit = *instrx->unit;
 			        second_last_instrx->unit->name = name;
 			        parent_ptr->subunits.push_back(second_last_instrx->unit);
+			        second_last_instrx->oper = IGNORE;
+			        instrx->oper = IGNORE;
 			}
 			else if ((instrx->unit->type != INT_CONST) || (DEFINE == instrx->oper))
 			{
@@ -1661,9 +1675,7 @@ Unit *get_correct_method_type()
 
 void handle_oper_errors()
 {
-        if (((PTR == new_instrx.unit->type) && (new_instrx.oper != NO_OPER)
-            && (new_instrx.oper != DEFINE) && (new_instrx.oper != SUBUNIT)
-            && (new_instrx.oper != INSERTION))
+        if ((new_instrx.is_ptr && (new_instrx.oper != DEFINE) && (new_instrx.oper != INSERTION))
             || (new_instrx.unit->mem_base && (DEFINE == new_instrx.oper))
             || ((IMPORT == new_instrx.unit->type) && (new_instrx.oper != NO_OPER))
             || ((INT_CONST == new_instrx.unit->type) && (DEFINE == new_instrx.oper)))
@@ -1893,7 +1905,7 @@ void handle_new_superunit()
 		        unit->mem_base = METHOD_PTR;
 		        unit->base_instrx = new Instrx;
 		        unit->base_instrx->unit = new Unit(*basic_units[PTR]);
-		        unit->base_instrx->unit->mem_base = BASE;
+		        unit->base_instrx->unit->mem_base = METHOD;
 		        unit->base_instrx->unit->typing = in_unit(parent_ptr->instrxs.back()->unit)->base;
 			handle_new_method(unit);
 			unit->mem_used = WORD_SIZE;

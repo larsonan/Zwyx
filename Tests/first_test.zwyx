@@ -97,7 +97,7 @@ divmod_output~{
 	        msg.set_buffer:@hello
 	        msg.write.{getmessage:@$}
 	        msg.setchar.{char:70 at:1 ; at:2 ; at:3 ; at:4 ;}
-	        s:msg
+	        s:msg endl
 	        d:1749 c:102 d:0 c:90
 	        endl
         }
@@ -124,5 +124,22 @@ divmod_output~{
                 $:l.get:3 a:0 b:1
                 $:l.get:4 a:2 b:4
         }
+        
+        b1~bytes.48
+        l2~list:npair.{set_buffer:@b1}
+        
+        l.each:@{
+                outer~$
+                found~int:0
+                l2.each:@{
+                        {{a = outer.a} & {b = outer.b}}?{
+                                found:1
+                        }
+                }
+                {found = 0}?{
+                        l2.add:outer
+                }
+        }
+        l2.each:@{print.{d:a d:b endl}}
 }
 
