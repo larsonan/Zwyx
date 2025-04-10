@@ -610,14 +610,19 @@ void write_jump_conditional(int b_num)
 
 void decrease_base_level(int base_level, Unit* base)
 {
-        if (base_level < BASE_2_METHOD)
-        {
-                (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_BASE, base->base_ptr_offset);
-        }
-        else
+        if (base_level >= BASE_2_METHOD)
         {
                 (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_DEFAULT, WORD_SIZE);
                 base_level -= BASE_2_METHOD;
+                while (base_level >= BASE_2_METHOD)
+                {
+                        (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_PTR, WORD_SIZE);
+                        base_level -= BASE_2_METHOD;
+                }
+        }
+        else
+        {
+                (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_BASE, base->base_ptr_offset);
         }
         for (int i = 2; i < base_level; i++)
         {
@@ -648,7 +653,7 @@ void load_pointer_base(Instrx *instrx)
         write_load_ptr_base(instrx);
 }
 
-void handle_base_level(Instrx *instrx)
+void handle_mem_level(Instrx *instrx)
 {
         if (instrx->base_level >= BASE_2_METHOD)
 	{
@@ -661,7 +666,11 @@ void handle_base_level(Instrx *instrx)
         else if ((instrx->base_level > 1) && (instrx->unit->mem_base != METHOD))
 	{
 	        decrease_base_level(instrx->base_level, instrx->ptr_source->unit);
-	} 
+	}
+	else if ((instrx->ptr_source != NULL) && instrx->unit->mem_base && (instrx->unit->mem_base != METHOD))
+	{
+	        load_pointer_base(instrx->ptr_source);
+	}
 }
 
 void load_base(Instrx *instrx)
@@ -678,7 +687,7 @@ void load_base(Instrx *instrx)
         {
                 if (instrx->ptr_source->base_level >= BASE_2_METHOD)
                 {
-                        handle_base_level(instrx->ptr_source);
+                        handle_mem_level(instrx->ptr_source);
                 }
                 else if (instrx->ptr_source->base_level > 1)
                 {
@@ -832,19 +841,15 @@ void write_line(Instrx *instrx)
 	{
 		store_temp(get_temp_offset(instrx->unit));
 	}
+	
 	if ((instrx->insertion_source != NULL) 
 	  && ((INSERTION == instrx->insertion_source->oper) || (SUBUNIT == instrx->insertion_source->oper)))
 	{
 		write_line(instrx->insertion_source);
 	}
-	if ((instrx->base_level > 1) || (BASE_2_STRUCT == instrx->base_level))
-	{
-	        handle_base_level(instrx);
-	}
-	else if ((instrx->ptr_source != NULL) && instrx->unit->mem_base && (instrx->unit->mem_base != METHOD))
-	{
-	        load_pointer_base(instrx->ptr_source);
-	}
+	
+	handle_mem_level(instrx);
+	
 	if ((instrx->insertion_source != NULL) && (INSERTION == instrx->insertion_source->oper))
 	{
 		write_insertion_in_unit(instrx);
