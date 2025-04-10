@@ -624,6 +624,7 @@ void decrease_base_level(int base_level, Unit* base)
         {
                 (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_BASE, base->base_ptr_offset);
         }
+        
         for (int i = 2; i < base_level; i++)
         {
                 base = base->parent;
