@@ -97,7 +97,7 @@ divmod_output~{
 	        msg.set_buffer:@hello
 	        msg.write.{getmessage:@$}
 	        msg.setchar.{char:70 at:1 ; at:2 ; at:3 ; at:4 ;}
-	        s:msg endl
+	        s:msg
 	        d:1749 c:102 d:0 c:90
 	        endl
         }
@@ -124,6 +124,9 @@ divmod_output~{
                 $:l.get:3 a:0 b:1
                 $:l.get:4 a:2 b:4
         }
+        
+        print.d:{6-4/2+5*9}
+        print.endl
         
         b1~bytes.48
         l2~list:npair.{set_buffer:@b1}
