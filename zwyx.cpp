@@ -45,7 +45,7 @@ using namespace std;
 #define IMPORT 13
 #define INT_CONST 14
 #define STRING_LITERAL 15
-#define RETURN 16
+#define TEMPLATE 16
 
 #define NO_ERROR 0
 #define INVALID_USE_OF_OPER 1
@@ -66,8 +66,10 @@ using namespace std;
 #define BASE_2_STRUCT -5
 #define WORD_SIZE 8
 #define MAX_ERRORS 100
+#define TEMPLATE_ID_NUM_FACTOR 10000
+#define SYMBOL_PTR 1
 #define COMPILED 1
-#define COMMENT 2
+#define COMMENT -2
 
 #define REG_DEFAULT "rsp"
 #define REG_TEMP "rax"
@@ -144,7 +146,7 @@ struct Unit
 };
 
 string basic_unit_names[] = {"none", "", "", "int", "", "method", "", "", "bytes", "", "", "_in",
-                              "inset", "_import", "", "", ""};
+                              "inset", "_import", "", "", "template"};
 
 int precedences[] = {0, 0, 0, 0, 2, 5, 6, 7, 5, 0, 6, 0, 2, 1, 7, 7, 5, 5, 5, 5, 4, 3};
 
@@ -159,7 +161,7 @@ Unit *parent_ptr;
 Unit basic_unit_data[NUM_BASIC_UNITS];
 vector<Unit*> basic_units;
 
-int instrx_idx;
+int num_templates;
 
 vector<Unit*> funcs;
 string compiled_instrxs;
@@ -263,8 +265,8 @@ void setup_basic_units(void)
 
 void init(void)
 {
-	instrx_idx = 0;
 	num_errors = 0;
+	num_templates = 0;
 	parent_ptr = NULL;
 	num_types = NUM_BASIC_UNITS;
 	setup_basic_units();
@@ -314,7 +316,7 @@ void write_array_count(Instrx *instrx)
 
 bool is_struct(Unit *unit)
 {
-        return ((STRUCT == unit->type) || ((unit->type < 1000) && (unit->type >= NUM_BASIC_UNITS)));
+        return ((STRUCT == unit->type) || ((unit->type >= NUM_BASIC_UNITS) && (unit->type < TEMPLATE_ID_NUM_FACTOR)));
 }
 
 void write_do(Instrx *instrx)
@@ -1478,6 +1480,10 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
         method_struct->insertion_source = NULL;
         line_num = outer_line_num;
         arg_unit = temp_arg;
+        if (method_struct->unit->type >= TEMPLATE_ID_NUM_FACTOR)
+        {
+                unit_for_return->type = method_struct->unit->type + arg->unit->type;
+        }
         if (arg != NULL)
         {
                 delete(arg);
@@ -1506,14 +1512,27 @@ void handle_in(Instrx* instrx)
         }
 }
 
+void handle_template(Instrx* instrx)
+{
+        num_templates++;
+        instrx->unit->typing = basic_units[COMPTIME_METHOD];
+        instrx->unit->type = COMPTIME_METHOD;
+        instrx->unit->type = num_templates * TEMPLATE_ID_NUM_FACTOR;
+}
+
 void handle_compile_time_method(Instrx* method_struct, Instrx* arg)
 {
         int method_struct_type = method_struct->unit->type;
-        if (INS == method_struct->unit->type)
+        if ((TEMPLATE == method_struct->unit->type) || (INS == method_struct->unit->type))
         {
-                Unit* temp_unit_for_return = unit_for_return;
-                handle_in(arg);
-                unit_for_return = temp_unit_for_return;
+                if (TEMPLATE == method_struct->unit->type)
+                {
+                        handle_template(arg);
+                }
+                else if (INS == method_struct->unit->type)
+                {
+                        handle_in(arg);
+                }
                 arg->oper = method_struct->oper;
                 arg->is_ptr = method_struct->is_ptr;
                 parent_ptr->instrxs.pop_back();
@@ -1943,7 +1962,7 @@ void handle_new_superunit()
 
 void handle_ptr()
 {
-        new_instrx.is_ptr = 1;
+        new_instrx.is_ptr = SYMBOL_PTR;
         if ((new_instrx.oper != DEFINE) && (new_instrx.oper != INSERTION))
         {
                 set_error(INVALID_USE_OF_OPER, line_num, operators[new_instrx.oper]);
