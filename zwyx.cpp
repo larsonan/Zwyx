@@ -261,6 +261,7 @@ void setup_basic_units(void)
 	basic_units[BYTES_PTR]->subunits.push_back(count);
         
         basic_units[INS]->typing = basic_units[COMPTIME_METHOD];
+        basic_units[TEMPLATE]->typing = basic_units[COMPTIME_METHOD];
 }
 
 void init(void)
@@ -1482,7 +1483,7 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
         arg_unit = temp_arg;
         if (method_struct->unit->type >= TEMPLATE_ID_NUM_FACTOR)
         {
-                unit_for_return->type = method_struct->unit->type + arg->unit->type;
+                unit_for_return->type = arg->unit->type + method_struct->unit->type;
         }
         if (arg != NULL)
         {
