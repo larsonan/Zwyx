@@ -317,7 +317,7 @@ void write_array_count(Instrx *instrx)
 
 bool is_struct(Unit *unit)
 {
-        return ((STRUCT == unit->type) || ((unit->type >= NUM_BASIC_UNITS) && (unit->type < TEMPLATE_ID_NUM_FACTOR)));
+        return ((STRUCT == unit->type) || ((unit->type >= NUM_BASIC_UNITS) && (unit->type < 1000000)));
 }
 
 void write_do(Instrx *instrx)
@@ -1481,9 +1481,9 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
         method_struct->insertion_source = NULL;
         line_num = outer_line_num;
         arg_unit = temp_arg;
-        if (method_struct->unit->type >= TEMPLATE_ID_NUM_FACTOR)
+        if (method_struct->unit->f_num > 0)
         {
-                unit_for_return->type = arg->unit->type + method_struct->unit->type;
+                unit_for_return->type = arg->unit->type + method_struct->unit->f_num * TEMPLATE_ID_NUM_FACTOR;
         }
         if (arg != NULL)
         {
@@ -1518,7 +1518,7 @@ void handle_template(Instrx* instrx)
         num_templates++;
         instrx->unit->typing = basic_units[COMPTIME_METHOD];
         instrx->unit->type = COMPTIME_METHOD;
-        instrx->unit->type = num_templates * TEMPLATE_ID_NUM_FACTOR;
+        instrx->unit->f_num = num_templates;
 }
 
 void handle_compile_time_method(Instrx* method_struct, Instrx* arg)
