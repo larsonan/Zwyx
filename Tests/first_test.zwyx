@@ -72,6 +72,27 @@ divmod_output~{
         }
 }
 
+remove_duplicates~{
+        l_in~@emplacementList:npair
+        l_out~@list:npair
+        ;~{
+                l_out_ptr~@list:npair
+                l_out_ptr:l_out
+                l_in.each:@{
+                        outer~$
+                        found~int:0
+                        l_out_ptr.each:@{
+                                {{a = outer.a} & {b = outer.b}}?{
+                                        found:1
+                                }
+                        }
+                        {found = 0}?{
+                                l_out_ptr.add:outer
+                        }
+                }
+        }
+}
+
 ;~{
         b0~bytes.48
         mbuf~bytes.80
@@ -129,20 +150,16 @@ divmod_output~{
         print.endl
         
         b1~bytes.48
-        l2~list:npair.{set_buffer:@b1}
         
-        l.each:@{
-                outer~$
-                found~int:0
-                l2.each:@{
-                        {{a = outer.a} & {b = outer.b}}?{
-                                found:1
-                        }
-                }
-                {found = 0}?{
-                        l2.add:outer
-                }
+        l2~list:npair
+        
+        l2.set_buffer:@b1
+        
+        remove_duplicates.{
+                l_in:@l
+                l_out:@l2 ;
         }
+        
         l2.each:@{print.{d:a d:b endl}}
 }
 
