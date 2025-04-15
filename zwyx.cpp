@@ -281,7 +281,7 @@ void write_unit(Instrx *instrx)
 	}
 	else
 	{
-	        if (instrx->base_level >= BASE_2_METHOD)
+	        if ((instrx->base_level >= BASE_2_METHOD) && (0 == (instrx->base_level % BASE_2_METHOD)))
 	        {
 	                (void)fprintf(xcfile, "[%s-%d]", REG_PTR, instrx->unit->mem_offset);
 	        }
@@ -631,6 +631,17 @@ void decrease_base_level(int base_level, Unit* base)
                 {
                         (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_PTR, WORD_SIZE);
                         base_level -= BASE_2_METHOD;
+                }
+                if (1 == base_level)
+                {
+                        if (base_level != 0)
+                        {
+                                (void)fprintf(xcfile, "mov\t%s,\t[%s]\n", REG_PTR, REG_PTR);
+                        }
+                        else
+                        {
+                                (void)fprintf(xcfile, "mov\t%s,\t[%s]\n", REG_PTR, REG_PTR);
+                        }
                 }
         }
         else
