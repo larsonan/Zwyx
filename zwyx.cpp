@@ -1947,9 +1947,23 @@ void handle_new_superunit()
 		unit->mem_used = parent_ptr->mem_used;
 		if (SUBUNIT == new_instrx.oper)
 		{
-			unit->base_instrx = new Instrx(*parent_ptr->instrxs.back());
-			unit->base_instrx->state = 0;
-			unit->base = parent_ptr->instrxs.back()->unit;
+		        if (METHOD == parent_ptr->instrxs.back()->unit->type)
+		        {
+		                unit->base_instrx = new Instrx;
+		                unit->base_instrx->unit = new Unit;
+		                unit->base = unit->base_instrx->unit;
+		                unit->base_instrx->unit->mem_offset = unit->mem_used;
+		                unit->base_instrx->unit->mem_base = METHOD;
+		                unit->mem_used += WORD_SIZE;
+		                unit->base_instrx->unit->type = parent_ptr->instrxs.back()->unit->in_unit->type;
+		        }
+		        else
+		        {
+			        unit->base_instrx = new Instrx(*parent_ptr->instrxs.back());
+			        unit->base_instrx->state = 0;
+			        unit->base = parent_ptr->instrxs.back()->unit;
+			}
+			
 			if ((parent_ptr->instrxs.back()->unit->mem_offset >= parent_ptr->mem_used)
 			    && (METHOD == parent_ptr->instrxs.back()->unit->mem_base))
 			{
