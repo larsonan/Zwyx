@@ -1680,6 +1680,11 @@ void handle_last_instrx()
 			        	}
 			        }
 			}
+			
+			if ((METHOD == parent_ptr->type) && (NO_OPER == instrx->oper))
+			{
+			        parent_ptr->in_unit = instrx->unit;
+			}
 		}
 	}
 }
