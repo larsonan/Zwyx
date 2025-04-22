@@ -850,6 +850,12 @@ void initialize_unit(Instrx *instrx)
 			
 			restore_base_to_reg();
 		}
+		if ((unit->base_instrx != NULL) && (unit->base_instrx->unit != NULL)
+		    && (METHOD == unit->base_instrx->unit->type))
+		{
+		        write_instrxs(unit->base_instrx->unit->instrxs);
+		        store_temp(unit->base->mem_offset);
+		}
 	}
 }
 
@@ -1433,6 +1439,11 @@ void handle_base(Instrx *instrx, int base_level)
                 {
                         instrx->unit = superunit->base_instrx->unit;
                         instrx->base_level = superunit->base_instrx->base_level;
+                        if (METHOD == superunit->base_instrx->unit->type)
+                        {
+                                instrx->unit = superunit->base;
+                        }
+                        
                         if (1 == base_level)
                         {
                                 break;
@@ -1950,12 +1961,12 @@ void handle_new_superunit()
 		        if (METHOD == parent_ptr->instrxs.back()->unit->type)
 		        {
 		                unit->base_instrx = new Instrx;
-		                unit->base_instrx->unit = new Unit;
-		                unit->base = unit->base_instrx->unit;
-		                unit->base_instrx->unit->mem_offset = unit->mem_used;
-		                unit->base_instrx->unit->mem_base = METHOD;
+		                unit->base_instrx->unit = parent_ptr->instrxs.back()->unit;
+		                unit->base = new Unit;
+		                unit->base->type = unit->base_instrx->unit->in_unit->type;
+		                unit->base->mem_base = METHOD;
+		                unit->base->mem_offset = unit->mem_used;
 		                unit->mem_used += WORD_SIZE;
-		                unit->base_instrx->unit->type = parent_ptr->instrxs.back()->unit->in_unit->type;
 		        }
 		        else
 		        {
