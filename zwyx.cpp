@@ -840,7 +840,15 @@ void initialize_unit(Instrx *instrx)
 			}
 			if ((instrx->ptr_source != NULL) && (instrx->ptr_source->unit != NULL))
 			{
-			        initialize_unit(instrx->ptr_source);
+			        if (METHOD == instrx->ptr_source->unit->type)
+			        {
+			                write_instrxs(instrx->ptr_source->unit->instrxs);
+			                store_temp(unit->base->mem_offset);
+			        }
+			        else
+			        {
+			                initialize_unit(instrx->ptr_source);
+			        }
 			}
 		}
 		if ((STRUCT_UNINITIALIZED == instrx->state) && (STRUCT_UNINITIALIZED == unit->f_num))
@@ -849,12 +857,6 @@ void initialize_unit(Instrx *instrx)
 			write_instrxs(unit->instrxs);
 			
 			restore_base_to_reg();
-		}
-		if ((unit->base_instrx != NULL) && (unit->base_instrx->unit != NULL)
-		    && (METHOD == unit->base_instrx->unit->type))
-		{
-		        write_instrxs(unit->base_instrx->unit->instrxs);
-		        store_temp(unit->base->mem_offset);
 		}
 	}
 }
@@ -1694,7 +1696,18 @@ void handle_last_instrx()
 			
 			if ((METHOD == parent_ptr->type) && (NO_OPER == instrx->oper))
 			{
-			        parent_ptr->in_unit = instrx->unit;
+			        if ((instrx->unit->method != NULL) && instrx->unit->method->mem_base)
+			        {
+			                parent_ptr->in_unit = instrx->unit->method->in_unit;
+			        }
+			        else if (METHOD == instrx->unit->type)
+			        {
+			                parent_ptr->in_unit = instrx->unit->in_unit;
+			        }
+			        else
+			        {
+			                parent_ptr->in_unit = instrx->unit;
+			        }
 			}
 		}
 	}
@@ -1960,13 +1973,12 @@ void handle_new_superunit()
 		{
 		        if (METHOD == parent_ptr->instrxs.back()->unit->type)
 		        {
-		                unit->base_instrx = new Instrx;
-		                unit->base_instrx->unit = parent_ptr->instrxs.back()->unit;
-		                unit->base = new Unit;
-		                unit->base->type = unit->base_instrx->unit->in_unit->type;
+		                unit->base = new Unit(*parent_ptr->instrxs.back()->unit->in_unit);
 		                unit->base->mem_base = METHOD;
 		                unit->base->mem_offset = unit->mem_used;
 		                unit->mem_used += WORD_SIZE;
+		                unit->base_instrx = new Instrx;
+		                unit->base_instrx->unit = unit->base;
 		        }
 		        else
 		        {

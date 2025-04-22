@@ -361,141 +361,133 @@ sub	rsp,	200
 call	f24
 add	rsp,	200
 mov	rbx,	[rsp]
-mov	qword	[rsp-200],	0
 lea	rax,	[rsp-168]
-mov	[rsp-208],	rax
-lea	rbx,	[rsp-208]
-sub	rsp,	208
+mov	[rsp-200],	rax
+mov	qword	[rsp-192],	0
+lea	rbx,	[rsp-200]
+sub	rsp,	200
 call	f43
-add	rsp,	208
+add	rsp,	200
 mov	rbx,	[rsp]
-mov	[rsp-192],	rax
-mov	rcx,	[rsp-192]
+mov	[rsp-208],	rax
+mov	rcx,	[rsp-208]
 mov	qword	[rcx+0],	0
-mov	rcx,	[rsp-192]
+mov	rcx,	[rsp-208]
 mov	qword	[rcx+8],	1
-mov	qword	[rsp-200],	1
-lea	rax,	[rsp-168]
-mov	[rsp-208],	rax
-lea	rbx,	[rsp-208]
-sub	rsp,	208
+mov	qword	[rsp-192],	1
+lea	rbx,	[rsp-200]
+sub	rsp,	200
 call	f43
-add	rsp,	208
+add	rsp,	200
 mov	rbx,	[rsp]
-mov	[rsp-192],	rax
-mov	rcx,	[rsp-192]
+mov	[rsp-208],	rax
+mov	rcx,	[rsp-208]
 mov	qword	[rcx+0],	2
-mov	rcx,	[rsp-192]
+mov	rcx,	[rsp-208]
 mov	qword	[rcx+8],	4
-mov	qword	[rsp-200],	2
-lea	rax,	[rsp-168]
-mov	[rsp-208],	rax
-lea	rbx,	[rsp-208]
-sub	rsp,	208
+mov	qword	[rsp-192],	2
+lea	rbx,	[rsp-200]
+sub	rsp,	200
 call	f43
-add	rsp,	208
+add	rsp,	200
 mov	rbx,	[rsp]
-mov	[rsp-192],	rax
-mov	rcx,	[rsp-192]
+mov	[rsp-208],	rax
+mov	rcx,	[rsp-208]
 mov	qword	[rcx+0],	2
-mov	rcx,	[rsp-192]
+mov	rcx,	[rsp-208]
 mov	qword	[rcx+8],	4
-mov	qword	[rsp-200],	3
-lea	rax,	[rsp-168]
-mov	[rsp-208],	rax
-lea	rbx,	[rsp-208]
-sub	rsp,	208
+mov	qword	[rsp-192],	3
+lea	rbx,	[rsp-200]
+sub	rsp,	200
 call	f43
-add	rsp,	208
+add	rsp,	200
 mov	rbx,	[rsp]
-mov	[rsp-192],	rax
-mov	rcx,	[rsp-192]
+mov	[rsp-208],	rax
+mov	rcx,	[rsp-208]
 mov	qword	[rcx+0],	0
-mov	rcx,	[rsp-192]
+mov	rcx,	[rsp-208]
 mov	qword	[rcx+8],	1
-mov	qword	[rsp-200],	4
-lea	rax,	[rsp-168]
-mov	[rsp-208],	rax
-lea	rbx,	[rsp-208]
-sub	rsp,	208
+mov	qword	[rsp-192],	4
+lea	rbx,	[rsp-200]
+sub	rsp,	200
 call	f43
-add	rsp,	208
+add	rsp,	200
 mov	rbx,	[rsp]
-mov	[rsp-192],	rax
-mov	rcx,	[rsp-192]
+mov	[rsp-208],	rax
+mov	rcx,	[rsp-208]
 mov	qword	[rcx+0],	2
-mov	rcx,	[rsp-192]
+mov	rcx,	[rsp-208]
 mov	qword	[rcx+8],	4
 mov	rax,	6
-mov	[rsp-200],	rax
+mov	[rsp-192],	rax
 mov	rax,	4
 xor	rdx,	rdx
 mov	qword	rcx,	2
 div	qword	rcx
-mov	[rsp-208],	rax
-mov	rax,	[rsp-200]
-sub	rax,	[rsp-208]
 mov	[rsp-200],	rax
+mov	rax,	[rsp-192]
+sub	rax,	[rsp-200]
+mov	[rsp-192],	rax
 mov	rax,	5
 xor	rdx,	rdx
 mov	qword	rcx,	9
 mul	qword	rcx
-mov	[rsp-208],	rax
-mov	rax,	[rsp-200]
-add	rax,	[rsp-208]
+mov	[rsp-200],	rax
+mov	rax,	[rsp-192]
+add	rax,	[rsp-200]
+mov	[rsp-224],	rax
+lea	rax,	[rsp-216]
 mov	[rsp-232],	rax
-lea	rax,	[rsp-224]
-mov	[rsp-240],	rax
-lea	rbx,	[rsp-224]
-lea	rax,	[rel+f9]
-mov	[rbx+0],	rax
-mov	[rbx+8],	rbx
-mov	rbx,	[rsp]
-lea	rbx,	[rsp-240]
-sub	rsp,	240
-call	f8
-add	rsp,	240
-mov	rbx,	[rsp]
-lea	rax,	[rsp-224]
-mov	[rsp-232],	rax
-lea	rbx,	[rsp-224]
+lea	rbx,	[rsp-216]
 lea	rax,	[rel+f9]
 mov	[rbx+0],	rax
 mov	[rbx+8],	rbx
 mov	rbx,	[rsp]
 lea	rbx,	[rsp-232]
 sub	rsp,	232
-call	f6
+call	f8
 add	rsp,	232
 mov	rbx,	[rsp]
-lea	rax,	[rsp-240]
-mov	[rsp-272],	rax
-mov	qword	[rsp-264],	48
-lea	rax,	[rsp-256]
-mov	[rsp-280],	rax
-lea	rbx,	[rsp-280]
-sub	rsp,	280
-call	f58
-add	rsp,	280
+lea	rax,	[rsp-216]
+mov	[rsp-224],	rax
+lea	rbx,	[rsp-216]
+lea	rax,	[rel+f9]
+mov	[rbx+0],	rax
+mov	[rbx+8],	rbx
 mov	rbx,	[rsp]
-lea	rax,	[rsp-168]
-mov	[rsp-272],	rax
-lea	rax,	[rsp-256]
+lea	rbx,	[rsp-224]
+sub	rsp,	224
+call	f6
+add	rsp,	224
+mov	rbx,	[rsp]
+lea	rax,	[rsp-232]
 mov	[rsp-264],	rax
+mov	qword	[rsp-256],	48
+lea	rax,	[rsp-248]
+mov	[rsp-272],	rax
 lea	rbx,	[rsp-272]
 sub	rsp,	272
-call	f39
+call	f58
 add	rsp,	272
 mov	rbx,	[rsp]
+lea	rax,	[rsp-168]
+mov	[rsp-264],	rax
+lea	rax,	[rsp-248]
+mov	[rsp-256],	rax
+lea	rbx,	[rsp-264]
+sub	rsp,	264
+call	f39
+add	rsp,	264
+mov	rbx,	[rsp]
 lea	rax,	[rel+f64]
+mov	[rsp-264],	rax
+mov	[rsp-256],	rsp
+lea	rax,	[rsp-248]
 mov	[rsp-272],	rax
-mov	[rsp-264],	rsp
-lea	rax,	[rsp-256]
-mov	[rsp-280],	rax
-lea	rbx,	[rsp-280]
-sub	rsp,	280
+lea	rbx,	[rsp-272]
+sub	rsp,	272
 call	f63
-add	rsp,	280
+add	rsp,	272
 mov	rbx,	[rsp]
 mov	rax,	60
 mov	rdi,	0
