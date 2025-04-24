@@ -165,7 +165,7 @@ remove_duplicates~{
         strBuffer2~bytes.40
         str1~str.{set_buffer:@strBuffer1 write:"FIRST"}
         str2~str.{set_buffer:@strBuffer2 write:"AFTER"}
-        str.{setchar.{at:1 char:71 $.$:@str1 ; $.$:@str2 ;}}
+        str.setchar.{at:1 char:71 $.$:@str1 ; $.$:@str2 ;}
         print.{s:str1 endl s:str2 endl}
 }
 

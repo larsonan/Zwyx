@@ -2002,7 +2002,7 @@ void handle_new_superunit()
 			if ((parent_ptr->instrxs.back()->unit->mem_offset >= parent_ptr->mem_used)
 			    && (METHOD == parent_ptr->instrxs.back()->unit->mem_base))
 			{
-			        unit->mem_used += handle_alignment(parent_ptr->instrxs.back()->unit->mem_used);
+			        unit->mem_used = parent_ptr->instrxs.back()->unit->mem_offset + WORD_SIZE;
 			}
 		}
 		else if (new_instrx.is_ptr)
