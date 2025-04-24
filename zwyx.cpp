@@ -711,7 +711,7 @@ void load_base(Instrx *instrx)
         }
         else if (1 == instrx->base_level)
         {
-                store_base(instrx->unit->mem_offset);
+                store_base(instrx->unit->mem_offset - instrx->unit->base_ptr_offset);
         }
         else
         {
@@ -1174,6 +1174,10 @@ Unit* instantiate_unit(Unit *unit, Unit *base, Unit *mem_ref_parent)
 	else if (METHOD_PTR == instance->type)
 	{
 	        instance->base_instrx = new Instrx;
+	}
+	else if ((instance->base != NULL) && is_struct(instance) && is_struct(instance->base))
+	{
+
 	}
 	if (instance->in_unit != NULL)
 	{
@@ -1779,6 +1783,14 @@ void handle_subunit()
 	    && (parent_ptr->instrxs.back()->unit->type != BASE))
 	{
 		handle_instantiation(parent_ptr->instrxs.back());
+	}
+	if (BASE == new_instrx.unit->type)
+	{
+	        Unit *first_base = parent_ptr->instrxs.back()->unit;
+	        new_instrx.unit = new Unit(*basic_units[PTR]);
+	        new_instrx.unit->typing = first_base->base;
+	        new_instrx.unit->mem_base = first_base->mem_base;
+	        new_instrx.unit->mem_offset = first_base->mem_offset - first_base->base_ptr_offset;
 	}
 	if ((METHOD == new_instrx.unit->type) && (DEFINE == parent_ptr->instrxs.back()->oper))
 	{

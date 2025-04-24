@@ -489,6 +489,134 @@ sub	rsp,	272
 call	f63
 add	rsp,	272
 mov	rbx,	[rsp]
+lea	rbx,	[rsp-280]
+lea	rax,	[rel+f9]
+mov	[rbx+0],	rax
+mov	[rbx+8],	rbx
+mov	rbx,	[rsp]
+mov	qword	[rsp-296],	s10
+mov	qword	[rsp-288],	16
+lea	rax,	[rsp-280]
+mov	[rsp-304],	rax
+lea	rbx,	[rsp-304]
+sub	rsp,	304
+call	f4
+add	rsp,	304
+mov	rbx,	[rsp]
+lea	rax,	[rsp-280]
+mov	[rsp-288],	rax
+lea	rbx,	[rsp-288]
+sub	rsp,	288
+call	f6
+add	rsp,	288
+mov	rbx,	[rsp]
+lea	rax,	[rsp-288]
+mov	[rsp-360],	rax
+mov	qword	[rsp-352],	40
+lea	rax,	[rsp-344]
+mov	[rsp-368],	rax
+lea	rbx,	[rsp-368]
+sub	rsp,	368
+call	f10
+add	rsp,	368
+mov	rbx,	[rsp]
+mov	qword	[rsp-368],	s11
+mov	qword	[rsp-360],	5
+lea	rax,	[rsp-344]
+mov	[rsp-352],	rax
+lea	rbx,	[rsp-384]
+lea	rax,	[rel+f14]
+mov	[rbx+0],	rax
+mov	[rbx+8],	rbx
+mov	rbx,	[rsp]
+lea	rbx,	[rsp-384]
+sub	rsp,	384
+call	f3
+add	rsp,	384
+mov	rbx,	[rsp]
+lea	rax,	[rsp-328]
+mov	[rsp-376],	rax
+mov	qword	[rsp-368],	40
+lea	rax,	[rsp-360]
+mov	[rsp-384],	rax
+lea	rbx,	[rsp-384]
+sub	rsp,	384
+call	f10
+add	rsp,	384
+mov	rbx,	[rsp]
+mov	qword	[rsp-384],	s12
+mov	qword	[rsp-376],	5
+lea	rax,	[rsp-360]
+mov	[rsp-368],	rax
+lea	rbx,	[rsp-400]
+lea	rax,	[rel+f14]
+mov	[rbx+0],	rax
+mov	[rbx+8],	rbx
+mov	rbx,	[rsp]
+lea	rbx,	[rsp-400]
+sub	rsp,	400
+call	f3
+add	rsp,	400
+mov	rbx,	[rsp]
+lea	rax,	[rsp-376]
+mov	[rsp-400],	rax
+mov	qword	[rsp-392],	1
+mov	qword	[rsp-384],	71
+lea	rax,	[rsp-344]
+mov	[rsp-400],	rax
+lea	rbx,	[rsp-400]
+sub	rsp,	400
+call	f11
+add	rsp,	400
+mov	rbx,	[rsp]
+lea	rax,	[rsp-360]
+mov	[rsp-400],	rax
+lea	rbx,	[rsp-400]
+sub	rsp,	400
+call	f11
+add	rsp,	400
+mov	rbx,	[rsp]
+lea	rbx,	[rsp-392]
+lea	rax,	[rel+f9]
+mov	[rbx+0],	rax
+mov	[rbx+8],	rbx
+mov	rbx,	[rsp]
+mov	rax,	[rsp-344]
+mov	rdx,	[rsp-336]
+mov	[rsp-408],	rax
+mov	[rsp-400],	rdx
+lea	rax,	[rsp-392]
+mov	[rsp-416],	rax
+lea	rbx,	[rsp-416]
+sub	rsp,	416
+call	f4
+add	rsp,	416
+mov	rbx,	[rsp]
+lea	rax,	[rsp-392]
+mov	[rsp-400],	rax
+lea	rbx,	[rsp-400]
+sub	rsp,	400
+call	f6
+add	rsp,	400
+mov	rbx,	[rsp]
+mov	rax,	[rsp-360]
+mov	rdx,	[rsp-352]
+mov	[rsp-408],	rax
+mov	[rsp-400],	rdx
+lea	rax,	[rsp-392]
+mov	[rsp-416],	rax
+lea	rbx,	[rsp-416]
+sub	rsp,	416
+call	f4
+add	rsp,	416
+mov	rbx,	[rsp]
+lea	rax,	[rsp-392]
+mov	[rsp-400],	rax
+lea	rbx,	[rsp-400]
+sub	rsp,	400
+call	f6
+add	rsp,	400
+mov	rbx,	[rsp]
 mov	rax,	60
 mov	rdi,	0
 syscall
@@ -1940,3 +2068,6 @@ s6	db	''
 s7	db	'Cannot divide by zero!'
 s8	db	'Result is '
 s9	db	' and '
+s10	db	'Almost finished.'
+s11	db	'FIRST'
+s12	db	'AFTER'
