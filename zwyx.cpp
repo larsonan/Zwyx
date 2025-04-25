@@ -1577,14 +1577,36 @@ void handle_compile_time_method(Instrx* method_struct, Instrx* arg)
 
 bool check_types(Instrx* src, Instrx* dst)
 {
+        Instrx temp;
+        temp.is_ptr = false;
+        if (is_struct(src->unit) && !src->is_ptr && (src->unit->method != NULL))
+        {
+                temp.unit = src->unit->method;
+                src = &temp;
+        }
+        if (METHOD == src->unit->type)
+        {
+                if (src->is_ptr)
+                {
+                        return true;
+                }
+                else if (NULL == src->unit->in_unit)
+                {
+                        return false;
+                }
+                else
+                {
+                        temp.unit = src->unit->in_unit;
+                        src = &temp;
+                }
+        }
         int dstt = in_unit(dst->unit)->type;
         int srct = in_unit(src->unit)->type;
         if (src->is_ptr)
         {
                 srct = src->unit->type;
         }
-        if ((BYTES_PTR == srct) || (BYTES_PTR == dstt) || (BYTES == srct)
-            || (METHOD == srct) || (is_struct(src->unit) && !src->is_ptr && (src->unit->method != NULL)))
+        if ((BYTES_PTR == srct) || (BYTES_PTR == dstt) || (BYTES == srct) || (METHOD_PTR == srct))
         {
                 return true;
         }
