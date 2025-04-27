@@ -1577,8 +1577,17 @@ void handle_compile_time_method(Instrx* method_struct, Instrx* arg)
 
 bool check_types(Instrx* src, Instrx* dst)
 {
+        if (src->oper != INSERTION)
+        {
+                if ((PTR == src->unit->type) && (src->oper != NO_OPER) && (src->oper != DEFINE))
+                {
+                        return false;
+                }
+                return true;
+        }
         Instrx temp;
         temp.is_ptr = false;
+        temp.oper = src->oper;
         if (is_struct(src->unit) && !src->is_ptr && (src->unit->method != NULL))
         {
                 temp.unit = src->unit->method;
@@ -1673,18 +1682,11 @@ void handle_last_instrx()
 		                handle_compile_time_method(instrx, NULL);
 		                return;
 		        }
-			if (INSERTION == instrx->oper)
+			if ((INSERTION == instrx->oper) && is_comptime_method(second_last_instrx->unit))
 			{
-			        if (is_comptime_method(second_last_instrx->unit))
-			        {
-			                handle_compile_time_method(second_last_instrx, instrx);
-			                instrx = parent_ptr->instrxs.back();
-			                second_last_instrx = get_second_last_instrx();
-			        }
-			        else if (!check_types(instrx, second_last_instrx))
-			        {
-			                set_error(INVALID_USE_OF_OPER, instrx->unit_line, operators[INSERTION]);
-			        }
+			        handle_compile_time_method(second_last_instrx, instrx);
+			        instrx = parent_ptr->instrxs.back();
+			        second_last_instrx = get_second_last_instrx();
 			}
 			if ((DEFINE == instrx->oper) && (NULL == second_last_instrx)
 			    && !is_comptime_method(instrx->unit))
@@ -1706,6 +1708,10 @@ void handle_last_instrx()
 			}
 			else if ((instrx->unit->type != INT_CONST) || (DEFINE == instrx->oper))
 			{
+			        if (!check_types(instrx, second_last_instrx))
+			        {
+			                set_error(INVALID_USE_OF_OPER, instrx->unit_line, operators[INSERTION]);
+			        }
 			        handle_instantiation(instrx);
 			        if ((DEFINE == instrx->oper)
 			                && (!is_comptime_method(instrx->unit) || (INSERTION != new_instrx.oper)))
@@ -1783,7 +1789,6 @@ Unit *get_correct_method_type()
 void handle_oper_errors()
 {
         if ((new_instrx.is_ptr && (new_instrx.oper != DEFINE) && (new_instrx.oper != INSERTION))
-            || (new_instrx.unit->mem_base && (DEFINE == new_instrx.oper))
             || ((IMPORT == new_instrx.unit->type) && (new_instrx.oper != NO_OPER))
             || ((INT_CONST == new_instrx.unit->type) && (DEFINE == new_instrx.oper)))
         {
