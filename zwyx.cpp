@@ -1577,12 +1577,9 @@ void handle_compile_time_method(Instrx* method_struct, Instrx* arg)
 
 bool check_types(Instrx* src, Instrx* dst)
 {
-        if (src->oper != INSERTION)
+        if ((NO_OPER == src->oper) || (IGNORE == src->oper) || (DEFINE == src->oper)
+            || (BRANCH == src->oper) || (ELSE == src->oper))
         {
-                if ((PTR == src->unit->type) && (src->oper != NO_OPER) && (src->oper != DEFINE))
-                {
-                        return false;
-                }
                 return true;
         }
         Instrx temp;
@@ -1597,6 +1594,10 @@ bool check_types(Instrx* src, Instrx* dst)
         {
                 if (src->is_ptr)
                 {
+                        if (src->oper != INSERTION)
+                        {
+                                return false;
+                        }
                         return true;
                 }
                 else if (NULL == src->unit->in_unit)
@@ -1611,6 +1612,14 @@ bool check_types(Instrx* src, Instrx* dst)
         }
         int dstt = in_unit(dst->unit)->type;
         int srct = in_unit(src->unit)->type;
+        if (src->oper != INSERTION)
+        {
+                if ((srct != INT) && (srct != INT_CONST))
+                {
+                        return false;
+                }
+                return true;
+        }
         if (src->is_ptr)
         {
                 srct = src->unit->type;
@@ -1646,7 +1655,7 @@ bool check_types(Instrx* src, Instrx* dst)
             || ((INT == dstt) && (srct != INT) && (srct != INT_CONST))
             || ((METHOD_PTR == dstt) && (srct != METHOD_PTR) && (srct != METHOD)))
         {
-               return false;
+                return false;
         }
         return true;
 }
@@ -1710,7 +1719,7 @@ void handle_last_instrx()
 			{
 			        if (!check_types(instrx, second_last_instrx))
 			        {
-			                set_error(INVALID_USE_OF_OPER, instrx->unit_line, operators[INSERTION]);
+			                set_error(INVALID_USE_OF_OPER, instrx->unit_line, operators[instrx->oper]);
 			        }
 			        handle_instantiation(instrx);
 			        if ((DEFINE == instrx->oper)
@@ -1856,6 +1865,7 @@ void handle_precedence(Instrx *temp)
 		parent_ptr->base_instrx->unit = NULL;
 		parent_ptr->base_instrx->oper = first_oper;
 		parent_ptr->instrxs.push_back(first);
+		parent_ptr->in_unit = first->unit;
 	}
         else if ((parent_ptr->base_instrx != NULL) && (NULL == parent_ptr->base_instrx->unit)
 	        && !has_precedence(temp->oper, parent_ptr->base_instrx->oper))
