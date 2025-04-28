@@ -1614,7 +1614,7 @@ bool check_types(Instrx* src, Instrx* dst)
         int srct = in_unit(src->unit)->type;
         if (src->oper != INSERTION)
         {
-                if ((srct != INT) && (srct != INT_CONST))
+                if (src->is_ptr || ((srct != INT) && (srct != INT_CONST)))
                 {
                         return false;
                 }
@@ -1797,8 +1797,7 @@ Unit *get_correct_method_type()
 
 void handle_oper_errors()
 {
-        if ((new_instrx.is_ptr && (new_instrx.oper != DEFINE) && (new_instrx.oper != INSERTION))
-            || ((IMPORT == new_instrx.unit->type) && (new_instrx.oper != NO_OPER))
+        if (((IMPORT == new_instrx.unit->type) && (new_instrx.oper != NO_OPER))
             || ((INT_CONST == new_instrx.unit->type) && (DEFINE == new_instrx.oper)))
         {
                 set_error(INVALID_USE_OF_OPER, line_num, operators[new_instrx.oper]);
@@ -2201,9 +2200,18 @@ void handle_int_const(string str)
 void handle_string_literal(string str)
 {
         handle_last_instrx();
-        new_instrx.unit = new Unit(*basic_units[STRING_LITERAL]);
-        new_instrx.unit->name = str;
-        new_instrx.unit->mem_used = str.size();
+        if ((1 == str.size())
+            && (INSERTION == new_instrx.oper) && (INT == in_unit(parent_ptr->instrxs.back()->unit)->type))
+        {
+                new_instrx.unit = new Unit(*basic_units[INT_CONST]);
+                new_instrx.unit->name = to_string(str[0]);
+        }
+        else
+        {
+                new_instrx.unit = new Unit(*basic_units[STRING_LITERAL]);
+                new_instrx.unit->name = str;
+                new_instrx.unit->mem_used = str.size();
+        }
         handle_new_instrx();
 }
 

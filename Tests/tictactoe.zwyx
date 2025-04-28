@@ -27,15 +27,15 @@ Board~{
                 }
                 X~{
                         ~Symbol
-                        g:88
+                        g:"X"
                 }
                 O~{
                         ~Symbol
-                        g:79
+                        g:"O"
                 }
                 EMPTY~{
                         ~Symbol
-                        g:46
+                        g:"."
                 }
         }
         Start~{

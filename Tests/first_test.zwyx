@@ -115,7 +115,7 @@ remove_duplicates~{
 	        msg~str
 	        msg.set_buffer:@hello
 	        msg.write.{getmessage:@$}
-	        msg.setchar.{char:70 at:1 ; at:2 ; at:3 ; at:4 ;}
+	        msg.setchar.{char:"F" at:1 ; at:2 ; at:3 ; at:4 ;}
 	        s:msg
 	        d:1749 c:102 d:0 c:90
 	        endl
