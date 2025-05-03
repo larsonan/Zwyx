@@ -1787,6 +1787,7 @@ Unit *get_correct_method_type()
 		if ((superunit->base_instrx != NULL) && (superunit->base_instrx->unit != NULL))
 		{
 		        new_instrx.ptr_source = superunit->base_instrx;
+		        superunit->base_instrx->oper = 0;
 			return superunit->base_instrx->unit->method;
 		}
 		superunit = superunit->parent;
@@ -2031,6 +2032,7 @@ void handle_new_superunit()
 		        else
 		        {
 			        unit->base_instrx = new Instrx(*parent_ptr->instrxs.back());
+			        unit->base_instrx->oper = 0;
 			        unit->base_instrx->state = 0;
 			        unit->base = parent_ptr->instrxs.back()->unit;
 			}
@@ -2068,6 +2070,31 @@ void handle_ptr()
         if ((new_instrx.oper != DEFINE) && (new_instrx.oper != INSERTION))
         {
                 set_error(INVALID_USE_OF_OPER, line_num, operators[new_instrx.oper]);
+        }
+}
+
+void handle_comma()
+{
+        if (0 == parent_ptr->instrxs.size())
+        {
+                set_error(INVALID_USE_OF_OPER, line_num, operators[new_instrx.oper]);
+        }
+        else if (parent_ptr->instrxs.back()->oper != INSERTION)
+        {
+                handle_last_instrx();
+                Instrx* instrx = new Instrx;
+                instrx->insertion_source = parent_ptr->instrxs.back();
+                instrx->insertion_source->oper = INSERTION;
+                while ((parent_ptr->base_instrx->oper < parent_ptr->base_instrx->unit->subunits.size())
+                        && !parent_ptr->base_instrx->unit->subunits[parent_ptr->base_instrx->oper]->mem_base)
+                {
+                        parent_ptr->base_instrx->oper++;
+                }
+                instrx->unit = parent_ptr->base_instrx->unit->subunits[parent_ptr->base_instrx->oper];
+                parent_ptr->base_instrx->oper++;
+                parent_ptr->instrxs.pop_back();
+                parent_ptr->instrxs.push_back(instrx);
+                parent_ptr->instrxs.push_back(instrx->insertion_source);
         }
 }
 
@@ -2149,6 +2176,9 @@ void handle_char(int c)
 	case '@':
 		handle_ptr();
 		break;
+	case ',':
+	        handle_comma();
+	        break;
 	default:
 		break;
 	}

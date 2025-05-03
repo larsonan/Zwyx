@@ -133,7 +133,7 @@ remove_duplicates~{
         l.each:@{print.d:{a+b}}
         print.endl
         
-        divmod_output.{a:13 b:2 ; a:7 b:0 ;}
+        divmod_output.{13,2,; 7,0,;}
         
         l.get.{
                 {$:0 ;}.{a:0 b:1}
