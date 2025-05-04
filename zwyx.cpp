@@ -782,8 +782,8 @@ void handle_instrx_default(Instrx *instrx)
 		write_do_instrx(instrx);
 	}
 	else if ((instrx->unit->type != METHOD) && ((instrx->oper != NO_OPER) || (NULL == instrx->insertion_source))
-		&& ((instrx->oper != INSERTION)
-		|| ((instrx->unit->type != INT_CONST) && (instrx->unit->type != STRING_LITERAL))))
+		&& ((instrx->oper != INSERTION) || ((instrx->unit->type != DEF_NONE)
+		&& (instrx->unit->type != INT_CONST) && (instrx->unit->type != STRING_LITERAL))))
 	{
 		write_insertion_src_out_unit(instrx);
 	}
@@ -2077,24 +2077,40 @@ void handle_comma()
 {
         if (0 == parent_ptr->instrxs.size())
         {
-                set_error(INVALID_USE_OF_OPER, line_num, operators[new_instrx.oper]);
+                set_error(INVALID_USE_OF_OPER, line_num, ",");
         }
         else if (parent_ptr->instrxs.back()->oper != INSERTION)
         {
                 handle_last_instrx();
-                Instrx* instrx = new Instrx;
-                instrx->insertion_source = parent_ptr->instrxs.back();
-                instrx->insertion_source->oper = INSERTION;
                 while ((parent_ptr->base_instrx->oper < parent_ptr->base_instrx->unit->subunits.size())
                         && !parent_ptr->base_instrx->unit->subunits[parent_ptr->base_instrx->oper]->mem_base)
                 {
                         parent_ptr->base_instrx->oper++;
                 }
+                if (parent_ptr->base_instrx->oper >= parent_ptr->base_instrx->unit->subunits.size())
+                {
+                        set_error(INVALID_USE_OF_OPER, line_num, ",");
+                        return;
+                }
+                Instrx* instrx = new Instrx;
+                if (NO_OPER == parent_ptr->instrxs.back()->oper)
+                {
+                        instrx->insertion_source = parent_ptr->instrxs.back();
+                        parent_ptr->instrxs.pop_back();
+                }
+                else
+                {
+                        instrx->insertion_source = new Instrx;
+                        instrx->insertion_source->unit = basic_units[DEF_NONE];
+                }
+                instrx->insertion_source->oper = INSERTION;
                 instrx->unit = parent_ptr->base_instrx->unit->subunits[parent_ptr->base_instrx->oper];
                 parent_ptr->base_instrx->oper++;
-                parent_ptr->instrxs.pop_back();
                 parent_ptr->instrxs.push_back(instrx);
-                parent_ptr->instrxs.push_back(instrx->insertion_source);
+                if (instrx->insertion_source->unit->type != DEF_NONE)
+                {
+                        parent_ptr->instrxs.push_back(instrx->insertion_source);
+                }
         }
 }
 
