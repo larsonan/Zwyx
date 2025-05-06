@@ -1,0 +1,28 @@
+_import:"utilities_lib"
+
+
+Greeter~{
+        name~str
+        Greet~{
+                ;~{
+                        print.{s:"Hello, " s:name c:"!" endl}
+                }
+        }
+}
+
+;~{
+        greeter~Greeter
+        print:"What is your name? "
+        buff~bytes.20
+        ch~int:0
+        greeter.name.{
+                set_buffer:@buff
+                ch:GetChar
+                {ch != 10}?*{
+                        write.c:ch
+                        ch:GetChar
+                }
+        }
+        greeter.Greet
+}
+

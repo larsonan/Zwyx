@@ -1,0 +1,12 @@
+_import:"utilities_lib"
+
+
+CellularAutomaton~{
+        rule~int
+        iters~int
+        write~writeNF
+        ;~{}
+}
+
+;~{}
+
