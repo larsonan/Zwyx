@@ -62,10 +62,10 @@ using namespace std;
 #define NUM_OPERS 22
 #define BASE_UNLOADED -2
 #define STRUCT_UNINITIALIZED -1
-#define BASE_2_METHOD 100
-#define BASE_2_STRUCT -5
 #define WORD_SIZE 8
+#define BASE_2_METHOD 10000
 #define MAX_ERRORS 100
+#define BASE_2_STRUCT 100
 #define TEMPLATE_ID_NUM_FACTOR 10000
 #define SYMBOL_PTR 1
 #define COMPILED 1
@@ -667,7 +667,7 @@ void load_pointer_base(Instrx *instrx)
         {
                 decrease_base_level(instrx->base_level, NULL);
         }
-        else if (instrx->base_level > 1)
+        else if ((instrx->base_level > 1) && (instrx->base_level != BASE_2_STRUCT))
         {
                 decrease_base_level(instrx->base_level, instrx->ptr_source->unit);
         }

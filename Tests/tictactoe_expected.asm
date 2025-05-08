@@ -1167,6 +1167,7 @@ mov	rcx,	[rsp+8]
 mov	qword	[rcx+32],	2
 lea	rax,	[rsp-16]
 mov	[rsp-24],	rax
+mov	rcx,	[rsp+8]
 lea	rax,	[rcx+16]
 mov	[rsp-16],	rax
 lea	rbx,	[rsp-16]
@@ -1197,6 +1198,7 @@ mov	rcx,	[rsp+8]
 mov	qword	[rcx+32],	2
 lea	rax,	[rsp-16]
 mov	[rsp-24],	rax
+mov	rcx,	[rsp+8]
 lea	rax,	[rcx+16]
 mov	[rsp-16],	rax
 lea	rbx,	[rsp-16]
@@ -1215,6 +1217,7 @@ mov	rcx,	[rsp+8]
 mov	qword	[rcx+32],	0
 lea	rax,	[rsp-16]
 mov	[rsp-24],	rax
+mov	rcx,	[rsp+8]
 lea	rax,	[rcx+16]
 mov	[rsp-16],	rax
 lea	rbx,	[rsp-16]
@@ -1266,6 +1269,7 @@ mov	rcx,	[rsp+8]
 mov	qword	[rcx+32],	1
 lea	rax,	[rsp-16]
 mov	[rsp-24],	rax
+mov	rcx,	[rsp+8]
 lea	rax,	[rcx+16]
 mov	[rsp-16],	rax
 lea	rbx,	[rsp-16]
@@ -1296,6 +1300,7 @@ mov	rcx,	[rsp+8]
 mov	qword	[rcx+32],	1
 lea	rax,	[rsp-16]
 mov	[rsp-24],	rax
+mov	rcx,	[rsp+8]
 lea	rax,	[rcx+16]
 mov	[rsp-16],	rax
 lea	rbx,	[rsp-16]
@@ -1314,6 +1319,7 @@ mov	rcx,	[rsp+8]
 mov	qword	[rcx+32],	0
 lea	rax,	[rsp-16]
 mov	[rsp-24],	rax
+mov	rcx,	[rsp+8]
 lea	rax,	[rcx+16]
 mov	[rsp-16],	rax
 lea	rbx,	[rsp-16]
@@ -1365,6 +1371,7 @@ mov	rcx,	[rsp+8]
 mov	qword	[rcx+32],	2
 lea	rax,	[rsp-16]
 mov	[rsp-24],	rax
+mov	rcx,	[rsp+8]
 lea	rax,	[rcx+16]
 mov	[rsp-16],	rax
 lea	rbx,	[rsp-16]
@@ -1395,6 +1402,7 @@ mov	rcx,	[rsp+8]
 mov	qword	[rcx+32],	0
 lea	rax,	[rsp-16]
 mov	[rsp-24],	rax
+mov	rcx,	[rsp+8]
 lea	rax,	[rcx+16]
 mov	[rsp-16],	rax
 lea	rbx,	[rsp-16]
@@ -1413,6 +1421,7 @@ mov	rcx,	[rsp+8]
 mov	qword	[rcx+32],	1
 lea	rax,	[rsp-16]
 mov	[rsp-24],	rax
+mov	rcx,	[rsp+8]
 lea	rax,	[rcx+16]
 mov	[rsp-16],	rax
 lea	rbx,	[rsp-16]
@@ -1464,6 +1473,7 @@ mov	rcx,	[rsp+8]
 mov	qword	[rcx+32],	1
 lea	rax,	[rsp-16]
 mov	[rsp-24],	rax
+mov	rcx,	[rsp+8]
 lea	rax,	[rcx+16]
 mov	[rsp-16],	rax
 lea	rbx,	[rsp-16]
@@ -1494,6 +1504,7 @@ mov	rcx,	[rsp+8]
 mov	qword	[rcx+32],	2
 lea	rax,	[rsp-16]
 mov	[rsp-24],	rax
+mov	rcx,	[rsp+8]
 lea	rax,	[rcx+16]
 mov	[rsp-16],	rax
 lea	rbx,	[rsp-16]
@@ -1512,6 +1523,7 @@ mov	rcx,	[rsp+8]
 mov	qword	[rcx+32],	1
 lea	rax,	[rsp-16]
 mov	[rsp-24],	rax
+mov	rcx,	[rsp+8]
 lea	rax,	[rcx+16]
 mov	[rsp-16],	rax
 lea	rbx,	[rsp-16]
@@ -1554,6 +1566,7 @@ mov	rcx,	[rsp+8]
 mov	qword	[rcx+32],	0
 lea	rax,	[rsp-16]
 mov	[rsp-24],	rax
+mov	rcx,	[rsp+8]
 lea	rax,	[rcx+16]
 mov	[rsp-16],	rax
 lea	rbx,	[rsp-16]
@@ -1584,6 +1597,7 @@ mov	rcx,	[rsp+8]
 mov	qword	[rcx+32],	1
 lea	rax,	[rsp-16]
 mov	[rsp-24],	rax
+mov	rcx,	[rsp+8]
 lea	rax,	[rcx+16]
 mov	[rsp-16],	rax
 lea	rbx,	[rsp-16]
@@ -1602,6 +1616,7 @@ mov	rcx,	[rsp+8]
 mov	qword	[rcx+32],	1
 lea	rax,	[rsp-16]
 mov	[rsp-24],	rax
+mov	rcx,	[rsp+8]
 lea	rax,	[rcx+16]
 mov	[rsp-16],	rax
 lea	rbx,	[rsp-16]
@@ -1653,6 +1668,7 @@ mov	rcx,	[rsp+8]
 mov	qword	[rcx+32],	2
 lea	rax,	[rsp-16]
 mov	[rsp-24],	rax
+mov	rcx,	[rsp+8]
 lea	rax,	[rcx+16]
 mov	[rsp-16],	rax
 lea	rbx,	[rsp-16]
@@ -1695,6 +1711,7 @@ mov	rcx,	[rsp+8]
 mov	qword	[rcx+32],	0
 lea	rax,	[rsp-16]
 mov	[rsp-24],	rax
+mov	rcx,	[rsp+8]
 lea	rax,	[rcx+16]
 mov	[rsp-16],	rax
 lea	rbx,	[rsp-16]
@@ -1725,6 +1742,7 @@ mov	rcx,	[rsp+8]
 mov	qword	[rcx+32],	2
 lea	rax,	[rsp-16]
 mov	[rsp-24],	rax
+mov	rcx,	[rsp+8]
 lea	rax,	[rcx+16]
 mov	[rsp-16],	rax
 lea	rbx,	[rsp-16]
@@ -1743,6 +1761,7 @@ mov	rcx,	[rsp+8]
 mov	qword	[rcx+32],	1
 lea	rax,	[rsp-16]
 mov	[rsp-24],	rax
+mov	rcx,	[rsp+8]
 lea	rax,	[rcx+16]
 mov	[rsp-16],	rax
 lea	rbx,	[rsp-16]
