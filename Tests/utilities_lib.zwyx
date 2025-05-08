@@ -255,3 +255,19 @@ Counter~{
         }
 }
 
+File~{
+        name~str
+        fdesc~int
+        Open~{;~{
+                c_str_buffer~bytes.20
+                fdesc:_file_open:str.{set_buffer:@c_str_buffer write.{s:name c:0} $}
+        }}
+        Close~{;~{
+                _file_close:fdesc
+        }}
+        Write~{
+                ~writenf
+                fn:@{_file_write.{fd:fdesc a:data ;}}
+        }
+}
+

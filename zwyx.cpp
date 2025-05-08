@@ -1602,7 +1602,7 @@ bool check_types(Instrx* src, Instrx* dst)
                 }
                 else if (NULL == src->unit->in_unit)
                 {
-                        return false;
+                        return true;
                 }
                 else
                 {

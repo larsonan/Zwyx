@@ -4,9 +4,41 @@ _import:"utilities_lib"
 CellularAutomaton~{
         rule~int
         iters~int
-        write~writeNF
-        ;~{}
+        write~@writenf
+        ;~{
+                curr_state_buffer~bytes.20
+                new_state_buffer~bytes.20
+                new_state~str.{set_buffer:@new_state_buffer}
+                curr_state~str.{
+                        set_buffer:@curr_state_buffer
+                        $.write:"....Z..............."
+                }
+                
+                Counter.{end:iters do:@{
+                        write.{s:curr_state endl}
+                        Counter.{end:20 do:@{
+                                new_state.setchar.{at:i char:curr_state.getchar:i}
+                        } ; }
+                        Counter.{end:20 do:@{
+                                curr_state.setchar.{at:i char:new_state.getchar:i}
+                        } ; }
+                } ; }
+        }
 }
 
-;~{}
+;~{
+        File.{
+                name:"output.txt"
+                Open
+                Write.{
+                        CellularAutomaton.{
+                                rule:0
+                                iters:10
+                                write:@$.2
+                                ;
+                        }
+                }
+                Close
+        }
+}
 

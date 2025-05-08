@@ -3,10 +3,11 @@ interface~{
 	;~{fn}
 }
 
-boxed~\
-        el~@$
-
-\
+boxed~`
+        return~{
+                el~@_in
+        }
+`
 
 c_iter~{
 	el~int.8
@@ -15,7 +16,7 @@ c_iter~{
 
 writenf~{
 	~interface
-	data~arg:bytes
+	data~inset:bytes
 	s~{
 		b~bytes
 		;~{
@@ -36,7 +37,7 @@ writenf~{
 	
 	endl~{
 		;~{
-			c:10
+			_endl
 		}
 	}
 	line~{
@@ -76,7 +77,7 @@ print~{
 		_console_write:data
 	}
 }
-list~\
+list~template:`return~{
 	b~bytes
 	set_buffer~{
 		in~bytes
@@ -88,20 +89,20 @@ list~\
 	get~{
 		at~int
 		;~{
-			it~@boxed:$:{b+{at*8}}
+			it~@boxed:_in:{b+{at*8}}
 			it.el
 		}
 	}
 	set~{
 		at~int
-		char~@$
+		char~@_in
 		;~{
-			it~@boxed:$:{b+{at*8}}
+			it~@boxed:_in:{b+{at*8}}
 			it.el:char
 		}
 	}
 	add~{
-		in~@$
+		in~@_in
 		;~{
 			set.{at:b.count char:in ;}
 			b.count:{b.count + 1}
@@ -114,15 +115,15 @@ list~\
 	}
 	each~{
 		
-		f~$.;
+		f~_in.;
 		;~{
-			it~@boxed:$:b
+			it~@boxed:_in:b
 			
 			remaining~int
 			remaining:b.count
 			
 			{remaining > 0}?*{
-				mbr~@$:it.el
+				mbr~@_in:it.el
 				mbr.{f}
 				
 				
@@ -131,7 +132,7 @@ list~\
 			}
 		}
 	}
-\
+}`
 
 
 
@@ -202,8 +203,8 @@ enum~{
 	}
 }
 
-emplacementList~\
-	~list:$
+emplacementList~template:`return~{
+	~list:_in
 	membSize~int
 	membBuffer~bytes
 	set_membBuffer~{
@@ -214,16 +215,20 @@ emplacementList~\
 		}
 	}
 	emplace~{
-		in~$.;
+		in~_in.;
 		;~{
-			ptr~@$:{membBuffer+membBuffer.count}
+			ptr~@_in:{membBuffer+membBuffer.count}
 			ptr.{in}
 			membBuffer.count:{membBuffer.count+membSize}
 			add:ptr
 		}
 	}
-\
+}`
 
+virtual~`
+        return~_in.;
+        _in.;~{return}
+`
 GetChar~{
         ;~{
                 c~int.8
@@ -232,6 +237,37 @@ GetChar~{
                 result~int:0
                 result
                 c
+        }
+}
+
+Counter~{
+        start~int:0
+        end~int
+        step~int:1
+        i~int
+        do~;
+        ;~{
+                i:start
+                {i < end}?*{
+                        do
+                        i:{i+step}
+                }
+        }
+}
+
+File~{
+        name~str
+        fdesc~int
+        Open~{;~{
+                c_str_buffer~bytes.20
+                fdesc:_file_open:str.{set_buffer:@c_str_buffer write.{s:name c:0} $}
+        }}
+        Close~{;~{
+                _file_close:fdesc
+        }}
+        Write~{
+                ~writenf
+                fn:@{_file_write.{fd:fdesc a:data ;}}
         }
 }
 

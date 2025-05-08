@@ -11,3 +11,19 @@ _console_read~{
         ;~{_system.{rax:0 rdx:size rdi:2 rsi:a ;}}
 }
 
+_file_open~{
+        a~bytes
+        ;~{_system.{rax:2 rdx:0 rdi:a rsi:1 ;}}
+}
+
+_file_close~{
+        fd~int
+        ;~{_system.{rax:3 rdi:fd ;}}
+}
+
+_file_write~{
+        a~bytes
+        fd~int
+        ;~{_system.{rax:1 rdx:a.count rdi:fd rsi:a ;}}
+}
+
