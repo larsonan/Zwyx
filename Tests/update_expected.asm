@@ -292,9 +292,8 @@ ret
 f12:
 push	rdx
 push	rbx
-mov	rcx,	[rsp+8]
-mov	rax,	[rcx+16]
-mov	rdx,	[rcx+24]
+mov	rax,	[rbx+16]
+mov	rdx,	[rbx+24]
 mov	[rsp-16],	rax
 mov	[rsp-8],	rdx
 lea	rbx,	[rsp-16]
@@ -352,9 +351,8 @@ ret
 f17:
 push	rdx
 push	rbx
-mov	rcx,	[rsp+8]
-mov	rax,	[rcx+16]
-mov	rdx,	[rcx+24]
+mov	rax,	[rbx+16]
+mov	rdx,	[rbx+24]
 mov	[rsp-8],	rax
 mov	rcx,	[rbx+32]
 mov	rax,	[rcx+0]
@@ -364,8 +362,7 @@ mov	rax,	[rsp-16]
 mov	rcx,	[rbx+32]
 add	rax,	[rcx+8]
 mov	[rsp-16],	rax
-mov	rcx,	[rsp+8]
-mov	rax,	[rcx+24]
+mov	rax,	[rbx+24]
 mov	[rsp-24],	rax
 mov	rcx,	[rbx+32]
 mov	rax,	[rcx+8]
@@ -528,9 +525,8 @@ push	rbx
 mov	rcx,	[rbx+32]
 mov	rax,	[rcx+16]
 mov	[rsp-8],	rax
-mov	rcx,	[rsp+8]
-mov	rax,	[rcx+16]
-mov	rdx,	[rcx+24]
+mov	rax,	[rbx+16]
+mov	rdx,	[rbx+24]
 mov	[rsp-24],	rax
 mov	[rsp-16],	rdx
 lea	rbx,	[rsp-24]

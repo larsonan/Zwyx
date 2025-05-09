@@ -621,8 +621,14 @@ void write_jump_conditional(int b_num)
         (void)fprintf(xcfile, "cmp\t%s,\t0\nje\tb%d\n", REG_TEMP, b_num);
 }
 
-void decrease_base_level(int base_level, Unit* base)
+void decrease_base_level(Instrx* instrx)
 {
+        int base_level = instrx->base_level;
+        Unit *base;
+        if ((instrx->ptr_source != NULL) && (instrx->ptr_source->unit != NULL))
+        {
+                base = instrx->ptr_source->unit;
+        }
         if (base_level >= BASE_2_METHOD)
         {
                 (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_DEFAULT, WORD_SIZE);
@@ -632,16 +638,27 @@ void decrease_base_level(int base_level, Unit* base)
                         (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_PTR, WORD_SIZE);
                         base_level -= BASE_2_METHOD;
                 }
-                if (1 == base_level)
+                if (base_level >= BASE_2_STRUCT)
                 {
-                        if (base_level != 0)
-                        {
-                                (void)fprintf(xcfile, "mov\t%s,\t[%s]\n", REG_PTR, REG_PTR);
-                        }
-                        else
-                        {
-                                (void)fprintf(xcfile, "mov\t%s,\t[%s]\n", REG_PTR, REG_PTR);
-                        }
+                        (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_PTR, WORD_SIZE);
+                        base_level -= BASE_2_STRUCT;
+                }
+                else if (base_level >= 1)
+                {
+                        (void)fprintf(xcfile, "mov\t%s,\t[%s]\n", REG_PTR, REG_PTR);
+                }
+                if (base_level >= 2)
+                {
+                        (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_PTR, base->base_ptr_offset);
+                }
+        }
+        else if (base_level >= BASE_2_STRUCT)
+        {
+                (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_DEFAULT, WORD_SIZE);
+                base_level -= BASE_2_STRUCT;
+                if (base_level >= 2)
+                {
+                        (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_PTR, base->base_ptr_offset);
                 }
         }
         else
@@ -656,20 +673,11 @@ void decrease_base_level(int base_level, Unit* base)
         }
 }
 
-void load_base_2()
-{
-        (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_DEFAULT, WORD_SIZE);
-}
-
 void load_pointer_base(Instrx *instrx)
 {
-        if (instrx->base_level >= BASE_2_METHOD)
+        if (instrx->base_level > 1)
         {
-                decrease_base_level(instrx->base_level, NULL);
-        }
-        else if ((instrx->base_level > 1) && (instrx->base_level != BASE_2_STRUCT))
-        {
-                decrease_base_level(instrx->base_level, instrx->ptr_source->unit);
+                decrease_base_level(instrx);
         }
         else if ((instrx->ptr_source != NULL) && (instrx->unit->mem_base != METHOD))
         {
@@ -680,17 +688,9 @@ void load_pointer_base(Instrx *instrx)
 
 void handle_mem_level(Instrx *instrx)
 {
-        if (instrx->base_level >= BASE_2_METHOD)
+        if ((instrx->base_level >= BASE_2_STRUCT) || ((instrx->base_level > 1) && (instrx->unit->mem_base != METHOD)))
 	{
-	        decrease_base_level(instrx->base_level, NULL);
-	}
-	else if (BASE_2_STRUCT == instrx->base_level)
-	{
-	        load_base_2();
-	}
-        else if ((instrx->base_level > 1) && (instrx->unit->mem_base != METHOD))
-	{
-	        decrease_base_level(instrx->base_level, instrx->ptr_source->unit);
+	        decrease_base_level(instrx);
 	}
 	else if ((instrx->ptr_source != NULL) && instrx->unit->mem_base && (instrx->unit->mem_base != METHOD))
 	{
@@ -702,7 +702,7 @@ void load_base(Instrx *instrx)
 {
         if (instrx->base_level > 2)
         {
-                decrease_base_level(instrx->base_level, instrx->ptr_source->unit);
+                decrease_base_level(instrx);
                 write_ptr_reg_to_temp();
         }
         else if (instrx->base_level > 1)
@@ -1350,6 +1350,7 @@ void id_unit(string name)
 {
 	Unit *superunit = parent_ptr;
 	int num_method_ptrs = 0;
+	int base_2_struct = 0;
 	
 	while ((NULL == new_instrx.unit) && (superunit != NULL) && (METHOD == superunit->type))
 	{
@@ -1364,22 +1365,17 @@ void id_unit(string name)
 		        {
 		                if (is_struct(superunit->parent))
 		                {
-		                        new_instrx.unit = find_unit_in_superunit(name, superunit->parent);
+		                        find_unit_in_unit_base(name, superunit->base);
 		                        if (NULL == new_instrx.unit)
 		                        {
-		                                find_unit_in_unit_base(name, superunit->base);
+		                                base_2_struct = BASE_2_STRUCT;
 		                        }
-		                        else if (new_instrx.unit->mem_base)
-		                        {
-		                                new_instrx.base_level = BASE_2_STRUCT;
-		                        }
-		                        break;
 		                }
 		                else
 		                {
 		                        num_method_ptrs++;
-		                        superunit = superunit->parent;
 		                }
+		                superunit = superunit->parent;
 		        }
 		        else
 		        {
@@ -1388,14 +1384,14 @@ void id_unit(string name)
 		}
 	}
         
-        if ((NULL == new_instrx.unit) && (superunit->mem_base != METHOD_PTR))
+        if (NULL == new_instrx.unit)
         {
                 find_unit_in_unit_base(name, superunit);
         }
         
         if ((new_instrx.unit != NULL) && new_instrx.unit->mem_base)
         {
-                new_instrx.base_level += num_method_ptrs * BASE_2_METHOD;
+                new_instrx.base_level += base_2_struct + num_method_ptrs * BASE_2_METHOD;
         }
         
 	superunit = parent_ptr;
