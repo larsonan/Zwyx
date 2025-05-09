@@ -1365,7 +1365,11 @@ void id_unit(string name)
 		                if (is_struct(superunit->parent))
 		                {
 		                        new_instrx.unit = find_unit_in_superunit(name, superunit->parent);
-		                        if ((new_instrx.unit != NULL) && new_instrx.unit->mem_base)
+		                        if (NULL == new_instrx.unit)
+		                        {
+		                                find_unit_in_unit_base(name, superunit->base);
+		                        }
+		                        else if (new_instrx.unit->mem_base)
 		                        {
 		                                new_instrx.base_level = BASE_2_STRUCT;
 		                        }

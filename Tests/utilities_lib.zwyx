@@ -257,17 +257,17 @@ Counter~{
 
 File~{
         name~str
-        fdesc~int
+        fd~int
         Open~{;~{
                 c_str_buffer~bytes.20
-                fdesc:_file_open:str.{set_buffer:@c_str_buffer write.{s:name c:0} $}
+                fd:_file_open:str.{set_buffer:@c_str_buffer write.{s:name c:0} $}
         }}
         Close~{;~{
-                _file_close:fdesc
+                _file_close:fd
         }}
         Write~{
                 ~writenf
-                fn:@{_file_write.{fd:fdesc a:data ;}}
+                fn:@{_file_write.{$.fd:fd a:data ;}}
         }
 }
 
