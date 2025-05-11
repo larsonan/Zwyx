@@ -673,19 +673,6 @@ void decrease_base_level(Instrx* instrx)
         }
 }
 
-void load_pointer_base(Instrx *instrx)
-{
-        if (instrx->base_level > 1)
-        {
-                decrease_base_level(instrx);
-        }
-        else if ((instrx->ptr_source != NULL) && (instrx->unit->mem_base != METHOD))
-        {
-                load_pointer_base(instrx->ptr_source);
-        }
-        write_load_ptr_base(instrx);
-}
-
 void handle_mem_level(Instrx *instrx)
 {
         if ((instrx->base_level >= BASE_2_STRUCT) || ((instrx->base_level > 1) && (instrx->unit->mem_base != METHOD)))
@@ -694,7 +681,8 @@ void handle_mem_level(Instrx *instrx)
 	}
 	else if ((instrx->ptr_source != NULL) && instrx->unit->mem_base && (instrx->unit->mem_base != METHOD))
 	{
-	        load_pointer_base(instrx->ptr_source);
+	        handle_mem_level(instrx->ptr_source);
+	        write_load_ptr_base(instrx->ptr_source);
 	}
 }
 
