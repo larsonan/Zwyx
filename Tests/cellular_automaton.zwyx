@@ -6,22 +6,44 @@ CellularAutomaton~{
         iters~int
         write~@writenf
         ;~{
-                curr_state_buffer~bytes.20
-                new_state_buffer~bytes.20
-                new_state~str.{set_buffer:@new_state_buffer}
-                curr_state~str.{
-                        set_buffer:@curr_state_buffer
-                        $.write:"....Z..............."
+                ruleTableBuffer~bytes.8
+                ruleTable~str.{
+                        set_buffer:@ruleTableBuffer
+                        Counter.{remaining~int:rule end:8 do:@{
+                                ruleTable.write.c:{remaining%2}
+                                remaining:{remaining/2}
+                        } ; }
+                }
+                
+                stateBuffer~bytes.22
+                state~str.{
+                        set_buffer:@stateBuffer
+                        $.write.{
+                                c:0
+                                c:0 c:0 c:0 c:0 c:1 c:0 c:0 c:0 c:0 c:0
+                                c:0 c:0 c:0 c:0 c:0 c:0 c:0 c:0 c:0 c:0
+                                c:0
+                        }
                 }
                 
                 Counter.{end:iters do:@{
-                        write.{s:curr_state endl}
-                        Counter.{end:20 do:@{
-                                new_state.setchar.{at:i char:curr_state.getchar:i}
+                        prevCell~int:0
+                        Counter.{start:1 end:21 do:@{
+                                {state.getchar:i = 1}?{
+                                        write.c:"Z"
+                                }^{
+                                        write.c:"."
+                                }
+                                n0~int:state.getchar:{i-1}
+                                n1~int:state.getchar:i
+                                n2~int:state.getchar:{i+1}
+                                currCell~int:ruleTable.getchar:{ n0 + n1 * 2 + n2 * 4 }
+                                state.setchar.{char:prevCell at:{i-1} ;}
+                                prevCell:currCell
                         } ; }
-                        Counter.{end:20 do:@{
-                                curr_state.setchar.{at:i char:new_state.getchar:i}
-                        } ; }
+                        
+                        state.setchar.{char:prevCell at:20 ;}
+                        write.endl
                 } ; }
         }
 }
@@ -32,7 +54,7 @@ CellularAutomaton~{
                 Open
                 Write.{
                         CellularAutomaton.{
-                                rule:0
+                                rule:110
                                 iters:10
                                 write:@$.2
                                 ;
