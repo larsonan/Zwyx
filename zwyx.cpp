@@ -703,10 +703,7 @@ void load_base(Instrx *instrx)
         }
         else
         {
-                if (instrx->ptr_source->base_level > 1)
-                {
-                        handle_mem_level(instrx->ptr_source);
-                }
+                handle_mem_level(instrx->ptr_source);
                 write_ptr_to_temp(instrx->ptr_source);
 	}
 	if (instrx->base_level != 1)
