@@ -34,10 +34,10 @@ CellularAutomaton~{
                                 }^{
                                         write.c:"."
                                 }
-                                n0~int:state.getchar:{i-1}
-                                n1~int:state.getchar:i
-                                n2~int:state.getchar:{i+1}
-                                currCell~int:ruleTable.getchar:{ n0 + n1 * 2 + n2 * 4 }
+                                currCell~int:ruleTable.getchar:state.getchar.{
+                                        {$:{i-1} ;} + {{$:i ;} * 2} + {{$:{i+1} ;} * 4}
+                                
+                                }
                                 state.setchar.{char:prevCell at:{i-1} ;}
                                 prevCell:currCell
                         } ; }

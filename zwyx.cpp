@@ -1599,10 +1599,6 @@ bool check_types(Instrx* src, Instrx* dst)
         int srct = in_unit(src->unit)->type;
         if (src->oper != INSERTION)
         {
-                if (src->is_ptr || ((srct != INT) && (srct != INT_CONST)))
-                {
-                        return false;
-                }
                 return true;
         }
         if (src->is_ptr)
