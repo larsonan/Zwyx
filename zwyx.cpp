@@ -1381,9 +1381,20 @@ void id_unit(string name)
         
 	superunit = parent_ptr;
 	
-	while ((NULL == new_instrx.unit) && (superunit != NULL) && (METHOD == superunit->mem_base))
+	num_method_ptrs = 0;
+	base_2_struct = 0;
+	
+	while ((NULL == new_instrx.unit) && (superunit != NULL) && (METHOD == superunit->type))
 	{
-	        if ((superunit->base_instrx != NULL) && (superunit->base_instrx->unit != NULL))
+	        if (METHOD_PTR == superunit->mem_base)
+	        {
+	                find_unit_in_unit_base(name, superunit->base);
+	                if (NULL == new_instrx.unit)
+	                {
+	                        num_method_ptrs++;
+	                }
+	        }
+	        else if ((superunit->base_instrx != NULL) && (superunit->base_instrx->unit != NULL))
 	        {
 		        new_instrx.unit = find_unit_in_superunit(name, superunit->base_instrx->unit);
                         if ((new_instrx.unit != NULL) && ((new_instrx.unit->base != NULL)
@@ -1395,9 +1406,9 @@ void id_unit(string name)
 		superunit = superunit->parent;
 	}
 	
-	if ((NULL == new_instrx.unit) && (superunit != NULL) && (METHOD_PTR == superunit->mem_base))
+	if ((new_instrx.unit != NULL) && (new_instrx.unit->mem_base))
 	{
-	        find_unit_in_unit_base(name, superunit->base);
+	        new_instrx.base_level += base_2_struct + num_method_ptrs * BASE_2_METHOD;
 	}
 }
 
@@ -1599,6 +1610,10 @@ bool check_types(Instrx* src, Instrx* dst)
         int srct = in_unit(src->unit)->type;
         if (src->oper != INSERTION)
         {
+                if (((srct != INT_CONST) && (srct != INT) && (srct != BYTES)) || (src->is_ptr))
+                {
+                        return false;
+                }
                 return true;
         }
         if (src->is_ptr)
