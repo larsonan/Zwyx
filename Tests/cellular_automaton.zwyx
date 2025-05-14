@@ -10,7 +10,7 @@ CellularAutomaton~{
                 ruleTable~str.{
                         set_buffer:@ruleTableBuffer
                         Counter.{remainder~int:rule end:8 do:@{
-                                ruleTable.write.c:{remainder%2}
+                                write.c:{remainder%2}
                                 remainder:{remainder/2}
                         } ; }
                 }

@@ -1400,7 +1400,9 @@ void id_unit(string name)
                         if ((new_instrx.unit != NULL) && ((new_instrx.unit->base != NULL)
                             || (PTR == superunit->base_instrx->unit->type)))
                         {
-                                new_instrx.ptr_source = superunit->base_instrx;
+                                new_instrx.ptr_source = new Instrx(*superunit->base_instrx);
+                                new_instrx.ptr_source->base_level
+                                    += base_2_struct + num_method_ptrs * BASE_2_METHOD;
                         }
 		}
 		superunit = superunit->parent;
