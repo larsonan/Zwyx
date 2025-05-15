@@ -406,6 +406,7 @@ void write_insertion(Instrx *instrx)
 	{
 	        (void)fprintf(xcfile, "mov\t");
 	        if ((STRING_LITERAL == instrx->insertion_source->unit->type)
+	                      || (INT == instrx->insertion_source->unit->type)
 	                      || (BYTES == instrx->insertion_source->unit->type))
 	        {
 	                (void)fprintf(xcfile, "qword\t");
@@ -413,6 +414,7 @@ void write_insertion(Instrx *instrx)
 	        write_array_count(instrx);
 	        (void)fprintf(xcfile, ",\t");
 	        if ((STRING_LITERAL == instrx->insertion_source->unit->type)
+	                      || (INT == instrx->insertion_source->unit->type)
 	                      || (BYTES == instrx->insertion_source->unit->type))
 	        {
 	                (void)fprintf(xcfile, "%d", instrx->insertion_source->unit->mem_used);
@@ -445,7 +447,7 @@ void write_ptr_to_temp(Instrx *instrx)
 	}
 	else
 	{
-	        if ((is_struct(instrx->unit)) || (BYTES == instrx->unit->type))
+	        if ((is_struct(instrx->unit)) || (BYTES == instrx->unit->type) || (INT == instrx->unit->type))
 	        {
 		        (void)fprintf(xcfile, "lea\t%s,\t", REG_TEMP);
 		}
@@ -1123,7 +1125,7 @@ Unit* instantiate_unit(Unit *unit, Unit *base, Unit *mem_ref_parent)
 	{
 	        instance->type = BYTES;
 	}
-	if (((METHOD_PTR == instance->type) || (BYTES_PTR == instance->type)
+	if (((METHOD_PTR == instance->type) || (INT == instance->type) || (BYTES_PTR == instance->type)
 	    || (BYTES == instance->type) || is_struct(instance))
 	    && (METHOD == mem_ref_parent->type))
 	{
@@ -1612,7 +1614,7 @@ bool check_types(Instrx* src, Instrx* dst)
         int srct = in_unit(src->unit)->type;
         if (src->oper != INSERTION)
         {
-                if (((srct != INT_CONST) && (srct != INT) && (srct != BYTES)) || (src->is_ptr))
+                if (((srct != INT_CONST) && (srct != INT)) || (src->is_ptr))
                 {
                         return false;
                 }
@@ -1838,6 +1840,10 @@ void handle_subunit()
 		        
 		parent_ptr->instrxs.back()->ptr_source->oper = NO_OPER;
 		parent_ptr->instrxs.back()->base_level = 0;
+	}
+	if ((INT_CONST == new_instrx.unit->type) && (INT == parent_ptr->instrxs.back()->unit->type))
+	{
+	        new_instrx.unit->type = INT;
 	}
 	parent_ptr->instrxs.back()->state = 0;
 	parent_ptr->instrxs.back()->unit = new_instrx.unit;
