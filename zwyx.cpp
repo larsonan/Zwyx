@@ -1125,9 +1125,7 @@ Unit* instantiate_unit(Unit *unit, Unit *base, Unit *mem_ref_parent)
 	{
 	        instance->type = BYTES;
 	}
-	if (((METHOD_PTR == instance->type) || (INT == instance->type) || (BYTES_PTR == instance->type)
-	    || (BYTES == instance->type) || is_struct(instance))
-	    && (METHOD == mem_ref_parent->type))
+	if (METHOD == mem_ref_parent->type)
 	{
 		if ((base != NULL) && (METHOD == base->mem_base) && (base->mem_offset >= mem_ref_parent->mem_used))
 		{
@@ -1578,9 +1576,14 @@ void handle_compile_time_method(Instrx* method_struct, Instrx* arg)
 bool check_types(Instrx* src, Instrx* dst)
 {
         if ((NO_OPER == src->oper) || (IGNORE == src->oper) || (DEFINE == src->oper)
-            || (BRANCH == src->oper) || (ELSE == src->oper))
+            || (BRANCH == src->oper) || (ELSE == src->oper) || (WHILE == src->oper))
         {
                 return true;
+        }
+        if ((METHOD == dst->unit->type) && ((0 == dst->unit->instrxs.size())
+            || (INSERTION == src->oper) && (NULL == dst->unit->in_unit)))
+        {
+                return false;
         }
         Instrx temp;
         temp.is_ptr = false;
@@ -1600,6 +1603,10 @@ bool check_types(Instrx* src, Instrx* dst)
                         }
                         return true;
                 }
+                else if (0 == src->unit->instrxs.size())
+                {
+                        return false;
+                }
                 else if (NULL == src->unit->in_unit)
                 {
                         return true;
@@ -1612,9 +1619,13 @@ bool check_types(Instrx* src, Instrx* dst)
         }
         int dstt = in_unit(dst->unit)->type;
         int srct = in_unit(src->unit)->type;
+        if ((METHOD == dst->unit->type) && (dst->unit->in_unit != NULL))
+        {
+                dstt = dst->unit->in_unit->type;
+        }
         if (src->oper != INSERTION)
         {
-                if (((srct != INT_CONST) && (srct != INT)) || (src->is_ptr))
+                if (((srct != INT_CONST) && (srct != INT) && (srct != METHOD_PTR)) || (src->is_ptr))
                 {
                         return false;
                 }
