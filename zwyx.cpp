@@ -214,14 +214,7 @@ void print_errors(void)
 	for (int i = 0; i < num_errors; i++)
 	{
 	        (void)fprintf(stdout, "%s, ", errors[i].file_name.c_str());
-	        if (0 == errors[i].line)
-	        {
-	                (void)fprintf(stdout, "compile-time method");
-	        }
-	        else
-	        {
-		        (void)fprintf(stdout, "line %d", errors[i].line);
-		}
+		(void)fprintf(stdout, "line %d", errors[i].line);
 		(void)fprintf(stdout, " - \"%s\"", errors[i].section.c_str());
 		(void)fprintf(stdout, ": %s\n", error_messages[errors[i].type].c_str());
 	}
@@ -1490,7 +1483,7 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
         new_instrx.oper = NO_OPER;
         int outer_line_num = line_num;
         Unit *temp_arg = arg_unit;
-        line_num = 0;
+        line_num = method_struct->unit->mem_offset;
         int temp_temp_reg_mem = temp_reg_mem;
         Instrx* temp_base_instrx = parent_ptr->base_instrx;
         parent_ptr->base_instrx = arg;
@@ -2269,10 +2262,11 @@ void handle_string_literal(string str)
         handle_new_instrx();
 }
 
-void handle_compile_time_method_def(string str)
+void handle_compile_time_method_def(string str, int comptime_method_line_num)
 {
         new_instrx.unit = new Unit(*basic_units[COMPTIME_METHOD]);
         new_instrx.unit->str = str;
+        new_instrx.unit->mem_offset = comptime_method_line_num;
         handle_new_instrx();
 }
 
@@ -2323,14 +2317,10 @@ void parse_istream(istream &zyfile)
 {
 	string unit_name_buffer;
 	int read_mode = 0;
-	
+	int comptime_method_line_num;
 	char c = zyfile.get();
 	while (zyfile.good())
 	{
-	        if ('\n' == c)
-	        {
-	                line_num++;
-	        }
 	        if (COMPILED == read_mode)
 	        {
 	                compiled_instrxs.push_back(c);
@@ -2339,7 +2329,7 @@ void parse_istream(istream &zyfile)
 	        {
 	                if ('`' == c)
 	                {
-	                        handle_compile_time_method_def(unit_name_buffer);
+	                        handle_compile_time_method_def(unit_name_buffer, comptime_method_line_num);
 	                        unit_name_buffer.clear();
 	                        read_mode = 0;
 	                }
@@ -2393,6 +2383,7 @@ void parse_istream(istream &zyfile)
 				if ('`' == c)
 				{
 				        read_mode = COMPTIME_METHOD;
+				        comptime_method_line_num = line_num;
 				}
 				if ('#' == c)
 				{
@@ -2407,6 +2398,10 @@ void parse_istream(istream &zyfile)
 				        handle_char(c);
 				}
 			}
+		}
+		if ('\n' == c)
+		{
+		        line_num++;
 		}
 		c = zyfile.get();
 	}
