@@ -1580,18 +1580,26 @@ bool check_types(Instrx* src, Instrx* dst)
         {
                 return true;
         }
-        if ((METHOD == dst->unit->type) && ((0 == dst->unit->instrxs.size())
-            || (INSERTION == src->oper) && (NULL == dst->unit->in_unit)))
-        {
-                return false;
-        }
         Instrx temp;
+        Instrx temp2;
         temp.is_ptr = false;
         temp.oper = src->oper;
         if (is_struct(src->unit) && !src->is_ptr && (src->unit->method != NULL))
         {
                 temp.unit = src->unit->method;
                 src = &temp;
+        }
+        if (METHOD == dst->unit->type)
+        {
+                if (NULL == dst->unit->in_unit)
+                {
+                        return false;
+                }
+                else
+                {
+                        temp2.unit = dst->unit->in_unit;
+                        dst = &temp2;
+                }
         }
         if (METHOD == src->unit->type)
         {
@@ -1603,13 +1611,9 @@ bool check_types(Instrx* src, Instrx* dst)
                         }
                         return true;
                 }
-                else if (0 == src->unit->instrxs.size())
-                {
-                        return false;
-                }
                 else if (NULL == src->unit->in_unit)
                 {
-                        return true;
+                        return false;
                 }
                 else
                 {
@@ -1617,12 +1621,9 @@ bool check_types(Instrx* src, Instrx* dst)
                         src = &temp;
                 }
         }
+        
         int dstt = in_unit(dst->unit)->type;
         int srct = in_unit(src->unit)->type;
-        if ((METHOD == dst->unit->type) && (dst->unit->in_unit != NULL))
-        {
-                dstt = dst->unit->in_unit->type;
-        }
         if (src->oper != INSERTION)
         {
                 if (((srct != INT_CONST) && (srct != INT) && (srct != METHOD_PTR)) || (src->is_ptr))
@@ -2165,16 +2166,8 @@ void handle_new_oper(int oper)
 
 void handle_char(int c)
 {
-        if ((' ' == c) || ('\t' == c))
+        if ((' ' == c) || ('\t' == c) || ('\n' == c))
         {
-                return;
-        }
-        if ('\n' == c)
-        {
-                if (line_num > 0)
-                {
-                        line_num++;
-                }
                 return;
         }
         int new_oper = NO_OPER;
@@ -2334,6 +2327,10 @@ void parse_istream(istream &zyfile)
 	char c = zyfile.get();
 	while (zyfile.good())
 	{
+	        if ('\n' == c)
+	        {
+	                line_num++;
+	        }
 	        if (COMPILED == read_mode)
 	        {
 	                compiled_instrxs.push_back(c);

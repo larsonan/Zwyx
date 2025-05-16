@@ -3,7 +3,7 @@ _system~{
 	rdx~int
 	rdi~int
 	rsi~int
-	;~{}
+	;~{ 0}
 }
 
 0_START_INSTRXS
