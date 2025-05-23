@@ -3,13 +3,13 @@ interface~{
 	;~{fn}
 }
 
-boxed~`
+Boxed~`
         return~{
                 el~@_in
         }
 `
 
-c_iter~{
+CIter~{
 	el~int.8
 	
 }
@@ -51,7 +51,7 @@ writenf~{
 		in~int
 		;~{
 			buff~bytes.48
-			it~@c_iter:@buff
+			it~@CIter:@buff
 			it:{it+40}
 			it.el:{in%10+48}
 			in:{in/10}
@@ -77,9 +77,9 @@ print~{
 		_console_write:data
 	}
 }
-list~template:`return~{
+List~template:`return~{
 	b~bytes
-	set_buffer~{
+	setBuffer~{
 		in~bytes
 		;~{
 			b:in
@@ -89,7 +89,7 @@ list~template:`return~{
 	get~{
 		at~int
 		;~{
-			it~@boxed:_in:{b+{at*8}}
+			it~@Boxed:_in:{b+{at*8}}
 			it.el
 		}
 	}
@@ -97,7 +97,7 @@ list~template:`return~{
 		at~int
 		char~@_in
 		;~{
-			it~@boxed:_in:{b+{at*8}}
+			it~@Boxed:_in:{b+{at*8}}
 			it.el:char
 		}
 	}
@@ -117,7 +117,7 @@ list~template:`return~{
 		
 		f~_in.;
 		;~{
-			it~@boxed:_in:b
+			it~@Boxed:_in:b
 			
 			remaining~int
 			remaining:b.count
@@ -155,14 +155,14 @@ str~{
 		at~int
 		char~int
 		;~{
-			it~@c_iter:{b+at}
+			it~@CIter:{b+at}
 			it.el:char
 		}
 	}
 	getchar~{
 		at~int
 		;~{
-			it~@c_iter:{b+at}
+			it~@CIter:{b+at}
 			it.el % 256
 		}
 	}
@@ -174,8 +174,8 @@ str~{
 	write~{
 		~writenf
 		fn:@{
-			in~@c_iter:data
-			self~@c_iter:b
+			in~@CIter:data
+			self~@CIter:b
 			self:{self+b.count}
 			countin~int:data.count
 			b.count:{b.count+countin}
@@ -190,24 +190,24 @@ str~{
 	}
 }
 
-enum~{
-	val~int
-	op~{
-		op_val~int
-		is~{
-			;~{val=op_val}
+Enum~{
+	Val~int
+	Op~{
+		OpVal~int
+		Is~{
+			;~{Val=OpVal}
 		}
-		set~{
-			;~{val:op_val}
+		Set~{
+			;~{Val:OpVal}
 		}
 	}
 }
 
-emplacementList~template:`return~{
-	~list:_in
+MasterList~template:`return~{
+	~List:_in
 	membSize~int
 	membBuffer~bytes
-	set_membBuffer~{
+	setMembBuffer~{
 		buf~bytes
 		;~{
 			membBuffer:buf

@@ -22,26 +22,26 @@ factorial~{
 	}
 }
 
-color~{
-	~enum
-	red~{~op op_val:0}
-	green~{~op op_val:1}
-	orange~{~op op_val:2}
-	yellow~{~op op_val:3}
-	blue~{~op op_val:4}
+Color~{
+	~Enum
+	red~{~Op OpVal:0}
+	green~{~Op OpVal:1}
+	orange~{~Op OpVal:2}
+	yellow~{~Op OpVal:3}
+	blue~{~Op OpVal:4}
 }
 
 write_color~{
 	write~@writenf
-	colrw~color
+	colrw~Color
 	;~{
 		write.{
 			colrw.{
-				red.is ? {s:"RED"}
-				^ green.is ? {s:"GREEN"}
-				^ orange.is ? {s:"ORANGE"}
-				^ yellow.is ? {s:"YELLOW"}
-				^ blue.is ? {s:"BLUE"}
+				red.Is ? {s:"RED"}
+				^ green.Is ? {s:"GREEN"}
+				^ orange.Is ? {s:"ORANGE"}
+				^ yellow.Is ? {s:"YELLOW"}
+				^ blue.Is ? {s:"BLUE"}
 			}
 			endl
 		}
@@ -73,8 +73,8 @@ divmod_output~{
 }
 
 remove_duplicates~{
-        l_in~@emplacementList:npair
-        l_out~@list:npair
+        l_in~@MasterList:npair
+        l_out~@List:npair
         ;~{
                 l_in.each:@{
                         outer~$
@@ -95,9 +95,9 @@ remove_duplicates~{
         b0~bytes.48
         mbuf~bytes.80
         
-        l~emplacementList:npair.{
-	        set_membBuffer:@mbuf
-	        set_buffer:@b0
+        l~MasterList:npair.{
+	        setMembBuffer:@mbuf
+	        setBuffer:@b0
 	        membSize:16
 	        emplace.{
 		        $:@{a:1 b:0} ;
@@ -123,10 +123,10 @@ remove_duplicates~{
         
         print.{d:factorial:7 endl}
         
-        color_a~color
-        color_a.blue.set
-        print.{d:color_a.blue.is endl d:color_a.orange.is endl}
-        print.{write_color.{write:@$.2 colrw:color_a ; color_a.orange.set colrw:color_a ;}}
+        color_a~Color
+        color_a.blue.Set
+        print.{d:color_a.blue.Is endl d:color_a.orange.Is endl}
+        print.{write_color.{write:@$.2 colrw:color_a ; color_a.orange.Set colrw:color_a ;}}
         
         n~int:4
         l.each:@{b:n n:{n-1}}
@@ -148,9 +148,9 @@ remove_duplicates~{
         
         b1~bytes.48
         
-        l2~list:npair
+        l2~List:npair
         
-        l2.set_buffer:@b1
+        l2.setBuffer:@b1
         
         remove_duplicates.{
                 l_in:@l

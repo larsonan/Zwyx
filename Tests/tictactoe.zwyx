@@ -10,7 +10,7 @@ Board~{
                         g~int
                         Is~{
                                 ;~{
-                                        p~@c_iter:@data
+                                        p~@CIter:@data
                                         p:{p+c+{r*3}}
                                         t~int:0
                                         t
@@ -19,7 +19,7 @@ Board~{
                         }
                         Set~{
                                 ;~{
-                                        p~@c_iter:@data
+                                        p~@CIter:@data
                                         p:{p+c+{r*3}}
                                         p.el:g
                                 }
@@ -40,7 +40,7 @@ Board~{
         }
         Start~{
                 ;~{
-                        p~@c_iter:@data
+                        p~@CIter:@data
                         c~int:46
                         Counter.{
                                 end:9
@@ -53,7 +53,7 @@ Board~{
         }
         Print~{
                 ;~{
-                        p~@c_iter:@data
+                        p~@CIter:@data
                         Counter.{
                                 end:9
                                 do:@{
@@ -69,10 +69,10 @@ Board~{
 }
 
 GameState~{
-        ~enum
-        DEFAULT~{~op op_val:0}
-        TIE~{~op op_val:1}
-        WON~{~op op_val:2}
+        ~Enum
+        DEFAULT~{~Op OpVal:0}
+        TIE~{~Op OpVal:1}
+        WON~{~Op OpVal:2}
 }
 
 Game~{
@@ -105,64 +105,64 @@ Game~{
         }
         top_or_bottom:@{
                 {{r = 2} & {c = 2}} ? { r:2 c:0 stateFn:top_or_bottom_2 }
-                                    ^ { r:2 c:2 state.WON.set }
+                                    ^ { r:2 c:2 state.WON.Set }
         }
         top_or_bottom_2:@{
-                {c = 0} ? { r:0 c:2 state.WON.set}
-                        ^ { r:1 c:0 state.WON.set}
+                {c = 0} ? { r:0 c:2 state.WON.Set}
+                        ^ { r:1 c:0 state.WON.Set}
         }
         upper_right:@{
                 {{r = 1} & {c = 1}} ? { r:2 c:0 stateFn:upper_right_2 }
-                                    ^ { r:1 c:1 state.WON.set }
+                                    ^ { r:1 c:1 state.WON.Set }
         }
         upper_right_2:@{
-                {c = 0} ? { r:2 c:1 state.WON.set }
-                        ^ { r:1 c:0 state.WON.set }
+                {c = 0} ? { r:2 c:1 state.WON.Set }
+                        ^ { r:1 c:0 state.WON.Set }
         }
         side:@{
                 {{r = 2} & {c = 2}} ? { r:0 c:2 stateFn:side_2 }
-                                    ^ { r:2 c:2 state.WON.set }
+                                    ^ { r:2 c:2 state.WON.Set }
         }
         side_2:@{
-                {r = 0} ? {r:2 c:0 state.WON.set}
-                        ^ {r:0 c:1 state.WON.set}
+                {r = 0} ? {r:2 c:0 state.WON.Set}
+                        ^ {r:0 c:1 state.WON.Set}
         }
         lower_left:@{
                 {{r = 1} & {c = 1}} ? { r:0 c:2 stateFn:lower_left_2 }
-                                    ^ { r:1 c:1 state.WON.set }
+                                    ^ { r:1 c:1 state.WON.Set }
         }
         lower_left_2:@{
-                {r = 0} ? { r:1 c:2 state.WON.set }
-                        ^ { r:0 c:1 state.WON.set }
+                {r = 0} ? { r:1 c:2 state.WON.Set }
+                        ^ { r:0 c:1 state.WON.Set }
         }
         opposite:@{
                 {c = 0} ? { r:0 c:2 stateFn:opposite_2 }
-                        ^ { r:1 c:0 state.WON.set }
+                        ^ { r:1 c:0 state.WON.Set }
         }
         opposite_2:@{
-                {r = 0} ? { r:1 c:1 state.WON.set }
-                        ^ { r:0 c:1 state.WON.set }
+                {r = 0} ? { r:1 c:1 state.WON.Set }
+                        ^ { r:0 c:1 state.WON.Set }
         }
         center:@{
                 {{r = 0} & {c = 2}} ? { r:2 c:0 stateFn:center_2 }
-                                    ^ { r:0 c:2 state.WON.set }
+                                    ^ { r:0 c:2 state.WON.Set }
         }
         center_2:@{
                 {c = 0} ? { r:1 c:2 stateFn:center_3 }
-                        ^ { r:1 c:0 state.WON.set }
+                        ^ { r:1 c:0 state.WON.Set }
         }
         center_3:@{
-                {c = 1} ? { r:2 c:2 state.TIE.set }
-                        ^ { r:2 c:1 state.TIE.set }
+                {c = 1} ? { r:2 c:2 state.TIE.Set }
+                        ^ { r:2 c:1 state.TIE.Set }
         }
 }
 
 ;~{
         Game.{
                 board.{Start Cell.{$.r:0 $.c:0 X.Set}}
-                state.DEFAULT.set
+                state.DEFAULT.Set
                 stateFn:start
-                {state.DEFAULT.is}?*{
+                {state.DEFAULT.Is}?*{
                         board.Print
                         print:"Enter move (Row,Column):"
                         RInput~int:GetChar
@@ -189,7 +189,7 @@ Game~{
                         }
                 }
                 board.Print
-                {state.WON.is}?{
+                {state.WON.Is}?{
                         print.line:"Game over"
                 }^{
                         print.line:"Cats game"
