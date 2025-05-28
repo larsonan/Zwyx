@@ -1459,6 +1459,50 @@ void handle_base_no_index(Instrx* instrx)
         handle_base(instrx, 1);
 }
 
+void handle_custom_compile_time_method_with_args(Instrx* method_struct, Instrx *arg)
+{
+        Instrx* defined_unit = NULL;
+        parent_ptr->instrxs.pop_back();
+        parent_ptr->instrxs.pop_back();
+        if ((DEFINE == method_struct->oper) && (parent_ptr->instrxs.size() > 0))
+        {
+                defined_unit = parent_ptr->instrxs.back();
+                parent_ptr->instrxs.pop_back();
+        }
+        Instrx* dummy = new Instrx;
+        parent_ptr->instrxs.push_back(dummy);
+        dummy->oper = IGNORE;
+        dummy->unit = basic_units[COMPTIME_METHOD];
+        Instrx temp = new_instrx;
+        new_instrx.unit = NULL;
+        new_instrx.oper = NO_OPER;
+        int outer_line_num = line_num;
+        line_num = method_struct->unit->mem_offset;
+        int temp_temp_reg_mem = temp_reg_mem;
+        Unit* new_arg = new Unit(*arg->unit);
+        new_arg->name = "_in";
+        Unit* new_parent = new Unit;
+        new_parent->subunits.push_back(new_arg);
+        istringstream str(method_struct->unit->str);
+        parse_istream(str);
+        handle_last_instrx();
+        new_instrx = temp;
+        temp_reg_mem = temp_temp_reg_mem;
+        method_struct->insertion_source = NULL;
+        line_num = outer_line_num;
+        if (method_struct->unit->f_num > 0)
+        {
+                unit_for_return->type = arg->unit->type + method_struct->unit->f_num * TEMPLATE_ID_NUM_FACTOR;
+        }
+        delete(arg);
+        if (defined_unit != NULL)
+        {
+                parent_ptr->instrxs.push_back(defined_unit);
+        }
+        method_struct->unit = new_parent->subunits.back();
+        parent_ptr->instrxs.push_back(method_struct);
+}
+
 void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
 {
         Instrx* defined_unit = NULL;
@@ -1485,8 +1529,6 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
         Unit *temp_arg = arg_unit;
         line_num = method_struct->unit->mem_offset;
         int temp_temp_reg_mem = temp_reg_mem;
-        Instrx* temp_base_instrx = parent_ptr->base_instrx;
-        parent_ptr->base_instrx = arg;
         if (arg != NULL)
         {
                 arg_unit = arg->unit;
@@ -1494,7 +1536,6 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
         istringstream str(method_struct->unit->str);
         parse_istream(str);
         handle_last_instrx();
-        parent_ptr->base_instrx = temp_base_instrx;
         new_instrx = temp;
         temp_reg_mem = temp_temp_reg_mem;
         method_struct->insertion_source = NULL;
