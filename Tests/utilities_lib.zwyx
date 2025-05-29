@@ -14,7 +14,7 @@ CIter~{
 	
 }
 
-writenf~{
+WriteNF~{
 	~interface
 	data~inset:bytes
 	s~{
@@ -72,7 +72,7 @@ writenf~{
 }
 
 print~{
-	~writenf
+	~WriteNF
 	fn:@{
 		_console_write:data
 	}
@@ -172,7 +172,7 @@ str~{
 		}
 	}
 	write~{
-		~writenf
+		~WriteNF
 		fn:@{
 			in~@CIter:data
 			self~@CIter:b
@@ -191,14 +191,14 @@ str~{
 }
 
 Enum~{
-	Val~int
-	Op~{
-		OpVal~int
-		Is~{
-			;~{Val=OpVal}
+	val~int
+	op~{
+		op_val~int
+		is~{
+			;~{val=op_val}
 		}
-		Set~{
-			;~{Val:OpVal}
+		set~{
+			;~{val:op_val}
 		}
 	}
 }
@@ -229,7 +229,7 @@ virtual~`
         return~_in.;
         _in.;~{return}
 `
-GetChar~{
+getChar~{
         ;~{
                 c~int.8
                 _console_read.{a:@c size:1 ;}
@@ -258,15 +258,15 @@ Counter~{
 File~{
         name~str
         fd~int
-        Open~{;~{
+        open~{;~{
                 c_str_buffer~bytes.20
                 fd:_file_open:str.{set_buffer:@c_str_buffer write.{s:name c:0} $}
         }}
-        Close~{;~{
+        close~{;~{
                 _file_close:fd
         }}
-        Write~{
-                ~writenf
+        write~{
+                ~WriteNF
                 fn:@{_file_write.{$.fd:fd a:data ;}}
         }
 }

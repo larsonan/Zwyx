@@ -51,8 +51,8 @@ CellularAutomaton~{
 ;~{
         File.{
                 name:"output.txt"
-                Open
-                Write.{
+                open
+                write.{
                         CellularAutomaton.{
                                 rule:110
                                 iters:10
@@ -60,7 +60,7 @@ CellularAutomaton~{
                                 ;
                         }
                 }
-                Close
+                close
         }
 }
 

@@ -17,10 +17,10 @@ Greeter~{
         ch~int:0
         greeter.name.{
                 set_buffer:@buff
-                ch:GetChar
+                ch:getChar
                 {ch != 10}?*{
                         write.c:ch
-                        ch:GetChar
+                        ch:getChar
                 }
         }
         greeter.Greet

@@ -3,7 +3,7 @@ _import:"utilities_lib"
 npair~{a~int b~int}
 
 getmessage~{
-	write~@writenf
+	write~@WriteNF
 	;~{}
 }
 
@@ -24,24 +24,24 @@ factorial~{
 
 Color~{
 	~Enum
-	red~{~Op OpVal:0}
-	green~{~Op OpVal:1}
-	orange~{~Op OpVal:2}
-	yellow~{~Op OpVal:3}
-	blue~{~Op OpVal:4}
+	red~{~op op_val:0}
+	green~{~op op_val:1}
+	orange~{~op op_val:2}
+	yellow~{~op op_val:3}
+	blue~{~op op_val:4}
 }
 
 write_color~{
-	write~@writenf
+	write~@WriteNF
 	colrw~Color
 	;~{
 		write.{
 			colrw.{
-				red.Is ? {s:"RED"}
-				^ green.Is ? {s:"GREEN"}
-				^ orange.Is ? {s:"ORANGE"}
-				^ yellow.Is ? {s:"YELLOW"}
-				^ blue.Is ? {s:"BLUE"}
+				red.is ? {s:"RED"}
+				^ green.is ? {s:"GREEN"}
+				^ orange.is ? {s:"ORANGE"}
+				^ yellow.is ? {s:"YELLOW"}
+				^ blue.is ? {s:"BLUE"}
 			}
 			endl
 		}
@@ -124,9 +124,9 @@ remove_duplicates~{
         print.{d:factorial:7 endl}
         
         color_a~Color
-        color_a.blue.Set
-        print.{d:color_a.blue.Is endl d:color_a.orange.Is endl}
-        print.{write_color.{write:@$.2 colrw:color_a ; color_a.orange.Set colrw:color_a ;}}
+        color_a.blue.set
+        print.{d:color_a.blue.is endl d:color_a.orange.is endl}
+        print.{write_color.{write:@$.2 colrw:color_a ; color_a.orange.set colrw:color_a ;}}
         
         n~int:4
         l.each:@{b:n n:{n-1}}

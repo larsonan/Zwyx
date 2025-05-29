@@ -2,7 +2,7 @@ _import:"utilities_lib"
 
 
 give_bank_update~{
-	write~@writenf
+	write~@WriteNF
 	amount~int
 	intro_text~str
 	;~{

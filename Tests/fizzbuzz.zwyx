@@ -2,7 +2,7 @@ _import:"utilities_lib"
 
 
 fizzbuzz_generic~{
-	write~@writenf
+	write~@WriteNF
 	start~int
 	end~int
 	replace~{

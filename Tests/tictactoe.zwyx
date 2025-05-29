@@ -70,9 +70,9 @@ Board~{
 
 GameState~{
         ~Enum
-        DEFAULT~{~Op OpVal:0}
-        TIE~{~Op OpVal:1}
-        WON~{~Op OpVal:2}
+        DEFAULT~{~op op_val:0}
+        TIE~{~op op_val:1}
+        WON~{~op op_val:2}
 }
 
 Game~{
@@ -105,74 +105,74 @@ Game~{
         }
         top_or_bottom:@{
                 {{r = 2} & {c = 2}} ? { r:2 c:0 stateFn:top_or_bottom_2 }
-                                    ^ { r:2 c:2 state.WON.Set }
+                                    ^ { r:2 c:2 state.WON.set }
         }
         top_or_bottom_2:@{
-                {c = 0} ? { r:0 c:2 state.WON.Set}
-                        ^ { r:1 c:0 state.WON.Set}
+                {c = 0} ? { r:0 c:2 state.WON.set}
+                        ^ { r:1 c:0 state.WON.set}
         }
         upper_right:@{
                 {{r = 1} & {c = 1}} ? { r:2 c:0 stateFn:upper_right_2 }
-                                    ^ { r:1 c:1 state.WON.Set }
+                                    ^ { r:1 c:1 state.WON.set }
         }
         upper_right_2:@{
-                {c = 0} ? { r:2 c:1 state.WON.Set }
-                        ^ { r:1 c:0 state.WON.Set }
+                {c = 0} ? { r:2 c:1 state.WON.set }
+                        ^ { r:1 c:0 state.WON.set }
         }
         side:@{
                 {{r = 2} & {c = 2}} ? { r:0 c:2 stateFn:side_2 }
-                                    ^ { r:2 c:2 state.WON.Set }
+                                    ^ { r:2 c:2 state.WON.set }
         }
         side_2:@{
-                {r = 0} ? {r:2 c:0 state.WON.Set}
-                        ^ {r:0 c:1 state.WON.Set}
+                {r = 0} ? {r:2 c:0 state.WON.set}
+                        ^ {r:0 c:1 state.WON.set}
         }
         lower_left:@{
                 {{r = 1} & {c = 1}} ? { r:0 c:2 stateFn:lower_left_2 }
-                                    ^ { r:1 c:1 state.WON.Set }
+                                    ^ { r:1 c:1 state.WON.set }
         }
         lower_left_2:@{
-                {r = 0} ? { r:1 c:2 state.WON.Set }
-                        ^ { r:0 c:1 state.WON.Set }
+                {r = 0} ? { r:1 c:2 state.WON.set }
+                        ^ { r:0 c:1 state.WON.set }
         }
         opposite:@{
                 {c = 0} ? { r:0 c:2 stateFn:opposite_2 }
-                        ^ { r:1 c:0 state.WON.Set }
+                        ^ { r:1 c:0 state.WON.set }
         }
         opposite_2:@{
-                {r = 0} ? { r:1 c:1 state.WON.Set }
-                        ^ { r:0 c:1 state.WON.Set }
+                {r = 0} ? { r:1 c:1 state.WON.set }
+                        ^ { r:0 c:1 state.WON.set }
         }
         center:@{
                 {{r = 0} & {c = 2}} ? { r:2 c:0 stateFn:center_2 }
-                                    ^ { r:0 c:2 state.WON.Set }
+                                    ^ { r:0 c:2 state.WON.set }
         }
         center_2:@{
                 {c = 0} ? { r:1 c:2 stateFn:center_3 }
-                        ^ { r:1 c:0 state.WON.Set }
+                        ^ { r:1 c:0 state.WON.set }
         }
         center_3:@{
-                {c = 1} ? { r:2 c:2 state.TIE.Set }
-                        ^ { r:2 c:1 state.TIE.Set }
+                {c = 1} ? { r:2 c:2 state.TIE.set }
+                        ^ { r:2 c:1 state.TIE.set }
         }
 }
 
 ;~{
         Game.{
                 board.{Start Cell.{$.r:0 $.c:0 X.Set}}
-                state.DEFAULT.Set
+                state.DEFAULT.set
                 stateFn:start
-                {state.DEFAULT.Is}?*{
+                {state.DEFAULT.is}?*{
                         board.Print
                         print:"Enter move (Row,Column):"
-                        RInput~int:GetChar
-                        newChar~int:GetChar
+                        RInput~int:getChar
+                        newChar~int:getChar
                         {newChar = 44}?{
-                                newChar:GetChar
+                                newChar:getChar
                         }
                         CInput~int:newChar
                         {newChar != 10}?*{
-                                newChar:GetChar
+                                newChar:getChar
                         }
                         {{RInput < 49} | {RInput > 51} | {CInput < 49} | {CInput > 51}} ? {
                                 print.line:"Illegal move."
@@ -189,7 +189,7 @@ Game~{
                         }
                 }
                 board.Print
-                {state.WON.Is}?{
+                {state.WON.is}?{
                         print.line:"Game over"
                 }^{
                         print.line:"Cats game"
