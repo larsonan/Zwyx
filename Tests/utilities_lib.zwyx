@@ -1,4 +1,4 @@
-interface~{
+SingleFnNF~{
 	fn~;
 	;~{fn}
 }
@@ -15,7 +15,7 @@ CIter~{
 }
 
 WriteNF~{
-	~interface
+	~SingleFnNF
 	data~inset:bytes
 	s~{
 		b~bytes
@@ -142,24 +142,24 @@ List~template:`return~{
 
 
 
-str~{
+String~{
 	b~bytes
-	set_buffer~{
+	setBuffer~{
 		in~bytes
 		;~{
 			b:in
 			b.count:0
 		}
 	}
-	setchar~{
+	set~{
 		at~int
-		char~int
+		el~int
 		;~{
 			it~@CIter:{b+at}
-			it.el:char
+			it.el:el
 		}
 	}
-	getchar~{
+	get~{
 		at~int
 		;~{
 			it~@CIter:{b+at}
@@ -256,11 +256,11 @@ Counter~{
 }
 
 File~{
-        name~str
+        name~String
         fd~int
         open~{;~{
                 c_str_buffer~bytes.20
-                fd:_file_open:str.{set_buffer:@c_str_buffer write.{s:name c:0} $}
+                fd:_file_open:String.{setBuffer:@c_str_buffer write.{s:name c:0} $}
         }}
         close~{;~{
                 _file_close:fd

@@ -48,7 +48,7 @@ write_color~{
 	}
 }
 
-divmod~{ dd~int dv~int r~int q~int error~str:""
+divmod~{ dd~int dv~int r~int q~int error~String:""
         ;~{
                 {dv = 0} ? {
                         error:"Cannot divide by zero!"
@@ -112,10 +112,10 @@ remove_duplicates~{
         bm
         print.{
 	        hello~bytes.40
-	        msg~str
-	        msg.set_buffer:@hello
+	        msg~String
+	        msg.setBuffer:@hello
 	        msg.write.{getmessage:@$}
-	        msg.setchar.{char:"F" at:1 ; at:2 ; at:3 ; at:4 ;}
+	        msg.set.{el:"F" at:1 ; at:2 ; at:3 ; at:4 ;}
 	        s:msg
 	        d:1749 c:102 d:0 c:90
 	        endl
@@ -163,9 +163,9 @@ remove_duplicates~{
         
         strBuffer1~bytes.40
         strBuffer2~bytes.40
-        str1~str.{set_buffer:@strBuffer1 write:"FIRST"}
-        str2~str.{set_buffer:@strBuffer2 write:"AFTER"}
-        str.setchar.{at:1 char:71 $.$:@str1 ; $.$:@str2 ;}
+        str1~String.{setBuffer:@strBuffer1 write:"FIRST"}
+        str2~String.{setBuffer:@strBuffer2 write:"AFTER"}
+        String.set.{at:1 el:71 $.$:@str1 ; $.$:@str2 ;}
         print.{s:str1 endl s:str2 endl}
 }
 

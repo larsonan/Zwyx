@@ -4,7 +4,7 @@ _import:"utilities_lib"
 give_bank_update~{
 	write~@WriteNF
 	amount~int
-	intro_text~str
+	intro_text~String
 	;~{
 		write.{s:intro_text s:". You have $" d:amount s:" in the bank." endl}
 	}
@@ -14,13 +14,13 @@ give_bank_update~{
 
 
 increase_urgency~{
-	in~str
+	in~String
 	;~{
 		size~int:in.count
 		n~int:0
 		{n < size}?*{
-			{in.getchar:n = 46}?{
-				in.setchar.{char:33 at:n ;}
+			{in.get:n = 46}?{
+				in.set.{el:33 at:n ;}
 			}
 			n:{n+1}
 		}
@@ -31,8 +31,8 @@ increase_urgency~{
         print.{give_bank_update.{write:@$.2 amount:500 intro_text:"Attention" ;}}
         
         buff~bytes.50
-        str.{
-	        set_buffer:@buff
+        String.{
+	        setBuffer:@buff
 	        writer~write
 	        give_bank_update.{write:@writer amount:5 intro_text:"Warning" ;}
 	        increase_urgency:$
