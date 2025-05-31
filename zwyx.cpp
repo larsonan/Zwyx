@@ -40,8 +40,8 @@ using namespace std;
 #define BYTES 8
 #define COMPTIME_METHOD 9
 #define BYTES_PTR 10
-#define IN 11
-#define INS 12
+#define IO 11
+#define INSET 12
 #define IMPORT 13
 #define INT_CONST 14
 #define STRING_LITERAL 15
@@ -253,7 +253,7 @@ void setup_basic_units(void)
 	basic_units[METHOD_PTR]->subunits.push_back(count);
 	basic_units[BYTES_PTR]->subunits.push_back(count);
         
-        basic_units[INS]->typing = basic_units[COMPTIME_METHOD];
+        basic_units[INSET]->typing = basic_units[COMPTIME_METHOD];
         basic_units[TEMPLATE]->typing = basic_units[COMPTIME_METHOD];
 }
 
@@ -1259,7 +1259,7 @@ void handle_instantiation(Instrx *instrx)
 	        size = data_section_strings.size();
 	        instrx->unit->f_num = size;
 	}
-	else if (!instrx->unit->mem_base && (instrx->unit->type != IMPORT) && (instrx->unit->type != INS)
+	else if (!instrx->unit->mem_base && (instrx->unit->type != IMPORT) && (instrx->unit->type != INSET)
 	                    && (instrx->oper != IGNORE) && !is_comptime_method(instrx->unit))
 	{
 		if (instrx->is_ptr)
@@ -1531,7 +1531,8 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
         int temp_temp_reg_mem = temp_reg_mem;
         if (arg != NULL)
         {
-                arg_unit = arg->unit;
+                arg_unit = new Unit;
+                arg_unit->subunits.push_back(arg->unit);
         }
         istringstream str(method_struct->unit->str);
         parse_istream(str);
@@ -1584,13 +1585,13 @@ void handle_template(Instrx* instrx)
 void handle_compile_time_method(Instrx* method_struct, Instrx* arg)
 {
         int method_struct_type = method_struct->unit->type;
-        if ((TEMPLATE == method_struct->unit->type) || (INS == method_struct->unit->type))
+        if ((TEMPLATE == method_struct->unit->type) || (INSET == method_struct->unit->type))
         {
                 if (TEMPLATE == method_struct->unit->type)
                 {
                         handle_template(arg);
                 }
-                else if (INS == method_struct->unit->type)
+                else if (INSET == method_struct->unit->type)
                 {
                         handle_in(arg);
                 }
@@ -2325,9 +2326,9 @@ void handle_unit_name(string name)
 	else
 	{
 		new_instrx.unit = find_unit_from_list(basic_units, name);
-		if ((new_instrx.unit != NULL) && (IN == new_instrx.unit->type))
+		if ((new_instrx.unit != NULL) && (IO == new_instrx.unit->type))
 		{
-		        new_instrx.unit = arg_unit;
+		        new_instrx.unit = arg_unit->subunits[0];
 		}
 		if (NULL == new_instrx.unit)
 		{
