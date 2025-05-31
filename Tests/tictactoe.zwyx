@@ -3,42 +3,42 @@ _import:"utilities_lib"
 
 Board~{
         data~bytes.9
-        Cell~{
+        cell~{
                 r~int
                 c~int
-                Symbol~{
-                        g~int
-                        Is~{
+                symbol~{
+                        v~int
+                        is~{
                                 ;~{
                                         p~@CIter:@data
                                         p:{p+c+{r*3}}
                                         t~int:0
                                         t
-                                        p.el = g
+                                        p.el = v
                                 }
                         }
-                        Set~{
+                        set~{
                                 ;~{
                                         p~@CIter:@data
                                         p:{p+c+{r*3}}
-                                        p.el:g
+                                        p.el:v
                                 }
                         }
                 }
                 X~{
-                        ~Symbol
-                        g:"X"
+                        ~symbol
+                        v:"X"
                 }
                 O~{
-                        ~Symbol
-                        g:"O"
+                        ~symbol
+                        v:"O"
                 }
                 EMPTY~{
-                        ~Symbol
-                        g:"."
+                        ~symbol
+                        v:"."
                 }
         }
-        Start~{
+        setup~{
                 ;~{
                         p~@CIter:@data
                         c~int:46
@@ -51,7 +51,7 @@ Board~{
                         }
                 }
         }
-        Print~{
+        printBoard~{
                 ;~{
                         p~@CIter:@data
                         Counter.{
@@ -159,11 +159,11 @@ Game~{
 
 ;~{
         Game.{
-                board.{Start Cell.{$.r:0 $.c:0 X.Set}}
+                board.{setup cell.{$.r:0 $.c:0 X.set}}
                 state.DEFAULT.set
                 stateFn:start
                 {state.DEFAULT.is}?*{
-                        board.Print
+                        board.printBoard
                         print:"Enter move (Row,Column):"
                         RInput~int:getChar
                         newChar~int:getChar
@@ -179,16 +179,16 @@ Game~{
                         }^{
                                 r:{RInput-49}
                                 c:{CInput-49}
-                                {board.Cell.{r:$.2.r c:$.2.c EMPTY.Is}}?{
-                                        board.Cell.{r:$.2.r c:$.2.c O.Set}
+                                {board.cell.{r:$.2.r c:$.2.c EMPTY.is}}?{
+                                        board.cell.{r:$.2.r c:$.2.c O.set}
                                         stateFn
-                                        board.Cell.{r:$.2.r c:$.2.c X.Set}
+                                        board.cell.{r:$.2.r c:$.2.c X.set}
                                 }^{
                                         print.line:"Illegal move."
                                 }
                         }
                 }
-                board.Print
+                board.printBoard
                 {state.WON.is}?{
                         print.line:"Game over"
                 }^{
