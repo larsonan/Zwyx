@@ -5,7 +5,7 @@ SingleFnNF~{
 
 Boxed~`
         return~{
-                el~@_in
+                el~@_io.0
         }
 `
 
@@ -89,20 +89,20 @@ List~template:`return~{
 	get~{
 		at~int
 		;~{
-			it~@Boxed:_in:{b+{at*8}}
+			it~@Boxed:_io.0:{b+{at*8}}
 			it.el
 		}
 	}
 	set~{
 		at~int
-		char~@_in
+		char~@_io.0
 		;~{
-			it~@Boxed:_in:{b+{at*8}}
+			it~@Boxed:_io.0:{b+{at*8}}
 			it.el:char
 		}
 	}
 	add~{
-		in~@_in
+		in~@_io.0
 		;~{
 			set.{at:b.count char:in ;}
 			b.count:{b.count + 1}
@@ -115,15 +115,15 @@ List~template:`return~{
 	}
 	each~{
 		
-		f~_in.;
+		f~_io.0.;
 		;~{
-			it~@Boxed:_in:b
+			it~@Boxed:_io.0:b
 			
 			remaining~int
 			remaining:b.count
 			
 			{remaining > 0}?*{
-				mbr~@_in:it.el
+				mbr~@_io.0:it.el
 				mbr.{f}
 				
 				
@@ -204,7 +204,7 @@ Enum~{
 }
 
 MasterList~template:`return~{
-	~List:_in
+	~List:_io.0
 	membSize~int
 	membBuffer~bytes
 	setMembBuffer~{
@@ -215,9 +215,9 @@ MasterList~template:`return~{
 		}
 	}
 	emplace~{
-		in~_in.;
+		in~_io.0.;
 		;~{
-			ptr~@_in:{membBuffer+membBuffer.count}
+			ptr~@_io.0:{membBuffer+membBuffer.count}
 			ptr.{in}
 			membBuffer.count:{membBuffer.count+membSize}
 			add:ptr
@@ -226,8 +226,8 @@ MasterList~template:`return~{
 }`
 
 virtual~`
-        return~_in.;
-        _in.;~{return}
+        return~_io.0.;
+        _io.0.;~{return}
 `
 getChar~{
         ;~{

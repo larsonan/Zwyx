@@ -145,7 +145,7 @@ struct Unit
 	string str;
 };
 
-string basic_unit_names[] = {"none", "", "", "int", "", "method", "", "", "bytes", "", "", "_in",
+string basic_unit_names[] = {"none", "", "", "int", "", "method", "", "", "bytes", "", "", "_io",
                               "inset", "_import", "", "", "template"};
 
 int precedences[] = {0, 0, 0, 0, 2, 5, 6, 7, 5, 0, 6, 0, 2, 1, 7, 7, 5, 5, 5, 5, 4, 3};
@@ -1531,7 +1531,7 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
         int temp_temp_reg_mem = temp_reg_mem;
         if (arg != NULL)
         {
-                arg_unit = new Unit;
+                arg_unit = new Unit(*basic_units[IO]);
                 arg_unit->subunits.push_back(arg->unit);
         }
         istringstream str(method_struct->unit->str);
@@ -2267,7 +2267,11 @@ void end_base_unit()
 
 void handle_int_const(string str)
 {
-        if ((SUBUNIT == new_instrx.oper) && (BASE == parent_ptr->instrxs.back()->unit->type))
+        if ((SUBUNIT == new_instrx.oper) && (IO == parent_ptr->instrxs.back()->unit->type))
+        {
+                new_instrx.unit = arg_unit->subunits[0];
+        }
+        else if ((SUBUNIT == new_instrx.oper) && (BASE == parent_ptr->instrxs.back()->unit->type))
         {
                 handle_base(&new_instrx, stoi(str));
         }
@@ -2328,7 +2332,7 @@ void handle_unit_name(string name)
 		new_instrx.unit = find_unit_from_list(basic_units, name);
 		if ((new_instrx.unit != NULL) && (IO == new_instrx.unit->type))
 		{
-		        new_instrx.unit = arg_unit->subunits[0];
+		        new_instrx.unit = arg_unit;
 		}
 		if (NULL == new_instrx.unit)
 		{
