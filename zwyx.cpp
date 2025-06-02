@@ -1096,7 +1096,10 @@ void handle_define_statement(Unit *defined_unit, Unit *definition_unit)
 	{
 	        defined_unit->parent->subunits.push_back(definition_unit);
 	}
-	parent_ptr->subunits.push_back(definition_unit);
+	else
+	{
+	        parent_ptr->subunits.push_back(definition_unit);
+	}
 }
 
 Unit* instantiate_unit(Unit *unit, Unit *base, Unit *mem_ref_parent)
@@ -1746,9 +1749,15 @@ void handle_last_instrx()
 			else if ((DEFINE == instrx->oper) && instrx->unit->mem_base)
 			{
 			        string name = second_last_instrx->unit->name;
+			        Unit* new_parent = parent_ptr;
+			        if (second_last_instrx->unit->parent != NULL)
+			        {
+			                new_parent = second_last_instrx->unit->parent;
+			                instrx->unit->name = "";
+			        }
 			        *second_last_instrx->unit = *instrx->unit;
 			        second_last_instrx->unit->name = name;
-			        parent_ptr->subunits.push_back(second_last_instrx->unit);
+			        new_parent->subunits.push_back(second_last_instrx->unit);
 			        second_last_instrx->oper = IGNORE;
 			        instrx->oper = IGNORE;
 			}

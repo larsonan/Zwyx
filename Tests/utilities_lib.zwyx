@@ -226,8 +226,10 @@ MasterList~template:`_io.return~{
 }`
 
 virtual~`
-        _io.return~_io.0.;
-        _io.0.;~{return}
+        _io_data~_io.0.;
+        _io.0.;~{_io_data}
+        
+        _io.return~_io_data
 `
 getChar~{
         ;~{
