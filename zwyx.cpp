@@ -1087,19 +1087,14 @@ int handle_alignment(int mem_offset)
 
 void handle_define_statement(Unit *defined_unit, Unit *definition_unit)
 {
-        if ("return" == defined_unit->name)
-        {
-                unit_for_return = definition_unit;
-                if (!definition_unit->mem_base)
-                {
-                        return;
-                }
-        }
-        
 	definition_unit->name = defined_unit->name;
 	if ((STRUCT == definition_unit->mem_base) || (METHOD == definition_unit->mem_base))
 	{
 		parent_ptr->mem_used += handle_alignment(definition_unit->mem_used);
+	}
+	if (defined_unit->parent != NULL)
+	{
+	        defined_unit->parent->subunits.push_back(definition_unit);
 	}
 	parent_ptr->subunits.push_back(definition_unit);
 }
@@ -1541,6 +1536,10 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
         temp_reg_mem = temp_temp_reg_mem;
         method_struct->insertion_source = NULL;
         line_num = outer_line_num;
+        if (arg != NULL)
+        {
+                unit_for_return = arg_unit->subunits.back();
+        }
         arg_unit = temp_arg;
         if (method_struct->unit->f_num > 0)
         {
@@ -1564,14 +1563,9 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
 
 void handle_in(Instrx* instrx)
 {
-        int old_mem_base = instrx->unit->mem_base;
         handle_instantiation(instrx);
         parent_ptr->in_unit = instrx->unit;
         handle_define_statement(instrx->unit, instrx->unit);
-        if (!old_mem_base)
-        {
-                instrx->unit->name = "return";
-        }
 }
 
 void handle_template(Instrx* instrx)
@@ -1748,10 +1742,6 @@ void handle_last_instrx()
 			    && !is_comptime_method(instrx->unit))
 			{
 			        handle_inheritance(instrx->unit);
-			}
-			else if ((DEFINE == instrx->oper) && ("return" == instrx->unit->name))
-			{
-			        instrx->unit->name = second_last_instrx->unit->name;
 			}
 			else if ((DEFINE == instrx->oper) && instrx->unit->mem_base)
 			{
@@ -2354,6 +2344,11 @@ void handle_unit_name(string name)
 			new_instrx.unit = new Unit;
 			new_instrx.unit->name = name;
 			new_instrx.unit->type = DEF_NONE;
+			new_instrx.unit->parent = NULL;
+			if (SUBUNIT == new_instrx.oper)
+			{
+			        new_instrx.unit->parent = parent_ptr->instrxs.back()->unit;
+			}
 		}
 	}
 	handle_new_instrx();
