@@ -1527,10 +1527,12 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
         Unit *temp_arg = arg_unit;
         line_num = method_struct->unit->mem_offset;
         int temp_temp_reg_mem = temp_reg_mem;
+        int num_args_before;
         if (arg != NULL)
         {
                 arg_unit = new Unit(*basic_units[IO]);
                 arg_unit->subunits.push_back(arg->unit);
+                num_args_before = arg_unit->subunits.size();
         }
         istringstream str(method_struct->unit->str);
         parse_istream(str);
@@ -1543,11 +1545,11 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
         {
                 unit_for_return = arg_unit->subunits.back();
         }
-        arg_unit = temp_arg;
-        if (method_struct->unit->f_num > 0)
+        if ((arg_unit != NULL) && !unit_for_return->mem_base && (arg_unit->subunits.size() > num_args_before))
         {
                 unit_for_return->type = arg->unit->type + method_struct->unit->f_num * TEMPLATE_ID_NUM_FACTOR;
         }
+        arg_unit = temp_arg;
         if (arg != NULL)
         {
                 delete(arg);
