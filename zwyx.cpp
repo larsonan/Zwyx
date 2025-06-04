@@ -146,7 +146,7 @@ struct Unit
 };
 
 string basic_unit_names[] = {"none", "", "", "int", "", "method", "", "", "bytes", "", "", "_io",
-                              "inset", "_import", "", "", "template"};
+                              "inset", "_import", "", "", ""};
 
 int precedences[] = {0, 0, 0, 0, 2, 5, 6, 7, 5, 0, 6, 0, 2, 1, 7, 7, 5, 5, 5, 5, 4, 3};
 
@@ -1527,12 +1527,12 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
         Unit *temp_arg = arg_unit;
         line_num = method_struct->unit->mem_offset;
         int temp_temp_reg_mem = temp_reg_mem;
-        int num_args_before;
+        int num_args_before = 0;
+        arg_unit = new Unit(*basic_units[IO]);
         if (arg != NULL)
         {
-                arg_unit = new Unit(*basic_units[IO]);
                 arg_unit->subunits.push_back(arg->unit);
-                num_args_before = arg_unit->subunits.size();
+                num_args_before++;
         }
         istringstream str(method_struct->unit->str);
         parse_istream(str);
@@ -1541,13 +1541,17 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
         temp_reg_mem = temp_temp_reg_mem;
         method_struct->insertion_source = NULL;
         line_num = outer_line_num;
-        if (arg != NULL)
+        if (arg_unit->subunits.size() > 0)
         {
                 unit_for_return = arg_unit->subunits.back();
+                if (!unit_for_return->mem_base && (arg_unit->subunits.size() > num_args_before))
+                {
+                        unit_for_return->type = arg->unit->type + method_struct->unit->f_num * TEMPLATE_ID_NUM_FACTOR;
+                }
         }
-        if ((arg_unit != NULL) && !unit_for_return->mem_base && (arg_unit->subunits.size() > num_args_before))
+        else
         {
-                unit_for_return->type = arg->unit->type + method_struct->unit->f_num * TEMPLATE_ID_NUM_FACTOR;
+                delete(arg_unit);
         }
         arg_unit = temp_arg;
         if (arg != NULL)
@@ -1573,27 +1577,12 @@ void handle_in(Instrx* instrx)
         handle_define_statement(instrx->unit, instrx->unit);
 }
 
-void handle_template(Instrx* instrx)
-{
-        num_templates++;
-        instrx->unit->typing = basic_units[COMPTIME_METHOD];
-        instrx->unit->type = COMPTIME_METHOD;
-        instrx->unit->f_num = num_templates;
-}
-
 void handle_compile_time_method(Instrx* method_struct, Instrx* arg)
 {
         int method_struct_type = method_struct->unit->type;
-        if ((TEMPLATE == method_struct->unit->type) || (INSET == method_struct->unit->type))
+        if (INSET == method_struct->unit->type)
         {
-                if (TEMPLATE == method_struct->unit->type)
-                {
-                        handle_template(arg);
-                }
-                else if (INSET == method_struct->unit->type)
-                {
-                        handle_in(arg);
-                }
+                handle_in(arg);
                 arg->oper = method_struct->oper;
                 arg->is_ptr = method_struct->is_ptr;
                 parent_ptr->instrxs.pop_back();
@@ -2312,7 +2301,9 @@ void handle_string_literal(string str)
 void handle_compile_time_method_def(string str, int comptime_method_line_num)
 {
         new_instrx.unit = new Unit(*basic_units[COMPTIME_METHOD]);
+        num_templates++;
         new_instrx.unit->str = str;
+        new_instrx.unit->f_num = num_templates;
         new_instrx.unit->mem_offset = comptime_method_line_num;
         handle_new_instrx();
 }
