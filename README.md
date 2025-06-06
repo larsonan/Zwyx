@@ -9,6 +9,18 @@ The characters allowed in names are upper and lower case letters, digits and und
 
 Like C, Zwyx is a **free-format** language. Whitespace (spaces, tabs and newlines) is used to separate statements and is otherwise ignored.
 
+## Comments
+Single-line comments are indicated with a starting # symbol.
+
+## The Main Method
+The **main method** indicates the start of execution for the compiled code. It is indicated as follows.
+
+```
+;~{
+    # compiled code goes here
+}
+```
+
 ## Variable Declaration
 The **define** operator (~) is used to declare variables.
 
@@ -48,11 +60,11 @@ This declares an integer named "z" within the method, sets its value to 2, and t
 
 Like in C, braces also define **scope**. This means that z only has meaning within this anonymous method, and any reference to it elsewhere will give a compiler error.
 
-One final thing to note regarding the operators is that standard order of operations is not yet implemented. Currently the operators are simply resolved left to right, so the following:
+Resolution of the operators follows standard order of operations, so the following:
 
 `y~int:{2+4*6}`
 
-will actually set y to 36, rather than 26.
+will set y to 26.
 
 ## Structs
 A **struct** is a compound unit containing any number of other data units. The following defines a struct named "Point" containing two members named "x" and "y":
@@ -179,6 +191,8 @@ This can be thought of as similar to the named argument syntax used in other lan
 `print_sum.{a:1 b:1 ; b:2 ; b:3 ; b:4 ;}`
 
 This will print the numbers 2, 3, 4 and 5. The argument a only needs to be set to 1 once, and then that value will be used in every call to the method. This is because the method always uses the same struct. The argument b is the only one that needs to be changed.
+
+Also, as you might have guessed, the main method is also defined with a ; because it is the default method of the main file.
 
 ## Pointers
 
