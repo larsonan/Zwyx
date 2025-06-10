@@ -2284,7 +2284,7 @@ void handle_string_literal(string str)
 {
         handle_last_instrx();
         if ((1 == str.size())
-            && (INSERTION == new_instrx.oper) && (INT == in_unit(parent_ptr->instrxs.back()->unit)->type))
+            && ((new_instrx.oper != INSERTION)) || ((INT == in_unit(parent_ptr->instrxs.back()->unit)->type)))
         {
                 new_instrx.unit = new Unit(*basic_units[INT_CONST]);
                 new_instrx.unit->name = to_string(str[0]);

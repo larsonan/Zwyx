@@ -16,14 +16,14 @@ give_bank_update~{
 increase_urgency~{
 	in~String
 	;~{
-		size~int:in.count
-		n~int:0
-		{n < size}?*{
-			{in.get:n = 46}?{
-				in.set.{el:33 at:n ;}
-			}
-			n:{n+1}
-		}
+	        Counter.{
+	                end:in.count
+	                do:@{
+	                        {in.get:i = "."}?{
+	                                in.set.{el:"!" at:i ;}
+	                        }
+	                } ;
+	        }
 	}
 }
 
