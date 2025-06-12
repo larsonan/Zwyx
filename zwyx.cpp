@@ -1816,12 +1816,20 @@ Unit *get_correct_method_type()
 	        }
 		if (!superunit->mem_base)
 		{
-		        new_instrx.ptr_source = new Instrx;
-		        new_instrx.ptr_source->unit = superunit;
-		        new_instrx.ptr_source->base_level = 1;
-			return superunit->base->base->method;
+		        if ((superunit->base->base != NULL) && (superunit->base->base->method != NULL))
+		        {
+		                new_instrx.ptr_source = new Instrx;
+		                new_instrx.ptr_source->unit = superunit;
+		                new_instrx.ptr_source->base_level = 1;
+			        return superunit->base->base->method;
+			}
+			else
+			{
+			        return basic_units[METHOD];
+			}
 		}
-		if ((superunit->base_instrx != NULL) && (superunit->base_instrx->unit != NULL))
+		if ((superunit->base_instrx != NULL) && (superunit->base_instrx->unit != NULL)
+		                                     && (superunit->base_instrx->unit->method != NULL))
 		{
 		        new_instrx.ptr_source = superunit->base_instrx;
 		        superunit->base_instrx->oper = 0;
