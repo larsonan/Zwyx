@@ -234,7 +234,7 @@ MasterList~`_io.return~{
 	each~{
 	        f~_io.0.;
 	        ;~{
-	                Counter.{
+	                counter.{
 	                        ptr~@_io.0:buffer
 	                        end:count
 	                        do:@{
@@ -263,7 +263,7 @@ getChar~{
         }
 }
 
-Counter~{
+counter~{
         start~int:0
         end~int
         step~int:1

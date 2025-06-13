@@ -42,7 +42,7 @@ Board~{
                 ;~{
                         p~@CIter:@data
                         c~int:46
-                        Counter.{
+                        counter.{
                                 end:9
                                 do:@{
                                         p.el:c
@@ -54,7 +54,7 @@ Board~{
         printBoard~{
                 ;~{
                         p~@CIter:@data
-                        Counter.{
+                        counter.{
                                 end:9
                                 do:@{
                                         print.c:p.el
@@ -167,18 +167,18 @@ Game~{
                         print:"Enter move (Row,Column):"
                         RInput~int:getChar
                         newChar~int:getChar
-                        {newChar = 44}?{
+                        {newChar = ","}?{
                                 newChar:getChar
                         }
                         CInput~int:newChar
                         {newChar != 10}?*{
                                 newChar:getChar
                         }
-                        {{RInput < 49} | {RInput > 51} | {CInput < 49} | {CInput > 51}} ? {
+                        {{RInput < "1"} | {RInput > "3"} | {CInput < "1"} | {CInput > "3"}} ? {
                                 print.line:"Illegal move."
                         }^{
-                                r:{RInput-49}
-                                c:{CInput-49}
+                                r:{RInput-"1"}
+                                c:{CInput-"1"}
                                 {board.cell.{r:$.2.r c:$.2.c EMPTY.is}}?{
                                         board.cell.{r:$.2.r c:$.2.c O.set}
                                         stateFn
