@@ -204,24 +204,45 @@ Enum~{
 }
 
 MasterList~`_io.return~{
-	~List:_io.0
+        count~int
 	membSize~int
-	membBuffer~bytes
-	setMembBuffer~{
+	buffer~bytes
+	setBuffer~{
 		buf~bytes
 		;~{
-			membBuffer:buf
-			membBuffer.count:0
+		        count:0
+			buffer:buf
+			buffer.count:0
 		}
 	}
 	emplace~{
 		in~_io.0.;
 		;~{
-			ptr~@_io.0:{membBuffer+membBuffer.count}
+			ptr~@_io.0:{buffer+buffer.count}
 			ptr.{in}
-			membBuffer.count:{membBuffer.count+membSize}
-			add:ptr
+			buffer.count:{buffer.count+membSize}
+			count:{count+1}
 		}
+	}
+	get~{
+	        at~int
+	        ;~{
+	                ptr~@_io.0:{buffer+at*membSize}
+	                ptr
+	        }
+	}
+	each~{
+	        f~_io.0.;
+	        ;~{
+	                Counter.{
+	                        ptr~@_io.0:buffer
+	                        end:count
+	                        do:@{
+	                               ptr.{f}
+	                               ptr:{ptr+membSize}
+	                        } ;
+	                }
+	        }
 	}
 }`
 

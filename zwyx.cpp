@@ -2500,7 +2500,7 @@ int main(int argc, char** argv)
 		        
 		        print_errors();
 	        }
-	        else
+	        else if (parent_ptr->method != NULL)
 	        {
 		        write_xc(FORMAT);
 	        }

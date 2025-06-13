@@ -92,12 +92,10 @@ remove_duplicates~{
 }
 
 ;~{
-        b0~bytes.48
         mbuf~bytes.80
         
         l~MasterList:npair.{
-	        setMembBuffer:@mbuf
-	        setBuffer:@b0
+	        setBuffer:@mbuf
 	        membSize:16
 	        emplace.{
 		        $:@{a:1 b:0} ;
