@@ -2,8 +2,8 @@ _import:"utilities_lib"
 
 
 Greeter~{
-        name~str
-        Greet~{
+        name~String
+        greet~{
                 ;~{
                         print.{s:"Hello, " s:name c:"!" endl}
                 }
@@ -16,13 +16,13 @@ Greeter~{
         buff~bytes.20
         ch~int:0
         greeter.name.{
-                set_buffer:@buff
+                setBuffer:@buff
                 ch:getChar
                 {ch != 10}?*{
                         write.c:ch
                         ch:getChar
                 }
         }
-        greeter.Greet
+        greeter.greet
 }
 

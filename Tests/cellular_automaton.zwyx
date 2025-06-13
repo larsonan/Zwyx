@@ -4,20 +4,20 @@ _import:"utilities_lib"
 CellularAutomaton~{
         rule~int
         iters~int
-        wrput~@writenf
+        wrput~@WriteNF
         ;~{
                 ruleTableBuffer~bytes.8
-                ruleTable~str.{
-                        set_buffer:@ruleTableBuffer
-                        Counter.{remainder~int:rule end:8 do:@{
+                ruleTable~String.{
+                        setBuffer:@ruleTableBuffer
+                        counter.{remainder~int:rule end:8 do:@{
                                 write.c:{remainder%2}
                                 remainder:{remainder/2}
                         } ; }
                 }
                 
                 stateBuffer~bytes.22
-                state~str.{
-                        set_buffer:@stateBuffer
+                state~String.{
+                        setBuffer:@stateBuffer
                         write.{
                                 c:0
                                 c:0 c:0 c:0 c:0 c:1 c:0 c:0 c:0 c:0 c:0
@@ -26,23 +26,23 @@ CellularAutomaton~{
                         }
                 }
                 
-                Counter.{end:iters do:@{
+                counter.{end:iters do:@{
                         prevCell~int:0
-                        Counter.{start:1 end:21 do:@{
-                                {state.getchar:i = 1}?{
-                                        wrput.c:"Z"
+                        counter.{start:1 end:21 do:@{
+                                {state.get:i = 1}?{
+                                        wrput.c:"|"
                                 }^{
                                         wrput.c:"."
                                 }
-                                currCell~int:ruleTable.getchar:state.getchar.{
+                                currCell~int:ruleTable.get:state.get.{
                                         {$:{i-1} ;} + {{$:i ;} * 2} + {{$:{i+1} ;} * 4}
                                 
                                 }
-                                state.setchar.{char:prevCell at:{i-1} ;}
+                                state.set.{el:prevCell at:{i-1} ;}
                                 prevCell:currCell
                         } ; }
                         
-                        state.setchar.{char:prevCell at:20 ;}
+                        state.set.{el:prevCell at:20 ;}
                         wrput.endl
                 } ; }
         }
@@ -61,6 +61,14 @@ CellularAutomaton~{
                         }
                 }
                 close
+        }
+        print.{
+                CellularAutomaton.{
+                        rule:110
+                        iters:10
+                        wrput:@$.2
+                        ;
+                }
         }
 }
 
