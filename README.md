@@ -255,3 +255,20 @@ print_sum~{
 
 Now, if this method is called, but only b is set, a will automatically be set to 1.
 
+## Bytes
+The **bytes** type indicates a typeless chunk of data, of any size. The size in bytes is indicated by a . followed by an integer constant.
+
+`ten_byte_chunk~bytes.10`
+
+If bytes is used without a size, then it indicates a *pointer* to a bytes type.
+
+`bytes_ptr~bytes`
+
+This can be set using the @ symbol on a previously-defined bytes.
+
+`bytes_ptr:@ten_byte_chunk`
+
+This is a "fat pointer" that stores both the memory address and the size of the bytes. The size can be obtained using the built-in "count" member.
+
+`bytes_size~int:bytes_ptr.count`
+
