@@ -53,10 +53,14 @@ using namespace std;
 #define REDEFINED_UNIT 3
 #define INVALID_NUMBER_FORMAT 4
 #define MISSING_END_BRACE 5
-#define UNMATCHED_END_BRACE 6
+#define INVALID_CHAR_IN_STRING_LITERAL 6
 #define CANNOT_OPEN_FILE 7
 #define INVALID_IN_UNIT 8
 #define INVALID_USE_OF_IMPORT 9
+#define NO_DEFAULT_METHOD 10
+#define UNMATCHED_END_BRACE 11
+#define STRING_LITERAL_NOT_ENDED_PROPERLY 12
+#define COMPTIME_METHOD_NOT_ENDED_PROPERLY 13
 
 #define NUM_BASIC_UNITS 17
 #define NUM_OPERS 22
@@ -89,10 +93,14 @@ string error_messages[] =
 	"Redefinition of unit",
 	"Invalid number format",
 	"Missing end brace",
-	"Unmatched end brace",
+	"Invalid character in string literal",
 	"Cannot open file",
 	"Invalid in unit",
-	"Invalid use of import"
+	"Invalid use of import",
+	"No default method found in context",
+	"Unmatched end brace",
+	"String literal not ended properly",
+	"Compiletime method not ended properly"
 };
 
 struct Instrx
@@ -1825,6 +1833,7 @@ Unit *get_correct_method_type()
 			}
 			else
 			{
+			        set_error(NO_DEFAULT_METHOD, line_num, ";");
 			        return basic_units[METHOD];
 			}
 		}
@@ -2404,6 +2413,17 @@ void parse_istream(istream &zyfile)
 		                unit_name_buffer.clear();
 		                read_mode = 0;
 		        }
+		        else if ('\n' == c)
+		        {
+		                set_error(STRING_LITERAL_NOT_ENDED_PROPERLY, line_num, "");
+		                handle_string_literal(unit_name_buffer);
+		                unit_name_buffer.clear();
+		                read_mode = 0;
+		        }
+		        else if ('\'' == c)
+		        {
+		                set_error(INVALID_CHAR_IN_STRING_LITERAL, line_num, "'");
+		        }
 		        else
 		        {
 		                unit_name_buffer.push_back(c);
@@ -2459,6 +2479,14 @@ void parse_istream(istream &zyfile)
 	if (unit_name_buffer.size() > 0)
 	{
 		handle_unit_name(unit_name_buffer);
+	}
+	if (BYTES == read_mode)
+	{
+	        set_error(STRING_LITERAL_NOT_ENDED_PROPERLY, line_num, "");
+	}
+	if (COMPTIME_METHOD == read_mode)
+	{
+	        set_error(COMPTIME_METHOD_NOT_ENDED_PROPERLY, line_num, "");
 	}
 }
 
