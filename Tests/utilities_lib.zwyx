@@ -204,9 +204,9 @@ Enum~{
 }
 
 MasterList~`_io.return~{
+        buffer~bytes
         count~int
-	membSize~int
-	buffer~bytes
+	memberSize~int:_mem_size_of:_io.0
 	setBuffer~{
 		buf~bytes
 		;~{
@@ -220,28 +220,28 @@ MasterList~`_io.return~{
 		;~{
 			ptr~@_io.0:{buffer+buffer.count}
 			ptr.{in}
-			buffer.count:{buffer.count+membSize}
+			buffer.count:{buffer.count+memberSize}
 			count:{count+1}
 		}
 	}
 	get~{
 	        at~int
 	        ;~{
-	                ptr~@_io.0:{buffer+at*membSize}
+	                ptr~@_io.0:{buffer+at*memberSize}
 	                ptr
 	        }
 	}
 	each~{
 	        f~_io.0.;
 	        ;~{
-	                counter.{
-	                        ptr~@_io.0:buffer
-	                        end:count
-	                        do:@{
-	                               ptr.{f}
-	                               ptr:{ptr+membSize}
-	                        } ;
-	                }
+	                ptr~@_io.0:buffer
+                        remaining~int:count
+                        
+                        {remaining > 0}?*{
+                                ptr.{f}
+                                ptr:{ptr+memberSize}
+                                remaining:{remaining-1}
+                        }
 	        }
 	}
 }`

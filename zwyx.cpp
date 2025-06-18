@@ -45,7 +45,7 @@ using namespace std;
 #define IMPORT 13
 #define INT_CONST 14
 #define STRING_LITERAL 15
-#define TEMPLATE 16
+#define MEMSIZE_OF 16
 
 #define NO_ERROR 0
 #define INVALID_USE_OF_OPER 1
@@ -154,7 +154,7 @@ struct Unit
 };
 
 string basic_unit_names[] = {"none", "", "", "int", "", "method", "", "", "bytes", "", "", "_io",
-                              "inset", "_import", "", "", ""};
+                              "inset", "_import", "", "", "_mem_size_of"};
 
 int precedences[] = {0, 0, 0, 0, 2, 5, 6, 7, 5, 0, 6, 0, 2, 1, 7, 7, 5, 5, 5, 5, 4, 3};
 
@@ -262,7 +262,7 @@ void setup_basic_units(void)
 	basic_units[BYTES_PTR]->subunits.push_back(count);
         
         basic_units[INSET]->typing = basic_units[COMPTIME_METHOD];
-        basic_units[TEMPLATE]->typing = basic_units[COMPTIME_METHOD];
+        basic_units[MEMSIZE_OF]->typing = basic_units[COMPTIME_METHOD];
 }
 
 void init(void)
@@ -1585,17 +1585,36 @@ void handle_in(Instrx* instrx)
         handle_define_statement(instrx->unit, instrx->unit);
 }
 
+void handle_memsize(Instrx* instrx)
+{
+        int mem_size = instrx->unit->mem_used;
+        
+        instrx->unit = new Unit(*basic_units[INT_CONST]);
+        instrx->unit->name = to_string(mem_size);
+}
+
 void handle_compile_time_method(Instrx* method_struct, Instrx* arg)
 {
         int method_struct_type = method_struct->unit->type;
-        if (INSET == method_struct->unit->type)
+        if ((INSET == method_struct->unit->type) || (MEMSIZE_OF == method_struct->unit->type))
         {
-                handle_in(arg);
+                if (INSET == method_struct->unit->type)
+                {
+                        handle_in(arg);
+                }
+                else if (MEMSIZE_OF == method_struct->unit->type)
+                {
+                        handle_memsize(arg);
+                }
                 arg->oper = method_struct->oper;
                 arg->is_ptr = method_struct->is_ptr;
                 parent_ptr->instrxs.pop_back();
                 delete(parent_ptr->instrxs.back());
                 parent_ptr->instrxs.pop_back();
+                if (INSERTION == arg->oper)
+                {
+                        parent_ptr->instrxs.back()->insertion_source = arg;
+                }
                 parent_ptr->instrxs.push_back(arg);
         }
         else
@@ -1608,6 +1627,10 @@ bool check_types(Instrx* src, Instrx* dst)
 {
         if ((NO_OPER == src->oper) || (IGNORE == src->oper) || (DEFINE == src->oper)
             || (BRANCH == src->oper) || (ELSE == src->oper) || (WHILE == src->oper))
+        {
+                return true;
+        }
+        if (is_comptime_method(src->unit))
         {
                 return true;
         }

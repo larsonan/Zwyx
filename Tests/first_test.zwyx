@@ -96,7 +96,6 @@ remove_duplicates~{
         
         l~MasterList:npair.{
 	        setBuffer:@mbuf
-	        membSize:16
 	        emplace.{
 		        $:@{a:1 b:0} ;
 		        $:@{a:2 b:5} ;
@@ -157,7 +156,7 @@ remove_duplicates~{
         
         l2.each:@{print.{d:a d:b endl}}
         
-        print.{s:"Almost finished." endl}
+        print.line:"This is in fact a line."
         
         strBuffer1~bytes.40
         strBuffer2~bytes.40
