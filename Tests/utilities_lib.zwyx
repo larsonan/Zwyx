@@ -235,12 +235,12 @@ MasterList~`_io.return~{
 	        f~_io.0.;
 	        ;~{
 	                ptr~@_io.0:buffer
-                        remaining~int:count
-                        
-                        {remaining > 0}?*{
-                                ptr.{f}
-                                ptr:{ptr+memberSize}
-                                remaining:{remaining-1}
+                        counter.{
+                                end:count
+                                do:@{
+                                      ptr.{f}
+                                      ptr:{ptr+memberSize}
+                                } ;
                         }
 	        }
 	}

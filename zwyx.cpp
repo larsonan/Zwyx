@@ -231,12 +231,17 @@ void print_errors(void)
 vector<Unit*> instantiate_subunits(Unit *superunit, Unit *mem_ref_parent);
 Unit* instantiate_unit(Unit *unit, Unit *base, Unit *mem_ref_parent);
 void write_instrxs(vector<Instrx*> instrx);
+void handle_mem_level(Instrx *instrx);
+void handle_last_instrx();
 void write_line_with_control(Instrx *instrx);
 void parse_file(string parse_file_name);
 void parse_istream(istream &zyfile);
-void handle_last_instrx();
 void handle_new_superunit();
 void handle_end_superunit();
+void write_math_instrx(Instrx *instrx);
+void write_insertion(Instrx *instrx);
+void handle_math_oper(Instrx *instrx);
+void write_do(Instrx *instrx);
 
 void setup_basic_units(void)
 {
@@ -347,6 +352,7 @@ void write_do(Instrx *instrx)
 	
 	if (base_instrx != NULL)
 	{
+	        handle_mem_level(base_instrx);
 	        if ((is_struct(base_instrx->unit))
 	                      && ((base_instrx->unit->mem_base) || (METHOD_PTR == unit->type)))
 	        {
