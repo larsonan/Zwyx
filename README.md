@@ -194,6 +194,31 @@ This will print the numbers 2, 3, 4 and 5. The argument a only needs to be set t
 
 Also, as you might have guessed, the main method is also defined with a ; because it is the default method of the main file.
 
+## Insertion directly into structs
+The insertion operator can be used to insert something directly into a struct, rather than one of its members. When this happens, the value will be inserted into the first element of the struct.
+
+```
+p~Point
+p:2
+```
+
+Here, the element x in struct p is set to 2.
+
+Among other things, this allows you to pass a single argument into a function. When this happens, the default method of the struct is called automatically.
+
+```
+print_plus_2~{
+    arg~int
+    ;~{
+        print.d:{arg+2}
+    }
+}
+
+print_plus_2:5
+```
+
+And now you know what print.d is: it is a function taking a single argument.
+
 ## Pointers
 
 A **pointer** is a variable that stores the memory address of a struct. Pointers are declared with the @ symbol, followed by the type of the struct being pointed to:
