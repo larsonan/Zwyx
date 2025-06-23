@@ -39,8 +39,17 @@ Declaration and assignment can occur in the same statement:
 
 `x~int:5`
 
+## String literals and printing output
+The **print** unit is used to print to the console. To print a line of text with **print**, you can use **print.line** with insertion and a **string literal**, which is text inside " symbols:
+
+`print.line:"Hello, World!"`
+
+To print an integer, you can use **print.d**. This uses the same insertion operator:
+
+`print.d:x`
+
 ## Methods
-**Methods** are indicated with braces {}. They are the equivalent of **functions** in other languages. However, they behave a little differently. In particular, methods in Zwyx do not take an explicit list of *arguments* like they do in most other languages. We will deal with how to pass data into methods a little later. For now, the thing to note is that an **anonymous method**, which is created using braces {} and nothing else, has access to all the variables in the surrounding scope. Additionally, the **return** value of a method is the value of the last statement in the method.
+**Methods** are indicated with braces {}. They are similar to **functions** in other languages. However, they behave a little differently. In particular, methods in Zwyx do not take an explicit list of *arguments* like they do in most other languages. We will deal with how to pass data into methods a little later. For now, the thing to note is that an **anonymous method**, which is created using braces {} and nothing else, has access to all the variables in the surrounding scope. Additionally, the **return** value of a method is the value of the last statement in the method.
 
 Declare an integer named "y" and assign it the value of x plus 2:
 
@@ -217,7 +226,7 @@ print_plus_2~{
 print_plus_2:5
 ```
 
-And now you know what print.d is: it is a function taking a single argument.
+And now you know how print.line and print.d work: they are functions taking a single argument.
 
 ## Pointers
 
