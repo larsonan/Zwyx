@@ -174,7 +174,12 @@ Point.{
 }
 ```
 
-When this happens, the struct's lifetime only lasts as long as the anonymous method that has it as a context. The struct and its members cannot be referred to outside of this. Here, nothing useful is occurring; x and y are set and then the struct is immediately deallocated. However, there are a number of important uses for this, which we will be discussing very soon.
+When this happens, the struct's lifetime only lasts as long as the anonymous method that has it as a context. The struct and its members cannot be referred to outside of this. Here, nothing useful is occurring; x and y are set and then the struct is immediately deallocated. However, there are a number of important uses for this. One of these uses is with **print** for more convenient formatting of output. In this example I will introduce **print.s**, which prints a string without adding a newline, and **print.endl**, which prints only a newline.
+
+```
+x~int:5
+print.{s:"The value of x is " d:x s:"." endl}
+```
 
 ## Default Methods
 The **default method** is a special method that can be defined in a struct, whose context is that struct. It is represented using the ; character.
@@ -199,7 +204,7 @@ This can be thought of as similar to the named argument syntax used in other lan
 
 `print_sum.{a:1 b:1 ; b:2 ; b:3 ; b:4 ;}`
 
-This will print the numbers 2, 3, 4 and 5. The argument a only needs to be set to 1 once, and then that value will be used in every call to the method. This is because the method always uses the same struct. The argument b is the only one that needs to be changed.
+This will print the numbers 2, 3, 4 and 5. The argument a only needs to be set to 1 once, and then that value will be used in every call to the method. This is because the method always uses the same struct. The argument b is the only one that needs to be changed. 
 
 Also, as you might have guessed, the main method is also defined with a ; because it is the default method of the main file.
 
@@ -305,4 +310,22 @@ This can be set using the @ symbol on a previously-defined bytes.
 This is a "fat pointer" that stores both the memory address and the size of the bytes. The size can be obtained using the built-in "count" member.
 
 `bytes_size~int:bytes_ptr.count`
+
+## Inheritance
+**Single inheritance** is supported through use of a ~ character at the very beginning of a struct definition, followed by the name of another struct type. This causes the defined struct to inherit all of the members of that struct type, known as the parent.
+
+```
+Point3d~{
+    ~Point
+    z~int
+}
+point3d~Point3d.{x:0 y:1 z:5}
+```
+
+The struct will also inherit the parent's type in addition to receiving its own type. This allows you to pass the struct as a pointer to a pointer of the parent's type.
+
+```
+pt_pointer~@Point
+pt_pointer:@point3d
+```
 
