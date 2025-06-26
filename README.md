@@ -311,6 +311,14 @@ This is a "fat pointer" that stores both the memory address and the size of the 
 
 `bytes_size~int:bytes_ptr.count`
 
+String literals can also be passed into bytes:
+
+`str~bytes:"7 bytes."`
+
+Note that a bytes or bytes pointer has no built-in way to access individual bytes. Currently, the best way to do this is with the **String** structure defined in the utilities library.
+
+`str~String:"7 bytes."`
+
 ## Inheritance
 **Single inheritance** is supported through use of a ~ character at the very beginning of a struct definition, followed by the name of another struct type. This causes the defined struct to inherit all of the members of that struct type, known as the parent.
 
