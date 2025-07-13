@@ -337,3 +337,59 @@ pt_pointer~@Point
 pt_pointer:@point3d
 ```
 
+## Nested Structs
+Structs can be defined inside of other structs. Object orientation can be attained by defining default methods for inner structs, thus letting them serve as methods for outer struct objects.
+
+```
+Greeter~{
+    name~String
+    greet~{
+        print.{s:"Hello, " s:name s:"!" endl}
+    }
+}
+
+greeter~Greeter
+
+greeter.name:"Fred"
+greeter.greet
+```
+
+Note that, like all other structs, these object structs can be instantiated anonymously. This allows you to instantiate an object, use it, and then dispose of it, without ever having to name it.
+
+```
+Greeter.{
+    name:"Fred"
+    greet
+}
+```
+
+## Metamethods
+Metamethods are methods that are executed during *compilation* rather than *runtime*. They are defined with ` characters. Like regular methods, metamethods are invoked simply by using their name. Unlike regular methods, though, defining and calling metamethods does not create a new scope. Instead, metamethods simply add their code directly to the scope in which they are called.
+
+```
+endl~`c:10`
+print.{endl}
+```
+
+Currently, metamethods can take a single argument as input, using the insertion operator. They can also return a single output. The input and output are accessed through the _io keyword, which behaves like a struct. The input is stored as _io.0. Additional units can be added to _io inside the metamethod, with the final unit added to _io used as the output. One important use for this is generic programming; it allows the ability to create something similar to C++ templates.
+
+```
+SimpleList~{
+    _io.return~{
+        buff~bytes
+        count~int
+        el_size~int
+        emplace~{
+            in~@_io.0.;
+            ;~{
+                ptr~@_io.0:{bytes+count*el_size}
+                ptr.{in}
+            }
+        }
+    }
+}
+
+pointList~SimpleList:Point
+pointList.emplace:@{x:1 y:4}
+```
+
