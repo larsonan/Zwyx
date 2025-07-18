@@ -233,6 +233,17 @@ print_plus_2:5
 
 And now you know how print.line and print.d work: they are functions taking a single argument.
 
+## Control Flow
+Control flow is obtained with the use of operators. These are ? (branch), ^ (else) and ?* (while).
+
+This executes c if a evaluates to 0, otherwise it executes b:
+
+`a ? b ^ c`
+
+This repeatedly executes b until a evaluates to 0:
+
+`a ?* b`
+
 ## Pointers
 
 A **pointer** is a variable that stores the memory address of a struct. Pointers are declared with the @ symbol, followed by the type of the struct being pointed to:
@@ -343,9 +354,9 @@ Structs can be defined inside of other structs. Object orientation can be attain
 ```
 Greeter~{
     name~String
-    greet~{
+    greet~{;~{
         print.{s:"Hello, " s:name s:"!" endl}
-    }
+    }}
 }
 
 greeter~Greeter
@@ -367,29 +378,27 @@ Greeter.{
 Metamethods are methods that are executed during *compilation* rather than *runtime*. They are defined with ` characters. Like regular methods, metamethods are invoked simply by using their name. Unlike regular methods, though, defining and calling metamethods does not create a new scope. Instead, metamethods simply add their code directly to the scope in which they are called.
 
 ```
-endl~`c:10`
-print.{endl}
+inserted_stuff~`s:"Hello, World!"`
+print.{s:"The inserted code prints out the string: " inserted_stuff endl}
 ```
 
-Currently, metamethods can take a single argument as input, using the insertion operator. They can also return a single output. The input and output are accessed through the _io keyword, which behaves like a struct. The input is stored as _io.0. Additional units can be added to _io inside the metamethod, with the final unit added to _io used as the output. One important use for this is generic programming; it allows the ability to create something similar to C++ templates.
+Currently, metamethods can take a single argument as input, using the insertion operator. They can also return a single output. The input and output are accessed through the _io keyword, which behaves like a struct. The input is stored as _io.0. Additional units can be added to _io inside the metamethod, with the final unit added to _io used as the output. One important use for this is generic programming; it allows the ability to create something similar to C++ templates. Here is the definition for the "Boxed" template from the utilities library:
 
 ```
-SimpleList~{
+Boxed~`
     _io.return~{
-        buff~bytes
-        count~int
-        el_size~int
-        emplace~{
-            in~@_io.0.;
-            ;~{
-                ptr~@_io.0:{bytes+count*el_size}
-                ptr.{in}
-            }
-        }
+        el~@_io.0
     }
-}
+`
+```
 
-pointList~SimpleList:Point
-pointList.emplace:@{x:1 y:4}
+This creates a struct with a single member, which is a pointer to whatever struct type was passed in.
+
+```
+ptr~Pointer
+boxedPtr~Boxed:Pointer
+boxedPtr:@ptr
+boxedPtr.el.x:0
+boxedPtr.el.y:1
 ```
 
