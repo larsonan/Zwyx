@@ -395,10 +395,33 @@ Boxed~`
 This creates a struct with a single member, which is a pointer to whatever struct type was passed in.
 
 ```
-ptr~Pointer
-boxedPtr~Boxed:Pointer
-boxedPtr:@ptr
-boxedPtr.el.x:0
-boxedPtr.el.y:1
+p~Point
+boxedPoint~Boxed:Point
+boxedPoint:@p
+boxedPoint.el.x:1
+boxedPoint.el.y:5
+```
+
+## Arrays
+Currently, there are two generic array types defined in the utilities library; *PtrList* and *MasterList*. Both of these are statically-sized arrays that manipulate a separately-defined buffer; undefined behavior will occur if the buffer is not first set with the setBuffer method.
+
+PtrList is an array of pointers to elements that were allocated somewhere else. Elements can be added with the *add* method.
+
+```
+pList~PtrList:Point
+p~Point
+buff~bytes.32
+pList.setBuffer:@buff
+p.{x:1 y:5}
+pList.add:@p
+```
+
+MasterList, by contrast, *owns* the data of its elements. It does not have an add method, instead it has an *emplace* method, which both creates a new element and adds it to the array, and takes as an argument a method pointer which allows you to set the data of the element.
+
+```
+pList~MasterList:Point
+buff~bytes.32
+pList.setBuffer:@buff
+pList.emplace:@{x:1 y:5}
 ```
 
