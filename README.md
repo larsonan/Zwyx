@@ -208,6 +208,59 @@ This will print the numbers 2, 3, 4 and 5. The argument a only needs to be set t
 
 Also, as you might have guessed, the main method is also defined with a ; because it is the default method of the main file.
 
+When you use the name of a function without an associated anonymous method, the default method is called automatically.
+
+```
+print_some_stuff~{;~{print.line:"some stuff"}}
+print_some_stuff
+```
+
+Since methods can return values, structs with default methods (hereafter referred to as "functions") can return values. Like in anonymous methods, the return value is always indicated by the last statement.
+
+```
+double_sum~{ a~int b~int ;~{
+    sum~int:{a+b}
+    sum*2
+}}
+print.d:double_sum.{a:4 b:9 ;}
+```
+
+Since methods can only return one value, functions can also only return one value. However, the fact that functions are also *structs* gives us a way to *indirectly* return multiple values, and handle errors.
+
+```
+div_mod~{ dd~int dv~int r~int q~int err~String:"" ;~{
+    {dv = 0}?{
+        err:"Cannot divide by zero!"
+    }^{
+        q:{dd/dv}
+        r:{dd%dv}
+    }
+}}
+```
+
+Since functions are structs, they can be instantiated *non-anonymously*, giving us a name to get the return values and error from.
+
+```
+result~div_mod.{dd:13 dv:2 ;}
+{result.err.count != 0}?{
+    print.line:result.err
+}^{
+    print.{s:"result is: " d:result.q s:", remainder is: " d:result.r endl}
+}
+```
+
+However, there is another place where we can handle the return values and error: inside the same anonymous method where we set the arguments, *after* we call the default method.
+
+```
+div_mod.{dd:13 dv:2 ;
+    {err.count != 0}?{
+        print.line:err
+    }^{
+        print.{s:"result is: " d:q s:", remainder is: " d:r endl}
+    }
+}
+```
+
 ## Insertion directly into structs
 The insertion operator can be used to insert something directly into a struct, rather than one of its members. When this happens, the value will be inserted into the first element of the struct.
 
@@ -280,6 +333,20 @@ To assign a value to a method pointer, you can prefix an anonymous method with @
 
 `method_ptr:@{print.d:{x+y}}`
 
+To call the method that a method pointer is pointing to, use the method's name in the proper context. Note that type checking has not yet been implemented for this feature, so be careful that the context is the right type!
+
+```
+p~Point.{x:1 y:4}
+p.{method_ptr}
+```
+
+If it is declared inside a struct, a method pointer can also be declared using a bare ; character; when this happens, the method pointer's context is set to the struct it was declared in. Among other things, this can be useful for easily injecting behavior into a function.
+
+```
+func_with_cust_behav~{ n~int cust_behav~; ;~{n:{n+1} cust_behav}}
+func_with_cust_behav.{n:4 cust_behav:@{print.{s:"The value is now " d:n s:"." endl}}}
+```
+
 ## Default Values
 
 A member of a struct can have a **default value**, which will be the value that the member will is set to when the struct is first instantiated. This can be assigned simply by using the insertion operator inside the definition of a struct:
@@ -347,6 +414,15 @@ The struct will also inherit the parent's type in addition to receiving its own 
 pt_pointer~@Point
 pt_pointer:@point3d
 ```
+
+Because functions are structs, functions can also be inherited. This can be used for argument currying, by setting some of the arguments to default values.
+
+```
+print_plus_1~{~print_sum b:1}
+print_plus_1:4
+```
+
+Currently, when you inherit anything, the default values of the parent are *not* inherited. So you have to rewrite all of the default values if you want to use them.
 
 ## Nested Structs
 Structs can be defined inside of other structs. Object orientation can be attained by defining default methods for inner structs, thus letting them serve as methods for outer struct objects.
