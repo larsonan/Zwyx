@@ -374,6 +374,57 @@ Greeter.{
 }
 ```
 
+Additional layers of nesting beyond just two are also allowed. The definition for an enumerated type in the utilities library uses three layers of nesting.
+
+```
+Enum~{
+    val~int
+    op~{
+        op_val~int
+        is~{
+            ;~{val=op_val}
+        }
+        set~{
+            ;~{val:op_val}
+        }
+    }
+}
+```
+
+To make a new enumerated type, define a struct that inherits from *Enum*, then define options inside that inherit from *op*.
+
+```
+Color~{
+    ~Enum
+    RED~{~op op_val:0}
+    GREEN~{~op op_val:1}
+    ORANGE~{~op op_val:2}
+    YELLOW~{~op op_val:3}
+    BLUE~{~op op_val:4}
+}
+```
+
+Note that in the current implementation you have to set the value of each option manually; otherwise it will be undefined.
+
+Now with this new type defined, you can apply *set* and *is* to set and check the value of an instance of the type.
+
+```
+myColor~Color
+myColor.BLUE.set
+myColor.BLUE.is ? {print.line:"Blue!"}
+myColor.GREEN.is ? {print.line:"Green!"}
+```
+
+When you use multiple uninstantiated structs in a chain like this, all of them are instantiated anonymously. So, in *myColor.BLUE.set*, *BLUE* and *set* are both instantiated anonymously, and the default method of *set* is called.
+
+Note that when you use such a chain with the define operator, the *last* struct in the chain is what receives the name. This means that you cannot define a struct and then chain directly off of it to initialize it.
+
+`myColor~Color.BLUE.set`
+
+If you do this, the name *myColor* will actually be assigned to an instance of *set*, not *Color*. If you want to name a *Color* and then set it to *BLUE* in the same statement, do this:
+
+`myColor~Color.{BLUE.set}`
+
 ## Metamethods
 Metamethods are methods that are executed during *compilation* rather than *runtime*. They are defined with ` characters. Like regular methods, metamethods are invoked simply by using their name. Unlike regular methods, though, defining and calling metamethods does not create a new scope. Instead, metamethods simply add their code directly to the scope in which they are called.
 
