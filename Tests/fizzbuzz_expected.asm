@@ -396,25 +396,23 @@ pop	rbx
 ret
 f21:
 push	rbx
-mov	rax,	[rbx+0]
-mov	[rbx+24],	rax
 b4:
-mov	rax,	[rbx+24]
+mov	rax,	[rbx+0]
 cmp	rax,	[rbx+8]
 setl	al
 movzx	rax,	al
 cmp	rax,	0
 je	b5
-mov	rdx,	[rbx+40]
-mov	rax,	[rbx+32]
+mov	rdx,	[rbx+32]
+mov	rax,	[rbx+24]
 lea	rbx,	[rbx+0]
 sub	rsp,	0
 call	rax
 add	rsp,	0
 mov	rbx,	[rsp]
-mov	rax,	[rbx+24]
+mov	rax,	[rbx+0]
 add	rax,	[rbx+16]
-mov	[rbx+24],	rax
+mov	[rbx+0],	rax
 jmp	b4
 b5:
 pop	rbx

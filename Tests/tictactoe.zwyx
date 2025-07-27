@@ -42,7 +42,7 @@ Board~{
                 ;~{
                         p~@CIter:@data
                         c~int:46
-                        counter.{
+                        for.{
                                 end:9
                                 do:@{
                                         p.el:c
@@ -54,7 +54,7 @@ Board~{
         printBoard~{
                 ;~{
                         p~@CIter:@data
-                        counter.{
+                        for.{
                                 end:9
                                 do:@{
                                         print.c:p.el

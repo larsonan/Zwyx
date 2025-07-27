@@ -12,6 +12,10 @@ g++ ../zwyx.cpp
 ./test temperature
 ./a.out tictactoe.zwyx
 ./test tictactoe
+./a.out cellular_automaton.zwyx
+./test cellular_automaton
+./a.out greet.zwyx
+./test greet
 ./a.out first_test.zwyx
 ./test first_test
 

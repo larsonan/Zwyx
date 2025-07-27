@@ -228,7 +228,7 @@ print.d:double_sum.{a:4 b:9 ;}
 Since methods can only return one value, functions can also only return one value. However, the fact that functions are also *structs* gives us a way to *indirectly* return multiple values, and handle errors.
 
 ```
-div_mod~{ dd~int dv~int r~int q~int err~String:"" ;~{
+div_mod~{ dd~int dv~int r~int q~int err~int:0 ;~{
     {dv = 0}?{
         err:"Cannot divide by zero!"
     }^{
@@ -242,8 +242,8 @@ Since functions are structs, they can be instantiated *non-anonymously*, giving 
 
 ```
 result~div_mod.{dd:13 dv:2 ;}
-{result.err.count != 0}?{
-    print.line:result.err
+{result.err != 0}?{
+    print.line:"Cannot divide by 0!"
 }^{
     print.{s:"result is: " d:result.q s:", remainder is: " d:result.r endl}
 }
@@ -254,7 +254,7 @@ However, there is another place where we can handle the return values and error:
 ```
 div_mod.{dd:13 dv:2 ;
     {err.count != 0}?{
-        print.line:err
+        print.line:"Cannot divide by 0!"
     }^{
         print.{s:"result is: " d:q s:", remainder is: " d:r endl}
     }
@@ -285,6 +285,15 @@ print_plus_2:5
 ```
 
 And now you know how print.line and print.d work: they are functions taking a single argument.
+
+## Commas
+Commas can be used as a shorthand for setting a struct's members in the order in which they were declared. Each comma indicates an insertion, so a final comma on the end is always needed.
+
+`p~Point.{1,4,}`
+
+This can also be done with functions. When you call the default method, the member counter in the compiler is automatically reset to the first member, allowing you to use the same syntax again for another call.
+
+`print_sum.{1,4,; 2,5,;}`
 
 ## Control Flow
 Control flow is obtained with the use of operators. These are ? (branch), ^ (else) and ?* (while).
@@ -336,7 +345,7 @@ react_to_temperature~{ temperature~int ;~{
             ^{$<70}?{s:"cool."}
             ^{$<75}?{s:"fine."}
             ^{$<90}?{s:"hot."}
-            ^{"scorching!"}
+            ^{s:"scorching!"}
         }
         endl
     }
@@ -690,7 +699,7 @@ SingleFnNF~{
 
 As the name implies, this creates an interface with only one function, or to be more precise, an interface that *is* a function. To implement it, inherit again from the new interface you created, and override the function by assigning to *fn*.
 
-We have, in fact, already encountered one of these: *WriteNF*. The utilities *print* and *String.write* inherit from this interface. *WriteNF* contains the built-in subfunctions *s*, *c*, *d*, *line* and *endl*. These are not virtual and instead call the default method of *WriteNF*, which calls *nf*; *nf* is the only thing that changes between implementations. This provides a convenient way for functions to *write out* strings without caring how the strings will be handled. Let's go back to that *react_to_temperature* function.
+We have, in fact, already encountered one of these: *WriteNF*. The utilities *print* and *String.write* inherit from this interface. *WriteNF* contains the built-in subfunctions *s*, *d*, *line* and *endl*. These are not virtual and instead call the default method of *WriteNF*, which calls *nf*; *nf* is the only thing that changes between implementations. This provides a convenient way for functions to *write out* strings without caring how the strings will be handled. Let's go back to that *react_to_temperature* function.
 
 ```
 react_to_temperature~{ temperature~int ;~{
@@ -702,7 +711,7 @@ react_to_temperature~{ temperature~int ;~{
             ^{$<70}?{s:"cool."}
             ^{$<75}?{s:"fine."}
             ^{$<90}?{s:"hot."}
-            ^{"scorching!"}
+            ^{s:"scorching!"}
         }
         endl
     }
@@ -721,7 +730,7 @@ react_to_temperature~{ temperature~int wrput~@WriteNF ;~{
             ^{$<70}?{s:"cool."}
             ^{$<75}?{s:"fine."}
             ^{$<90}?{s:"hot."}
-            ^{"scorching!"}
+            ^{s:"scorching!"}
         }
         endl
     }
