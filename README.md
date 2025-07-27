@@ -297,6 +297,52 @@ This repeatedly executes b until a evaluates to 0:
 
 `a ?* b`
 
+In contrast with many other languages, a single = sign is used for equality checking. The other comparison operators are as expected: <, >, <=, >=.
+
+The only *and* and *or* operators currently implemented are the bitwise & and |. Short-circuiting optimization for conditionals is not implemented yet, so doing this can cause a crash:
+
+```
+{ob & ob.el}?{
+}
+```
+
+There is no built-in switch statement, but the use of context can create something similar.
+
+```
+write_number_as_word~{ number~int ;~{
+    print.{
+        number.{
+            {$=0}?{s:"zero"}
+            ^{$=1}?{s:"one"}
+            ^{$=2}?{s:"two"}
+            ^{$=3}?{s:"three"}
+            ^{$=4}?{s:"four"}
+            ^{s:"unknown"}
+        }
+        endl
+    }
+}}
+```
+
+This construction allows more flexibility than the typical switch statement.
+
+```
+react_to_temperature~{ temperature~int ;~{
+    print.{
+        s:"The temperature is "
+        temperature.{
+            {$<30}?{s:"freezing!"}
+            ^{$<55}?{s:"cold."}
+            ^{$<70}?{s:"cool."}
+            ^{$<75}?{s:"fine."}
+            ^{$<90}?{s:"hot."}
+            ^{"scorching!"}
+        }
+        endl
+    }
+}}
+```
+
 ## Pointers
 
 A **pointer** is a variable that stores the memory address of a struct. Pointers are declared with the @ symbol, followed by the type of the struct being pointed to:
@@ -530,12 +576,12 @@ boxedPoint.el.y:5
 ```
 
 ## Arrays
-Currently, there are two generic array types defined in the utilities library; *PtrList* and *MasterList*. Both of these are statically-sized arrays that manipulate a separately-defined buffer; undefined behavior will occur if the buffer is not first set with the setBuffer method.
+Currently, there are two generic array types defined in the utilities library; *List* and *MasterList*. Both of these are statically-sized arrays that manipulate a separately-defined buffer; undefined behavior will occur if the buffer is not first set with the setBuffer method.
 
-PtrList is an array of pointers to elements that were allocated somewhere else. Elements can be added with the *add* method.
+List is an array of pointers to elements that were allocated somewhere else. Elements can be added with the *add* method.
 
 ```
-pList~PtrList:Point
+pList~List:Point
 p~Point
 buff~bytes.32
 pList.setBuffer:@buff
@@ -550,5 +596,150 @@ pList~MasterList:Point
 buff~bytes.32
 pList.setBuffer:@buff
 pList.emplace:@{x:1 y:5}
+```
+
+## Polymorphism
+Polymorphism can be attained using the *virtual* metamethod in the utilities library, defined as:
+
+```
+virtual~`
+        _io_data~_io.0.;
+        _io.0.;~{_io_data}
+        
+        _io.return~_io_data
+`
+```
+
+To use this, declare the outer struct of a function in a class, leaving out the default method, and then declare a method pointer as an instance of *virtual* with the aforementioned function as input.
+
+```
+Shape~{
+    area~{}
+    areaFn~virtual:area
+}
+```
+
+Now, any derived classes can populate the method pointer with an anonymous method.
+
+```
+Rectangle~{
+    ~Shape
+    height~int
+    length~int
+    areaFn:@{height*length}
+}
+
+Triangle~{
+    ~Shape
+    height~int
+    length~int
+    areaFn:@{height*length/2}
+}
+
+Circle~{
+    ~Shape
+    radius~int
+    areaFn:@{radius*radius*3}
+}
+```
+
+## Interfaces
+An *interface* is simply a *nested* struct that inherits from another struct with virtual functions.
+
+```
+SwitchNF~{
+    turnOn~{;~{}}
+    turnOnFn~virtual:turnOn
+    turnOff~{;~{}}
+    turnOffFn~virtual:turnOff
+}
+
+Light~{
+    switch~{
+        ~SwitchNF
+        turnOnFn:@{print.line:"The light is on."}
+        turnOffFn:@{print.line:"The light is off."}
+    }
+}
+
+Fan~{
+    switch~{
+        ~SwitchNF
+        turnOnFn:@{print.line:"The fan is on."}
+        turnOffFn:@{print.line:"The fan is off."}
+    }
+}
+
+l~Light
+l.switch.turnOn
+l.switch.turnOff
+
+f~Fan
+f.switch.turnOn
+f.switch.turnOff
+```
+
+There is a special type of interface called a *single-function interface*, which you can create by inheriting from the utility *SingleFnNF*.
+
+```
+SingleFnNF~{
+    fn~;
+    ;~{fn}
+}
+```
+
+As the name implies, this creates an interface with only one function, or to be more precise, an interface that *is* a function. To implement it, inherit again from the new interface you created, and override the function by assigning to *fn*.
+
+We have, in fact, already encountered one of these: *WriteNF*. The utilities *print* and *String.write* inherit from this interface. *WriteNF* contains the built-in subfunctions *s*, *c*, *d*, *line* and *endl*. These are not virtual and instead call the default method of *WriteNF*, which calls *nf*; *nf* is the only thing that changes between implementations. This provides a convenient way for functions to *write out* strings without caring how the strings will be handled. Let's go back to that *react_to_temperature* function.
+
+```
+react_to_temperature~{ temperature~int ;~{
+    print.{
+        s:"The temperature is "
+        temperature.{
+            {$<30}?{s:"freezing!"}
+            ^{$<55}?{s:"cold."}
+            ^{$<70}?{s:"cool."}
+            ^{$<75}?{s:"fine."}
+            ^{$<90}?{s:"hot."}
+            ^{"scorching!"}
+        }
+        endl
+    }
+}}
+```
+
+What if we want to write the result to a buffer rather than the console? We can generalize this function by passing in a pointer to *WriteNF* as another parameter.
+
+```
+react_to_temperature~{ temperature~int wrput~@WriteNF ;~{
+    wrput.{
+        s:"The temperature is "
+        temperature.{
+            {$<30}?{s:"freezing!"}
+            ^{$<55}?{s:"cold."}
+            ^{$<70}?{s:"cool."}
+            ^{$<75}?{s:"fine."}
+            ^{$<90}?{s:"hot."}
+            ^{"scorching!"}
+        }
+        endl
+    }
+}}
+```
+
+Now we can choose to write to either a buffer or the console.
+
+```
+temp~int
+temp:71
+print.{react_to_temperature.{temperature:temp wrput:@$.2}}
+buff~bytes.100
+str~String.{
+    setBuffer:@buff
+    write.{
+        react_to_temperature.{temperature:temp wrput:@$.2}
+    }
+}
 ```
 
