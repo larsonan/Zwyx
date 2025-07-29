@@ -163,7 +163,7 @@ is the same as this:
 
 `a.x:b.x`
 
-$.1 refers to the innermost context that can be found (so it's exactly the same as $), $.2 refers to the *second* innermost context, etc.
+*$.1* refers to the innermost context that can be found (so it's exactly the same as $), *$.2* refers to the *second* innermost context, etc.
 
 One final thing to note is something called **anonymous instantiation**. This happens when a struct type name is used without the define operator or an instance name:
 
@@ -230,7 +230,7 @@ Since methods can only return one value, functions can also only return one valu
 ```
 div_mod~{ dd~int dv~int r~int q~int err~int:0 ;~{
     {dv = 0}?{
-        err:"Cannot divide by zero!"
+        err:1
     }^{
         q:{dd/dv}
         r:{dd%dv}
