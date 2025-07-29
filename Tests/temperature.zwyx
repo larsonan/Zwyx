@@ -1,3 +1,9 @@
+#Expected output:
+#I am not going outside. The temperature is scorching!
+#I am going outside. The temperature is perfect.
+#I am not going outside. The temperature is too cold.
+#I am going outside. The temperature is okay.
+
 _import:"utilities_lib"
 
 

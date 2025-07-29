@@ -1163,7 +1163,7 @@ Unit* instantiate_unit(Unit *unit, Unit *base, Unit *mem_ref_parent)
 	}
 	else if (METHOD_PTR == instance->type)
 	{
-	        instance->base_instrx = new Instrx;
+	        instance->base_instrx = new Instrx();
 	}
 	else if ((instance->base != NULL) && is_struct(instance) && is_struct(instance->base))
 	{
@@ -1201,7 +1201,7 @@ void instantiate_method(Instrx *instrx)
 	                }
 	                if (superunit->mem_base != METHOD)
 	                {
-	                        instrx->unit->base_instrx = new Instrx;
+	                        instrx->unit->base_instrx = new Instrx();
 	                        instrx->unit->base_instrx->base_level = 1;
 	                        instrx->unit->base_instrx->unit = superunit->base;
 	                        break;
@@ -1330,7 +1330,7 @@ void find_unit_in_unit_base(string name, Unit *superunit)
 	        }
 	        if (new_instrx.base_level > 1)
 	        {
-	                new_instrx.ptr_source = new Instrx;
+	                new_instrx.ptr_source = new Instrx();
 	                new_instrx.ptr_source->unit = superunit_level_1;
 	        }
 	}
@@ -1481,7 +1481,7 @@ void handle_custom_compile_time_method_with_args(Instrx* method_struct, Instrx *
                 defined_unit = parent_ptr->instrxs.back();
                 parent_ptr->instrxs.pop_back();
         }
-        Instrx* dummy = new Instrx;
+        Instrx* dummy = new Instrx();
         parent_ptr->instrxs.push_back(dummy);
         dummy->oper = IGNORE;
         dummy->unit = basic_units[COMPTIME_METHOD];
@@ -1528,7 +1528,7 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
                 defined_unit = parent_ptr->instrxs.back();
                 parent_ptr->instrxs.pop_back();
         }
-        Instrx* dummy = new Instrx;
+        Instrx* dummy = new Instrx();
         parent_ptr->instrxs.push_back(dummy);
         dummy->oper = IGNORE;
         dummy->unit = basic_units[COMPTIME_METHOD];
@@ -1855,7 +1855,7 @@ Unit *get_correct_method_type()
 		{
 		        if ((superunit->base->base != NULL) && (superunit->base->base->method != NULL))
 		        {
-		                new_instrx.ptr_source = new Instrx;
+		                new_instrx.ptr_source = new Instrx();
 		                new_instrx.ptr_source->unit = superunit;
 		                new_instrx.ptr_source->base_level = 1;
 			        return superunit->base->base->method;
@@ -1948,7 +1948,7 @@ void handle_precedence(Instrx *temp)
 		first->oper = NO_OPER;
 		parent_ptr->instrxs.pop_back();
 		handle_new_superunit();
-		parent_ptr->base_instrx = new Instrx;
+		parent_ptr->base_instrx = new Instrx();
 		parent_ptr->base_instrx->unit = NULL;
 		parent_ptr->base_instrx->oper = first_oper;
 		parent_ptr->instrxs.push_back(first);
@@ -2113,7 +2113,7 @@ void handle_new_superunit()
 		                unit->base->mem_base = METHOD;
 		                unit->base->mem_offset = unit->mem_used;
 		                unit->mem_used += WORD_SIZE;
-		                unit->base_instrx = new Instrx;
+		                unit->base_instrx = new Instrx();
 		                unit->base_instrx->unit = unit->base;
 		        }
 		        else
@@ -2134,7 +2134,7 @@ void handle_new_superunit()
 		{
 		        unit->base = in_unit(parent_ptr->instrxs.back()->unit)->base;
 		        unit->mem_base = METHOD_PTR;
-		        unit->base_instrx = new Instrx;
+		        unit->base_instrx = new Instrx();
 		        unit->base_instrx->unit = new Unit(*basic_units[PTR]);
 		        unit->base_instrx->unit->mem_base = METHOD;
 		        unit->base_instrx->unit->typing = in_unit(parent_ptr->instrxs.back()->unit)->base;
@@ -2179,7 +2179,7 @@ void handle_comma()
                         set_error(INVALID_USE_OF_OPER, line_num, ",");
                         return;
                 }
-                Instrx* instrx = new Instrx;
+                Instrx* instrx = new Instrx();
                 if (NO_OPER == parent_ptr->instrxs.back()->oper)
                 {
                         instrx->insertion_source = parent_ptr->instrxs.back();
@@ -2187,7 +2187,7 @@ void handle_comma()
                 }
                 else
                 {
-                        instrx->insertion_source = new Instrx;
+                        instrx->insertion_source = new Instrx();
                         instrx->insertion_source->unit = basic_units[DEF_NONE];
                 }
                 instrx->insertion_source->oper = INSERTION;

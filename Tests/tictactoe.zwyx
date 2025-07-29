@@ -1,3 +1,6 @@
+#Plays a perfect game of tic-tac-toe, as X
+#Cannot lose, only win or draw
+
 _import:"utilities_lib"
 
 

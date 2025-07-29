@@ -1,3 +1,6 @@
+#Generic fizzbuzz that can handle any primes and replacement strings
+#Outputs "classic" fizzbuzz and a custom one
+
 _import:"utilities_lib"
 
 

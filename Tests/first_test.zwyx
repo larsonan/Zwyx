@@ -1,3 +1,22 @@
+#Miscellaneous tests
+#Expected output:
+#
+#17595CLOSECFFFF1749f0Z
+#5040
+#1
+#0
+#BLUE
+#ORANGE
+#55234
+#Result is 6 and 1
+#Cannot divide by zero!
+#49
+#01
+#24
+#This is in fact a line.
+#FGRST
+#AGTER
+
 _import:"utilities_lib"
 
 npair~{a~int b~int}
