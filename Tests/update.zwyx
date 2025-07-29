@@ -1,3 +1,8 @@
+#Test for basic string manipulation
+#Expected output:
+#Attention. You have $500 in the bank.
+#Warning! You have $5 in the bank!
+
 _import:"utilities_lib"
 
 

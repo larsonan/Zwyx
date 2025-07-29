@@ -1,3 +1,7 @@
+#An implementation of Wolfram's cellular automaton
+#Outputs to the console as well as a file
+
+
 _import:"utilities_lib"
 
 
