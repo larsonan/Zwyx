@@ -505,6 +505,13 @@ Greeter.{
 }
 ```
 
+In the context of a substruct, $.$ is a pointer to the superstruct. You can use this to change the superstruct, thus allowing you to use the substruct in a purely functional way.
+
+```
+greeter~Greeter.{name:"Fred"}
+Greeter.greet.{$.$:@greeter ;}
+```
+
 Additional layers of nesting beyond just two are also allowed. The definition for an enumerated type in the utilities library uses three layers of nesting.
 
 ```
