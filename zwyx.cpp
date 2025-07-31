@@ -682,11 +682,20 @@ void decrease_base_level(Instrx* instrx)
         }
 }
 
+void handle_static_base()
+{
+        (void)fprintf(xcfile, "mov\t%s,\tstatic_mem\n", REG_PTR);
+}
+
 void handle_mem_level(Instrx *instrx)
 {
         if ((instrx->base_level >= BASE_2_STRUCT) || ((instrx->base_level > 1) && (instrx->unit->mem_base != METHOD)))
 	{
 	        decrease_base_level(instrx);
+	}
+	else if (NAMESPACE == instrx->unit->mem_base)
+	{
+	        handle_static_base();
 	}
 	else if ((instrx->ptr_source != NULL) && instrx->unit->mem_base && (instrx->unit->mem_base != METHOD))
 	{
@@ -1007,8 +1016,13 @@ void write_xc(string format)
 	
 	(void)fprintf(xcfile, "%s", compiled_instrxs.c_str());
 	
-	(void)fprintf(xcfile, "SECTION .data\n");
+	if (parent_ptr->mem_used > 0)
+	{
+	        (void)fprintf(xcfile, "SECTION .bss\n");
+	        (void)fprintf(xcfile, "static_mem\tresb\t%d\n", parent_ptr->mem_used);
+	}
 	
+	(void)fprintf(xcfile, "SECTION .data\n");
 	for (int i = 0; i < data_section_strings.size(); i++)
 	{
 	        (void)fprintf(xcfile, "s%d\tdb\t'%s'\n", i+1, data_section_strings[i].c_str());
@@ -1102,7 +1116,8 @@ int handle_alignment(int mem_offset)
 void handle_define_statement(Unit *defined_unit, Unit *definition_unit)
 {
 	definition_unit->name = defined_unit->name;
-	if ((STRUCT == definition_unit->mem_base) || (METHOD == definition_unit->mem_base))
+	if ((STRUCT == definition_unit->mem_base) || (METHOD == definition_unit->mem_base)
+	              || (NAMESPACE == definition_unit->mem_base))
 	{
 		parent_ptr->mem_used += handle_alignment(definition_unit->mem_used);
 	}
@@ -2285,8 +2300,6 @@ void start_base_unit()
 	*parent_ptr = *basic_units[NAMESPACE];
 	parent_ptr->base = NULL;
 	parent_ptr->parent = NULL;
-	parent_ptr->mem_used += WORD_SIZE;
-	
 }
 
 void end_base_unit()

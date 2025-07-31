@@ -110,9 +110,9 @@ remove_duplicates~{
         }
 }
 
+mbuf~bytes.80
+
 ;~{
-        mbuf~bytes.80
-        
         l~MasterList:npair.{
 	        setBuffer:@mbuf
 	        emplace.{
