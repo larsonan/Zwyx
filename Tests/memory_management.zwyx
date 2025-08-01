@@ -12,23 +12,29 @@ MemArena~{
                 {chunkPtr.el}?*{
                         chunkPtr:{chunkPtr+8+chunkPtr.el}
                 }
-                chunkPtr.el:{numBytes/8*8+8}
-                chunkPtr
+                {{chunkPtr % 8} = 0}?{
+                        chunkPtr.el:numBytes
+                }^{
+                        chunkPtr.el:{numBytes/8*8+8}
+                }
+                chunkPtr+8
         }}
 }
+
+buff~bytes.104
 
 DynString~{
         memMan~@MemArena
         b~bytes
-        count~int:0
         capacity~int:0
         write~{
 		~WriteNF
 		fn:@{
 		        countin~int:data.count
 		        {capacity = 0}?{
+		                b:memMan.alloc:16
+		                b.count:0
 		                capacity:16
-		                b:memMan.alloc:capacity
 		        }
 		        #{{count+countin} > capacity}?{
 		        #        capacity:{capacity*2}
@@ -44,10 +50,10 @@ DynString~{
 		        #}
 			in~@CIter:data
 			self~@CIter:b
-			self:{self+count}
-			count:{count+countin}
+			self:{self+b.count}
+			b.count:{b.count+countin}
 			{countin > 0}?*{
-			#	self.el:in.el
+				self.el:in.el
 				self:{self+1}
 				
 				in:{in+1}
@@ -56,8 +62,6 @@ DynString~{
 		}
 	}
 }
-
-buff~bytes.104
 
 ;~{
         buffPtr~@BoxedInt:@buff
@@ -70,7 +74,7 @@ buff~bytes.104
         
         buffPtr:@buff
         for.{end:104 step:1 do:@{
-                print.{d:buffPtr.el s:" "}
+                print.{d:{buffPtr.el % 256} s:" "}
                 buffPtr:{buffPtr+1}
         } ; }
         print.endl
