@@ -5,6 +5,18 @@ _import:"utilities_lib"
 
 BoxedInt~{el~int}
 
+memCpy~{from~bytes to~bytes ;~{
+        fromPtr~@CIter:from
+        toPtr~@CIter:to
+        num~int:from.count
+        {num > 0}?*{
+                toPtr.el:fromPtr.el
+                fromPtr:{fromPtr+1}
+                toPtr:{toPtr+1}
+                num:{num-1}
+        }
+}}
+
 MemArena~{
         data~bytes
         alloc~{numBytes~int ;~{
@@ -39,28 +51,11 @@ DynString~{
 		                }
 		                new_b~bytes:memMan.alloc:capacity
 		                new_b.count:b.count
-		                newPtr~@CIter:new_b
-		                oldPtr~@CIter:b
-		                bytesLeft~int:b.count
-		                {bytesLeft > 0}?*{
-		                        newPtr.el:oldPtr.el
-		                        newPtr:{newPtr+1}
-		                        oldPtr:{oldPtr+1}
-		                        bytesLeft:{bytesLeft-1}
-		                }
+		                memCpy.{to:new_b from:b ;}
 		                b:new_b
 		        }
-			in~@CIter:data
-			self~@CIter:b
-			self:{self+b.count}
+			memCpy.{to:{b+b.count} from:data ;}
 			b.count:{b.count+countin}
-			{countin > 0}?*{
-				self.el:in.el
-				self:{self+1}
-				
-				in:{in+1}
-				countin:{countin-1}
-			}
 		}
 	}
 }
