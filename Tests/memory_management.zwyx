@@ -1,0 +1,78 @@
+#Test for memory management
+
+
+_import:"utilities_lib"
+
+BoxedInt~{el~int}
+
+MemArena~{
+        data~bytes
+        alloc~{numBytes~int ;~{
+                chunkPtr~@BoxedInt:data
+                {chunkPtr.el}?*{
+                        chunkPtr:{chunkPtr+8+chunkPtr.el}
+                }
+                chunkPtr.el:{numBytes/8*8+8}
+                chunkPtr
+        }}
+}
+
+DynString~{
+        memMan~@MemArena
+        b~bytes
+        count~int:0
+        capacity~int:0
+        write~{
+		~WriteNF
+		fn:@{
+		        countin~int:data.count
+		        {capacity = 0}?{
+		                capacity:16
+		                b:memMan.alloc:capacity
+		        }
+		        #{{count+countin} > capacity}?{
+		        #        capacity:{capacity*2}
+		        #        new_b~bytes:memMan.alloc:capacity
+		        #        newPtr~@CIter:new_b
+		        #        oldPtr~@CIter:b
+		        #        for.{end:count do:@{
+		        #                newPtr.el:oldPtr.el
+		        #                newPtr:{newPtr+1}
+		        #                oldPtr:{oldPtr+1}
+		        #        } ; }
+		        #        b:new_b
+		        #}
+			in~@CIter:data
+			self~@CIter:b
+			self:{self+count}
+			count:{count+countin}
+			{countin > 0}?*{
+			#	self.el:in.el
+				self:{self+1}
+				
+				in:{in+1}
+				countin:{countin-1}
+			}
+		}
+	}
+}
+
+buff~bytes.104
+
+;~{
+        buffPtr~@BoxedInt:@buff
+        for.{end:104 step:8 do:@{
+                buffPtr.el:0
+                buffPtr:{buffPtr+8}
+        } ; }
+        mem~MemArena.{data:@buff}
+        str~DynString.{memMan:@mem write:"Hello, World!"}
+        
+        buffPtr:@buff
+        for.{end:104 step:1 do:@{
+                print.{d:buffPtr.el s:" "}
+                buffPtr:{buffPtr+1}
+        } ; }
+        print.endl
+}
+
