@@ -12,7 +12,7 @@ MemArena~{
                 {chunkPtr.el}?*{
                         chunkPtr:{chunkPtr+8+chunkPtr.el}
                 }
-                {{chunkPtr % 8} = 0}?{
+                {{numBytes % 8} = 0}?{
                         chunkPtr.el:numBytes
                 }^{
                         chunkPtr.el:{numBytes/8*8+8}
@@ -21,12 +21,10 @@ MemArena~{
         }}
 }
 
-buff~bytes.104
-
 DynString~{
-        memMan~@MemArena
         b~bytes
         capacity~int:0
+        memMan~@MemArena
         write~{
 		~WriteNF
 		fn:@{
@@ -35,19 +33,23 @@ DynString~{
 		                b:memMan.alloc:16
 		                b.count:0
 		                capacity:16
+		        }^{{b.count+countin} > capacity}?{
+		                {{b.count+countin} > capacity}?*{
+		                        capacity:{capacity*2}
+		                }
+		                new_b~bytes:memMan.alloc:capacity
+		                new_b.count:b.count
+		                newPtr~@CIter:new_b
+		                oldPtr~@CIter:b
+		                bytesLeft~int:b.count
+		                {bytesLeft > 0}?*{
+		                        newPtr.el:oldPtr.el
+		                        newPtr:{newPtr+1}
+		                        oldPtr:{oldPtr+1}
+		                        bytesLeft:{bytesLeft-1}
+		                }
+		                b:new_b
 		        }
-		        #{{count+countin} > capacity}?{
-		        #        capacity:{capacity*2}
-		        #        new_b~bytes:memMan.alloc:capacity
-		        #        newPtr~@CIter:new_b
-		        #        oldPtr~@CIter:b
-		        #        for.{end:count do:@{
-		        #                newPtr.el:oldPtr.el
-		        #                newPtr:{newPtr+1}
-		        #                oldPtr:{oldPtr+1}
-		        #        } ; }
-		        #        b:new_b
-		        #}
 			in~@CIter:data
 			self~@CIter:b
 			self:{self+b.count}
@@ -63,6 +65,8 @@ DynString~{
 	}
 }
 
+buff~bytes.104
+
 ;~{
         buffPtr~@BoxedInt:@buff
         for.{end:104 step:8 do:@{
@@ -73,10 +77,21 @@ DynString~{
         str~DynString.{memMan:@mem write:"Hello, World!"}
         
         buffPtr:@buff
-        for.{end:104 step:1 do:@{
+        for.{end:104 do:@{
                 print.{d:{buffPtr.el % 256} s:" "}
                 buffPtr:{buffPtr+1}
         } ; }
         print.endl
+        print.line:str
+        
+        str.write:" Yes, we meet again!"
+        
+        buffPtr:@buff
+        for.{end:104 do:@{
+                print.{d:{buffPtr.el % 256} s:" "}
+                buffPtr:{buffPtr+1}
+        } ; }
+        print.endl
+        print.line:str
 }
 
