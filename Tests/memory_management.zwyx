@@ -22,13 +22,14 @@ MemArena~{
         alloc~{numBytes~int ;~{
                 chunkPtr~@BoxedInt:data
                 {chunkPtr.el}?*{
-                        chunkPtr:{chunkPtr+8+chunkPtr.el}
+                        chunkPtr:{chunkPtr+8+{chunkPtr.el & 0x7FFF}}
                 }
                 {{numBytes % 8} = 0}?{
                         chunkPtr.el:numBytes
                 }^{
                         chunkPtr.el:{numBytes/8*8+8}
                 }
+                chunkPtr.el:{chunkPtr.el | 0x8000}
                 chunkPtr+8
         }}
 }
@@ -36,20 +37,20 @@ MemArena~{
 DynString~{
         b~bytes
         capacity~int:0
-        memMan~@MemArena
+        memHandler~@MemArena
         write~{
 		~WriteNF
 		fn:@{
 		        countin~int:data.count
-		        {capacity = 0}?{
-		                b:memMan.alloc:16
-		                b.count:0
-		                capacity:16
-		        }^{{b.count+countin} > capacity}?{
+		        {{b.count+countin} > capacity}?{
+		                {capacity = 0}?{
+		                        capacity:16
+		                        b.count:0
+		                }
 		                {{b.count+countin} > capacity}?*{
 		                        capacity:{capacity*2}
 		                }
-		                new_b~bytes:memMan.alloc:capacity
+		                new_b~bytes:memHandler.alloc:capacity
 		                new_b.count:b.count
 		                memCpy.{to:new_b from:b ;}
 		                b:new_b
@@ -60,7 +61,7 @@ DynString~{
 	}
 }
 
-buff~bytes.104
+buff~bytes.400
 
 ;~{
         buffPtr~@BoxedInt:@buff
@@ -69,24 +70,22 @@ buff~bytes.104
                 buffPtr:{buffPtr+8}
         } ; }
         mem~MemArena.{data:@buff}
-        str~DynString.{memMan:@mem write:"Hello, World!"}
+        
+        str1~DynString.{memHandler:@mem write:"Hello, World!"}
+        str2~DynString.{memHandler:@mem write:"Chunk of some data!"}
+        print.line:str1
+        print.line:str2
+        
+        str1.write:" Yes, we meet again!"
+        str2.write:" Bigger chunk of some data!"
+        print.line:str1
+        print.line:str2
         
         buffPtr:@buff
-        for.{end:104 do:@{
+        for.{end:400 do:@{
                 print.{d:{buffPtr.el % 256} s:" "}
                 buffPtr:{buffPtr+1}
         } ; }
         print.endl
-        print.line:str
-        
-        str.write:" Yes, we meet again!"
-        
-        buffPtr:@buff
-        for.{end:104 do:@{
-                print.{d:{buffPtr.el % 256} s:" "}
-                buffPtr:{buffPtr+1}
-        } ; }
-        print.endl
-        print.line:str
 }
 
