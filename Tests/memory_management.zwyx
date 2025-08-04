@@ -24,10 +24,19 @@ MemArena~{
                         numBytes:{numBytes / 8 * 8 + 8}
                 }
                 chunkPtr~@BoxedInt:data
-                chunkSize~int:{chunkPtr.el & 0x7FFF}
+                chunkSize~int
+                {chunkPtr.el & 0x8000}?{
+                        chunkSize:0
+                }^{
+                        chunkSize:chunkPtr.el
+                }
                 {{chunkPtr.el & 0x8000} | {chunkSize < numBytes}}?*{
-                        chunkPtr:{chunkPtr+8+chunkSize}
-                        chunkSize:{chunkPtr.el & 0x7FFF}
+                        chunkPtr:{chunkPtr+8+{chunkPtr.el & 0x7FFF}}
+                        {chunkPtr.el & 0x8000}?{
+                                chunkSize:0
+                        }^{
+                                chunkSize:chunkPtr.el
+                        }
                 }
                 {chunkSize > numBytes}?{
                         nextChunkPtr~@BoxedInt:{chunkPtr + 8 + numBytes}
@@ -39,8 +48,6 @@ MemArena~{
         free~{chunk~bytes ;~{
                 chunkPtr~@BoxedInt:{chunk-8}
                 chunkPtr.el:{chunkPtr.el & 0x7FFF}
-                chunkPtr.el:{chunkPtr.el & 0x7FFF}
-                
         }}
         set~{b~bytes ;~{
                 data:b
