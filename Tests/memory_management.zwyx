@@ -21,8 +21,10 @@ MemArena~{
         data~bytes
         alloc~{numBytes~int ;~{
                 chunkPtr~@BoxedInt:data
-                {chunkPtr.el}?*{
-                        chunkPtr:{chunkPtr+8+{chunkPtr.el & 0x7FFF}}
+                chunkSize~int:{chunkPtr.el & 0x7FFF}
+                {{chunkPtr.el & 0x8000} | {{chunkSize > 0} & {chunkSize < numBytes}}}?*{
+                        chunkPtr:{chunkPtr+8+chunkSize}
+                        chunkSize:{chunkPtr.el & 0x7FFF}
                 }
                 {{numBytes % 8} = 0}?{
                         chunkPtr.el:numBytes
@@ -31,6 +33,12 @@ MemArena~{
                 }
                 chunkPtr.el:{chunkPtr.el | 0x8000}
                 chunkPtr+8
+        }}
+        free~{chunk~bytes ;~{
+                chunkPtr~@BoxedInt:{chunk-8}
+                chunkPtr.el:{chunkPtr.el & 0x7FFF}
+                chunkPtr.el:{chunkPtr.el & 0x7FFF}
+                
         }}
 }
 
@@ -53,6 +61,9 @@ DynString~{
 		                new_b~bytes:memHandler.alloc:capacity
 		                new_b.count:b.count
 		                memCpy.{to:new_b from:b ;}
+		                {capacity > 16}?{
+		                        memHandler.free:b
+		                }
 		                b:new_b
 		        }
 			memCpy.{to:{b+b.count} from:data ;}
