@@ -20,18 +20,20 @@ memCpy~{from~bytes to~bytes ;~{
 MemArena~{
         data~bytes
         alloc~{numBytes~int ;~{
+                {numBytes % 8}?{
+                        numBytes:{numBytes / 8 * 8 + 8}
+                }
                 chunkPtr~@BoxedInt:data
                 chunkSize~int:{chunkPtr.el & 0x7FFF}
-                {{chunkPtr.el & 0x8000} | {{chunkSize > 0} & {chunkSize < numBytes}}}?*{
+                {{chunkPtr.el & 0x8000} | {chunkSize < numBytes}}?*{
                         chunkPtr:{chunkPtr+8+chunkSize}
                         chunkSize:{chunkPtr.el & 0x7FFF}
                 }
-                {{numBytes % 8} = 0}?{
-                        chunkPtr.el:numBytes
-                }^{
-                        chunkPtr.el:{numBytes/8*8+8}
+                {chunkSize > numBytes}?{
+                        nextChunkPtr~@BoxedInt:{chunkPtr + 8 + numBytes}
+                        nextChunkPtr.el:{chunkSize - numBytes - 8}
                 }
-                chunkPtr.el:{chunkPtr.el | 0x8000}
+                chunkPtr.el:{numBytes | 0x8000}
                 chunkPtr+8
         }}
         free~{chunk~bytes ;~{
@@ -39,6 +41,17 @@ MemArena~{
                 chunkPtr.el:{chunkPtr.el & 0x7FFF}
                 chunkPtr.el:{chunkPtr.el & 0x7FFF}
                 
+        }}
+        set~{b~bytes ;~{
+                data:b
+                chunkPtr~@BoxedInt:data
+                chunkPtr.el:{data.count - 8}
+                
+                chunkPtr:{chunkPtr + 8}
+                for.{i:8 step:8 end:data.count do:@{
+                        chunkPtr.el:0
+                        chunkPtr:{chunkPtr+8}
+                } ; }
         }}
 }
 
@@ -51,8 +64,11 @@ DynString~{
 		fn:@{
 		        countin~int:data.count
 		        {{b.count+countin} > capacity}?{
+		                free_b~int:1
 		                {capacity = 0}?{
 		                        capacity:16
+		                        free_b:0
+		                        
 		                        b.count:0
 		                }
 		                {{b.count+countin} > capacity}?*{
@@ -61,7 +77,7 @@ DynString~{
 		                new_b~bytes:memHandler.alloc:capacity
 		                new_b.count:b.count
 		                memCpy.{to:new_b from:b ;}
-		                {capacity > 16}?{
+		                {free_b}?{
 		                        memHandler.free:b
 		                }
 		                b:new_b
@@ -70,17 +86,19 @@ DynString~{
 			b.count:{b.count+countin}
 		}
 	}
+	clear~{;~{ b.count:0 }}
+	destroy~{;~{
+	       clear
+	       capacity:0
+	       
+	       memHandler.free:b
+	}}
 }
 
 buff~bytes.400
 
 ;~{
-        buffPtr~@BoxedInt:@buff
-        for.{end:104 step:8 do:@{
-                buffPtr.el:0
-                buffPtr:{buffPtr+8}
-        } ; }
-        mem~MemArena.{data:@buff}
+        mem~MemArena.{set:@buff}
         
         str1~DynString.{memHandler:@mem write:"Hello, World!"}
         str2~DynString.{memHandler:@mem write:"Chunk of some data!"}
@@ -91,6 +109,19 @@ buff~bytes.400
         str2.write:" Bigger chunk of some data!"
         print.line:str1
         print.line:str2
+        
+        str1.{destroy write:"Test for finding open chunks."}
+        print.line:str1
+        
+        buffPtr~@BoxedInt:@buff
+        for.{end:400 do:@{
+                print.{d:{buffPtr.el % 256} s:" "}
+                buffPtr:{buffPtr+1}
+        } ; }
+        print.endl
+        
+        str1.write:" This will go to the next chunk."
+        print.line:str1
         
         buffPtr:@buff
         for.{end:400 do:@{
