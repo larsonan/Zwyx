@@ -23,23 +23,25 @@ MemArena~{
                 {numBytes % 8}?{
                         numBytes:{numBytes / 8 * 8 + 8}
                 }
+                chunkSize~int:0
                 chunkPtr~@BoxedInt:data
-                chunkSize~int
-                {chunkPtr.el & 0x8000}?{
-                        chunkSize:0
-                }^{
-                        chunkSize:chunkPtr.el
-                }
-                {{chunkPtr.el & 0x8000} | {chunkSize < numBytes}}?*{
-                        chunkPtr:{chunkPtr+8+{chunkPtr.el & 0x7FFF}}
-                        {chunkPtr.el & 0x8000}?{
+                nextChunkPtr~@BoxedInt:data
+                {chunkSize < numBytes}?*{
+                        {nextChunkPtr.el & 0x8000}?{
                                 chunkSize:0
+                                chunkPtr:nextChunkPtr
                         }^{
-                                chunkSize:chunkPtr.el
+                                {chunkSize = 0}?{
+                                        chunkPtr:nextChunkPtr
+                                }^{
+                                        chunkSize:{chunkSize+8}
+                                }
+                                chunkSize:{chunkSize+nextChunkPtr.el}
                         }
+                        nextChunkPtr:{nextChunkPtr+8+{nextChunkPtr.el & 0x7FFF}}
                 }
                 {chunkSize > numBytes}?{
-                        nextChunkPtr~@BoxedInt:{chunkPtr + 8 + numBytes}
+                        nextChunkPtr:{chunkPtr + 8 + numBytes}
                         nextChunkPtr.el:{chunkSize - numBytes - 8}
                 }
                 chunkPtr.el:{numBytes | 0x8000}
