@@ -26,26 +26,29 @@ MemArena~{
                 chunkSize~int:0
                 chunkPtr~@BoxedInt:data
                 nextChunkPtr~@BoxedInt:data
-                {chunkSize < numBytes}?*{
+                {{chunkSize < numBytes} & {chunkPtr.el < 0xFFFF}}?*{
                         {nextChunkPtr.el & 0x8000}?{
                                 chunkSize:0
                                 chunkPtr:nextChunkPtr
                         }^{
                                 {chunkSize = 0}?{
                                         chunkPtr:nextChunkPtr
+                                        chunkSize:chunkPtr.el
                                 }^{
-                                        chunkSize:{chunkSize+8}
+                                        chunkSize:{chunkSize+8+nextChunkPtr.el}
+                                        chunkPtr.el:chunkSize
                                 }
-                                chunkSize:{chunkSize+nextChunkPtr.el}
                         }
                         nextChunkPtr:{nextChunkPtr+8+{nextChunkPtr.el & 0x7FFF}}
                 }
-                {chunkSize > numBytes}?{
-                        nextChunkPtr:{chunkPtr + 8 + numBytes}
-                        nextChunkPtr.el:{chunkSize - numBytes - 8}
+                {chunkPtr.el = 0xFFFF}?{0}^{
+                        {chunkSize > numBytes}?{
+                                nextChunkPtr:{chunkPtr + 8 + numBytes}
+                                nextChunkPtr.el:{chunkSize - numBytes - 8}
+                        }
+                        chunkPtr.el:{numBytes | 0x8000}
+                        chunkPtr+8
                 }
-                chunkPtr.el:{numBytes | 0x8000}
-                chunkPtr+8
         }}
         free~{chunk~bytes ;~{
                 chunkPtr~@BoxedInt:{chunk-8}
@@ -53,14 +56,17 @@ MemArena~{
         }}
         set~{b~bytes ;~{
                 data:b
+                
                 chunkPtr~@BoxedInt:data
                 chunkPtr.el:{data.count - 8}
                 
                 chunkPtr:{chunkPtr + 8}
-                for.{i:8 step:8 end:data.count do:@{
+                for.{i:8 step:8 end:{data.count-8} do:@{
                         chunkPtr.el:0
                         chunkPtr:{chunkPtr+8}
                 } ; }
+                
+                chunkPtr.el:0xFFFF
         }}
 }
 
