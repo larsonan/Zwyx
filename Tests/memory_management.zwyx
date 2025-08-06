@@ -58,7 +58,7 @@ MemArena~{
                 data:b
                 
                 chunkPtr~@BoxedInt:data
-                chunkPtr.el:{data.count - 8}
+                chunkPtr.el:{data.count-16}
                 
                 chunkPtr:{chunkPtr + 8}
                 for.{i:8 step:8 end:{data.count-8} do:@{
@@ -78,6 +78,8 @@ DynString~{
 		~WriteNF
 		fn:@{
 		        countin~int:data.count
+		        failed~int:0
+		        
 		        {{b.count+countin} > capacity}?{
 		                free_b~int:1
 		                {capacity = 0}?{
@@ -90,15 +92,21 @@ DynString~{
 		                        capacity:{capacity*2}
 		                }
 		                new_b~bytes:memHandler.alloc:capacity
-		                new_b.count:b.count
-		                memCpy.{to:new_b from:b ;}
-		                {free_b}?{
-		                        memHandler.free:b
+		                {new_b = 0}?{
+		                        failed:1
+		                }^{
+		                        new_b.count:b.count
+		                        memCpy.{to:new_b from:b ;}
+		                        {free_b}?{
+		                                memHandler.free:b
+		                        }
+		                        b:new_b
 		                }
-		                b:new_b
 		        }
-			memCpy.{to:{b+b.count} from:data ;}
-			b.count:{b.count+countin}
+		        {failed = 0}?{
+			        memCpy.{to:{b+b.count} from:data ;}
+			        b.count:{b.count+countin}
+			}
 		}
 	}
 	clear~{;~{ b.count:0 }}
@@ -137,6 +145,11 @@ buff~bytes.400
         
         str1.write:" This will go to the next chunk."
         print.line:str1
+        
+        str3~DynString.{memHandler:@mem write:"Filler Filler Filler Filler Filler Filler Filler"}
+        str4~DynString.{memHandler:@mem write:"More Filler More Filler More Filler More Filler More Filler"}
+        
+        str5~DynString.{memHandler:@mem write:"This string is too long to fit in remaining memory; write will fail"}
         
         buffPtr:@buff
         for.{end:400 do:@{
