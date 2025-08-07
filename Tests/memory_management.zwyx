@@ -5,7 +5,7 @@ _import:"utilities_lib"
 
 BoxedInt~{el~int}
 
-MemManager~{
+MemManagerNF~{
         alloc~{numBytes~int}
         free~{chunk~bytes}
         allocFn~virtual:alloc
@@ -25,7 +25,7 @@ memCpy~{from~bytes to~bytes ;~{
 }}
 
 MemArena~{
-        ~MemManager
+        ~MemManagerNF
         data~bytes
         allocFn:@{
                 {numBytes % 8}?{
@@ -81,7 +81,7 @@ MemArena~{
 DynString~{
         b~bytes
         capacity~int:0
-        memHandler~@MemArena
+        memHandler~@MemManagerNF
         write~{
 		~WriteNF
 		fn:@{
