@@ -5,6 +5,13 @@ _import:"utilities_lib"
 
 BoxedInt~{el~int}
 
+MemManager~{
+        alloc~{numBytes~int}
+        free~{chunk~bytes}
+        allocFn~virtual:alloc
+        freeFn~virtual:free
+}
+
 memCpy~{from~bytes to~bytes ;~{
         fromPtr~@CIter:from
         toPtr~@CIter:to
@@ -18,8 +25,9 @@ memCpy~{from~bytes to~bytes ;~{
 }}
 
 MemArena~{
+        ~MemManager
         data~bytes
-        alloc~{numBytes~int ;~{
+        allocFn:@{
                 {numBytes % 8}?{
                         numBytes:{numBytes / 8 * 8 + 8}
                 }
@@ -49,11 +57,11 @@ MemArena~{
                         chunkPtr.el:{numBytes | 0x8000}
                         chunkPtr+8
                 }
-        }}
-        free~{chunk~bytes ;~{
+        }
+        freeFn:@{
                 chunkPtr~@BoxedInt:{chunk-8}
                 chunkPtr.el:{chunkPtr.el & 0x7FFF}
-        }}
+        }
         set~{b~bytes ;~{
                 data:b
                 
