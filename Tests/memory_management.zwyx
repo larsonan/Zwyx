@@ -24,27 +24,33 @@ memCpy~{from~bytes to~bytes ;~{
         }
 }}
 
+intCast~{in~bytes ;~{
+        result~int:in
+        result
+}}
+
 MemArena~{
         ~MemManagerNF
         data~bytes
+        firstOpenChunk~@BoxedInt
         allocFn:@{
                 {numBytes % 8}?{
                         numBytes:{numBytes / 8 * 8 + 8}
                 }
                 chunkSize~int:0
-                chunkPtr~@BoxedInt:data
-                nextChunkPtr~@BoxedInt:data
+                chunkPtr~@BoxedInt:firstOpenChunk
+                nextChunkPtr~@BoxedInt:chunkPtr
                 {{chunkSize < numBytes} & {chunkPtr.el < 0xFFFF}}?*{
                         {nextChunkPtr.el & 0x8000}?{
                                 chunkSize:0
                                 chunkPtr:nextChunkPtr
                         }^{
-                                {chunkSize = 0}?{
+                                {chunkSize > 0}?{
+                                        chunkSize:{chunkSize + 8 + nextChunkPtr.el}
+                                        chunkPtr.el:chunkSize
+                                }^{
                                         chunkPtr:nextChunkPtr
                                         chunkSize:chunkPtr.el
-                                }^{
-                                        chunkSize:{chunkSize+8+nextChunkPtr.el}
-                                        chunkPtr.el:chunkSize
                                 }
                         }
                         nextChunkPtr:{nextChunkPtr+8+{nextChunkPtr.el & 0x7FFF}}
@@ -53,6 +59,9 @@ MemArena~{
                         {chunkSize > numBytes}?{
                                 nextChunkPtr:{chunkPtr + 8 + numBytes}
                                 nextChunkPtr.el:{chunkSize - numBytes - 8}
+                                {chunkPtr = intCast:firstOpenChunk}?{
+                                        firstOpenChunk:nextChunkPtr
+                                }
                         }
                         chunkPtr.el:{numBytes | 0x8000}
                         chunkPtr+8
@@ -61,11 +70,16 @@ MemArena~{
         freeFn:@{
                 chunkPtr~@BoxedInt:{chunk-8}
                 chunkPtr.el:{chunkPtr.el & 0x7FFF}
+                {chunkPtr < intCast:firstOpenChunk}?{
+                        firstOpenChunk:chunkPtr
+                }
         }
         set~{b~bytes ;~{
                 data:b
                 
                 chunkPtr~@BoxedInt:data
+                firstOpenChunk:data
+                
                 chunkPtr.el:{data.count-16}
                 
                 chunkPtr:{chunkPtr + 8}
