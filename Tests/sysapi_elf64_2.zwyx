@@ -27,3 +27,8 @@ _file_write~{
         ;~{_system.{rax:1 rdx:a.count rdi:fd rsi:a ;}}
 }
 
+_heap_map~{
+        a~int
+        ;~{_system.{rax:9 rdx:3 rdi:0 rsi:a r8:{0-1} r9:0 r10:34 ;}}
+}
+

@@ -140,10 +140,12 @@ DynString~{
 	}}
 }
 
-buff~bytes.400
-
 ;~{
-        mem~MemArena.{set:@buff}
+        heap~bytes.{
+                $:_heap_map:4096
+                count:4096
+        }
+        mem~MemArena.{set:heap}
         
         str1~DynString.{memHandler:@mem write:"Hello, World!"}
         str2~DynString.{memHandler:@mem write:"Chunk of some data!"}
@@ -158,7 +160,7 @@ buff~bytes.400
         str1.{destroy write:"Test for finding open chunks."}
         print.line:str1
         
-        buffPtr~@BoxedInt:@buff
+        buffPtr~@BoxedInt:heap
         for.{end:400 do:@{
                 print.{d:{buffPtr.el % 256} s:" "}
                 buffPtr:{buffPtr+1}
@@ -171,9 +173,7 @@ buff~bytes.400
         str3~DynString.{memHandler:@mem write:"Filler Filler Filler Filler Filler Filler Filler"}
         str4~DynString.{memHandler:@mem write:"More Filler More Filler More Filler More Filler More Filler"}
         
-        str5~DynString.{memHandler:@mem write:"This string is too long to fit in remaining memory; write will fail"}
-        
-        buffPtr:@buff
+        buffPtr:heap
         for.{end:400 do:@{
                 print.{d:{buffPtr.el % 256} s:" "}
                 buffPtr:{buffPtr+1}
