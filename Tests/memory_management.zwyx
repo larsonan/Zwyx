@@ -87,7 +87,6 @@ HeapHandlerPageTableEntry~{
 
 HeapHandler~{
         ~MemManagerNF
-        nPages~int:0
         allocFn:@{
                 table~MasterList:HeapHandlerPageTableEntry
                 table.buffer:@heapHandlerPageTableBuffer
@@ -95,10 +94,8 @@ HeapHandler~{
                 chunk~bytes
                 chunk:0
                 
-                table.buffer.count:{nPages*24}
-                
                 n~int:0
-                {{chunk = 0} & {n < nPages}}?*{
+                {chunk = 0}?*{
                         entry~@HeapHandlerPageTableEntry:table.get:n
                         {entry.spaceLeft > numBytes}?{
                                 MemArena.{
@@ -106,22 +103,16 @@ HeapHandler~{
                                         chunk:$.alloc:numBytes
                                 }
                                 entry.spaceLeft:{entry.spaceLeft - numBytes - 8}
-                        }
-                        n:{n+1}
-                }
-                
-                {chunk = 0}?{
-                        table.emplace:@{
-                                data:_heap_map:4096
-                                data.count:4096
-                                spaceLeft:{4080 - numBytes}
+                        }^{entry.data = 0}?{
+                                entry.data:_heap_map:4096
+                                entry.data.count:4096
+                                entry.spaceLeft:{4080 - numBytes}
                                 MemArena.{
-                                        set:$.2.data
+                                        set:entry.data
                                         chunk:$.alloc:numBytes
                                 }
                         }
                         n:{n+1}
-                        nPages:{nPages+1}
                 }
                 
                 chunkPtr~@BoxedInt:{chunk - 8}
