@@ -24,23 +24,17 @@ memCpy~{from~bytes to~bytes ;~{
         }
 }}
 
-intCast~{in~bytes ;~{
-        result~int:in
-        result
-}}
-
 MemArena~{
         ~MemManagerNF
         data~bytes
-        firstOpenChunk~@BoxedInt
         allocFn:@{
                 {numBytes % 8}?{
                         numBytes:{numBytes / 8 * 8 + 8}
                 }
                 chunkSize~int:0
-                chunkPtr~@BoxedInt:firstOpenChunk
+                chunkPtr~@BoxedInt:data
                 nextChunkPtr~@BoxedInt:chunkPtr
-                {{chunkSize < numBytes} & {chunkPtr.el < 0xFFFF}}?*{
+                {{chunkSize < numBytes} & {{chunkPtr.el & 0xFFFF} < 0xFFFF}}?*{
                         {nextChunkPtr.el & 0x8000}?{
                                 chunkSize:0
                                 chunkPtr:nextChunkPtr
@@ -59,9 +53,6 @@ MemArena~{
                         {chunkSize > numBytes}?{
                                 nextChunkPtr:{chunkPtr + 8 + numBytes}
                                 nextChunkPtr.el:{chunkSize - numBytes - 8}
-                                {chunkPtr = intCast:firstOpenChunk}?{
-                                        firstOpenChunk:nextChunkPtr
-                                }
                         }
                         chunkPtr.el:{numBytes | 0x8000}
                         chunkPtr+8
@@ -70,16 +61,11 @@ MemArena~{
         freeFn:@{
                 chunkPtr~@BoxedInt:{chunk-8}
                 chunkPtr.el:{chunkPtr.el & 0x7FFF}
-                {chunkPtr < intCast:firstOpenChunk}?{
-                        firstOpenChunk:chunkPtr
-                }
         }
         set~{b~bytes ;~{
                 data:b
                 
                 chunkPtr~@BoxedInt:data
-                firstOpenChunk:data
-                
                 chunkPtr.el:{data.count-16}
                 
                 chunkPtr:{chunkPtr + 8}
@@ -90,6 +76,67 @@ MemArena~{
                 
                 chunkPtr.el:0xFFFF
         }}
+}
+
+heapHandlerPageTableBuffer~bytes.400
+
+HeapHandlerPageTableEntry~{
+        data~bytes
+        spaceLeft~int
+}
+
+HeapHandler~{
+        ~MemManagerNF
+        nPages~int:0
+        allocFn:@{
+                table~MasterList:HeapHandlerPageTableEntry
+                table.buffer:@heapHandlerPageTableBuffer
+                
+                chunk~bytes
+                chunk:0
+                
+                table.buffer.count:{nPages*24}
+                
+                n~int:0
+                {{chunk = 0} & {n < nPages}}?*{
+                        entry~@HeapHandlerPageTableEntry:table.get:n
+                        {entry.spaceLeft > numBytes}?{
+                                MemArena.{
+                                        data:entry.data
+                                        chunk:$.alloc:numBytes
+                                }
+                                entry.spaceLeft:{entry.spaceLeft - numBytes - 8}
+                        }
+                        n:{n+1}
+                }
+                
+                {chunk = 0}?{
+                        table.emplace:@{
+                                data:_heap_map:4096
+                                data.count:4096
+                                spaceLeft:{4080 - numBytes}
+                                MemArena.{
+                                        set:$.2.data
+                                        chunk:$.alloc:numBytes
+                                }
+                        }
+                        n:{n+1}
+                        nPages:{nPages+1}
+                }
+                
+                chunkPtr~@BoxedInt:{chunk - 8}
+                chunkPtr.el:{chunkPtr.el | {n * 0x10000}}
+                
+                chunk
+        }
+        freeFn:@{
+                chunkPtr~@BoxedInt:{chunk - 8}
+                entry~@HeapHandlerPageTableEntry
+                entry:@heapHandlerPageTableBuffer
+                entry:{entry + {24 * {chunkPtr.el / 0x10000 - 1}}}
+                MemArena.free:chunk
+                entry.spaceLeft:{entry.spaceLeft + chunkPtr.el + 8}
+        }
 }
 
 DynString~{
@@ -141,11 +188,8 @@ DynString~{
 }
 
 ;~{
-        heap~bytes.{
-                $:_heap_map:4096
-                count:4096
-        }
-        mem~MemArena.{set:heap}
+        mem~HeapHandler
+        
         
         str1~DynString.{memHandler:@mem write:"Hello, World!"}
         str2~DynString.{memHandler:@mem write:"Chunk of some data!"}
@@ -158,26 +202,29 @@ DynString~{
         print.line:str2
         
         str1.{destroy write:"Test for finding open chunks."}
-        print.line:str1
         
-        buffPtr~@BoxedInt:heap
+        entry~@HeapHandlerPageTableEntry
+        entry:@heapHandlerPageTableBuffer
+        
+        buffPtr~@BoxedInt:entry.data
         for.{end:400 do:@{
                 print.{d:{buffPtr.el % 256} s:" "}
                 buffPtr:{buffPtr+1}
         } ; }
+        
         print.endl
         
-        str1.write:" This will go to the next chunk."
-        print.line:str1
+        for.{end:200 do:@{str1.write:" Filler!"} ; }
         
-        str3~DynString.{memHandler:@mem write:"Filler Filler Filler Filler Filler Filler Filler"}
-        str4~DynString.{memHandler:@mem write:"More Filler More Filler More Filler More Filler More Filler"}
-        
-        buffPtr:heap
+        table~MasterList:HeapHandlerPageTableEntry
+        table.setBuffer:@heapHandlerPageTableBuffer
+        entry:table.get:1
+        buffPtr:entry.data
         for.{end:400 do:@{
                 print.{d:{buffPtr.el % 256} s:" "}
                 buffPtr:{buffPtr+1}
         } ; }
+        
         print.endl
 }
 
