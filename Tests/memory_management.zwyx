@@ -178,6 +178,77 @@ DynString~{
 	}}
 }
 
+MasterDynList~`_io.return~{
+        memHandler~@MemManagerNF
+        b~bytes
+        count~int:0
+        capacity~int:0
+	memberSize~int:_mem_size_of:_io.0
+	emplace~{
+		in~_io.0.;
+		;~{
+			failed~int:0
+			{{count+1} > capacity}?{
+			        free_b~int:1
+		                {capacity = 0}?{
+		                        capacity:16
+		                        free_b:0
+		                }^{
+		                        capacity:{capacity*2}
+		                }
+		                new_b~bytes:memHandler.alloc:{capacity*8}
+		                {new_b = 0}?{
+		                        failed:1
+		                }^{
+		                        b.count:{count*8}
+		                        memCpy.{to:new_b from:b ;}
+		                        {free_b}?{
+		                                memHandler.free:b
+		                        }
+		                        b:new_b
+		                }
+			}
+			{failed = 0}?{
+			        newMemberBytes~bytes:memHandler.alloc:memberSize
+			        newMember~@_io.0:newMemberBytes
+			        {newMember}?{
+			                newMember.{in}
+			                count:{count+1}
+			                ptr~@BoxedInt:{b+count*8}
+			                ptr.el:newMemberBytes
+			        }
+			}
+		}
+	}
+	get~{
+	        at~int
+	        ;~{
+	                ptr~@Boxed:_io.0:{b+at*8}
+	                ptr.el
+	        }
+	}
+	each~{
+	        f~_io.0.;
+	        ;~{
+	                ptr~@Boxed:_io.0:b
+                        for.{
+                                end:count
+                                do:@{
+                                        ptr2~@_io.0:ptr.el
+                                        ptr2.{f}
+                                        
+                                        ptr:{ptr+8}
+                                } ;
+                        }
+	        }
+	}
+}`
+
+Employee~{
+        name~int
+        age~int
+}
+
 ;~{
         mem~HeapHandler
         
@@ -193,6 +264,9 @@ DynString~{
         print.line:str2
         
         str1.{destroy write:"Test for finding open chunks."}
+        
+        db~MasterDynList:Employee.{memHandler:@mem}
+        db.emplace:@{name:14 age:52}
         
         entry~@HeapHandlerPageTableEntry
         entry:@heapHandlerPageTableBuffer
