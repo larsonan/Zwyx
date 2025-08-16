@@ -1304,6 +1304,10 @@ void handle_instantiation(Instrx *instrx)
 		if (instrx->is_ptr)
 		{
 			instrx->unit = instantiate_as_ptr(instrx->unit);
+			if (is_struct(parent_ptr))
+			{
+			        instrx->base_level = 1;
+			}
 		}
 		else
 		{

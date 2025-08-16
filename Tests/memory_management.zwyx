@@ -137,13 +137,12 @@ HeapHandler~{
         }
 }
 
-heapHandler~HeapHandler
+heapHandlerStatic~HeapHandler
 
 DynString~{
         b~bytes
         capacity~int:0
-        memHandler~@MemManagerNF
-        memHandler:@heapHandler
+        memHandler~@MemManagerNF:@heapHandlerStatic
         write~{
 		~WriteNF
 		fn:@{
@@ -189,8 +188,7 @@ DynString~{
 }
 
 MasterDynList~`_io.return~{
-        memHandler~@MemManagerNF
-        memHandler:@heapHandler
+        memHandler~@MemManagerNF:@heapHandlerStatic
         b~bytes
         count~int:0
         capacity~int:0
