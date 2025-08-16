@@ -104,9 +104,13 @@ HeapHandler~{
                                 }
                                 entry.spaceLeft:{entry.spaceLeft - numBytes - 8}
                         }^{entry.data = 0}?{
-                                entry.data:_heap_map:4096
-                                entry.data.count:4096
-                                entry.spaceLeft:{4080 - numBytes}
+                                arenaSize~int:4096
+                                {arenaSize < numBytes + 16}?*{
+                                        arenaSize:{arenaSize * 2}
+                                }
+                                entry.data:_heap_map:arenaSize
+                                entry.data.count:arenaSize
+                                entry.spaceLeft:{arenaSize - numBytes - 16}
                                 MemArena.{
                                         set:entry.data
                                         chunk:$.alloc:numBytes
@@ -213,9 +217,9 @@ MasterDynList~`_io.return~{
 			        newMember~@_io.0:newMemberBytes
 			        {newMember}?{
 			                newMember.{in}
-			                count:{count+1}
 			                ptr~@BoxedInt:{b+count*8}
 			                ptr.el:newMemberBytes
+			                count:{count+1}
 			        }
 			}
 		}
@@ -223,20 +227,23 @@ MasterDynList~`_io.return~{
 	get~{
 	        at~int
 	        ;~{
-	                ptr~@Boxed:_io.0:{b+at*8}
-	                ptr.el
+	                ptr~@BoxedInt:{b+at*8}
+	                temp~bytes:ptr.el
+	                result~@_io.0:temp
+	                result
 	        }
 	}
 	each~{
 	        f~_io.0.;
 	        ;~{
-	                ptr~@Boxed:_io.0:b
+	                ptr~@BoxedInt:b
                         for.{
                                 end:count
                                 do:@{
-                                        ptr2~@_io.0:ptr.el
-                                        ptr2.{f}
+                                        temp~bytes:ptr.el
+                                        ptr2~@_io.0:temp
                                         
+                                        ptr2.{f}
                                         ptr:{ptr+8}
                                 } ;
                         }
@@ -245,7 +252,7 @@ MasterDynList~`_io.return~{
 }`
 
 Employee~{
-        name~int
+        name~String
         age~int
 }
 
@@ -265,8 +272,12 @@ Employee~{
         
         str1.{destroy write:"Test for finding open chunks."}
         
-        db~MasterDynList:Employee.{memHandler:@mem}
-        db.emplace:@{name:14 age:52}
+        db~MasterDynList:Employee.{memHandler:@mem emplace.{
+                $:@{name:"Spuds Magabbener" age:34} ;
+                $:@{name:"Boris Boringen" age:52} ;
+        }}
+        
+        db.each:@{print.{s:name s:", " d:age endl}}
         
         entry~@HeapHandlerPageTableEntry
         entry:@heapHandlerPageTableBuffer
