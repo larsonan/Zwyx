@@ -492,6 +492,11 @@ void load_base_to_reg(int mem_offset)
 	(void)fprintf(xcfile, "lea\t%s,\t[%s-%d]\n", REG_BASE, REG_DEFAULT, mem_offset);
 }
 
+void load_static_base_to_reg(int mem_offset)
+{
+        (void)fprintf(xcfile, "lea\t%s,\t[%s+%d]\n", REG_BASE, REG_PTR, mem_offset);
+}
+
 void store_base(int mem_offset)
 {
         (void)fprintf(xcfile, "mov\t[%s-%d],\t%s\n", REG_DEFAULT, mem_offset, REG_BASE);
@@ -856,9 +861,15 @@ void initialize_unit(Instrx *instrx)
 		}
 		if ((STRUCT_UNINITIALIZED == instrx->state) && (STRUCT_UNINITIALIZED == unit->f_num))
 		{
-			load_base_to_reg(unit->mem_offset);
+		        if (NAMESPACE == unit->mem_base)
+		        {
+		                load_static_base_to_reg(unit->mem_offset);
+		        }
+		        else
+		        {
+			        load_base_to_reg(unit->mem_offset);
+			}
 			write_instrxs(unit->instrxs);
-			
 			restore_base_to_reg();
 		}
 	}
@@ -1001,6 +1012,7 @@ void write_xc(string format)
 	        (void)fprintf(xcfile, "global\t_start\n_start:\n");
 	}
 	
+	write_instrxs(parent_ptr->instrxs);
 	write_instrxs(parent_ptr->method->instrxs);
 	
 	if (format == "macho64")

@@ -85,35 +85,38 @@ HeapHandlerPageTableEntry~{
         spaceLeft~int
 }
 
+heapHandlerPageTable~MasterList:HeapHandlerPageTableEntry
+
+heapHandlerPageTable.buffer:@heapHandlerPageTableBuffer
+
 HeapHandler~{
         ~MemManagerNF
+        
         allocFn:@{
-                table~MasterList:HeapHandlerPageTableEntry
-                table.buffer:@heapHandlerPageTableBuffer
-                
                 chunk~bytes
                 chunk:0
                 
                 n~int:0
                 {chunk = 0}?*{
-                        entry~@HeapHandlerPageTableEntry:table.get:n
-                        {entry.spaceLeft > numBytes}?{
-                                MemArena.{
-                                        data:entry.data
-                                        chunk:$.alloc:numBytes
-                                }
-                                entry.spaceLeft:{entry.spaceLeft - numBytes - 8}
-                        }^{entry.data = 0}?{
-                                arenaSize~int:4096
-                                {arenaSize < numBytes + 16}?*{
-                                        arenaSize:{arenaSize * 2}
-                                }
-                                entry.data:_heap_map:arenaSize
-                                entry.data.count:arenaSize
-                                entry.spaceLeft:{arenaSize - numBytes - 16}
-                                MemArena.{
-                                        set:entry.data
-                                        chunk:$.alloc:numBytes
+                        {heapHandlerPageTable.get:n}.{
+                                {spaceLeft > numBytes}?{
+                                        MemArena.{
+                                                data:$.2.data
+                                                chunk:$.alloc:numBytes
+                                        }
+                                        spaceLeft:{spaceLeft - numBytes - 8}
+                                }^{data = 0}?{
+                                        arenaSize~int:4096
+                                        {arenaSize < numBytes + 16}?*{
+                                                arenaSize:{arenaSize * 2}
+                                        }
+                                        data:_heap_map:arenaSize
+                                        data.count:arenaSize
+                                        spaceLeft:{arenaSize - numBytes - 16}
+                                        MemArena.{
+                                                set:$.2.data
+                                                chunk:$.alloc:numBytes
+                                        }
                                 }
                         }
                         n:{n+1}
@@ -134,10 +137,13 @@ HeapHandler~{
         }
 }
 
+heapHandler~HeapHandler
+
 DynString~{
         b~bytes
         capacity~int:0
         memHandler~@MemManagerNF
+        memHandler:@heapHandler
         write~{
 		~WriteNF
 		fn:@{
@@ -184,6 +190,7 @@ DynString~{
 
 MasterDynList~`_io.return~{
         memHandler~@MemManagerNF
+        memHandler:@heapHandler
         b~bytes
         count~int:0
         capacity~int:0
@@ -257,11 +264,8 @@ Employee~{
 }
 
 ;~{
-        mem~HeapHandler
-        
-        
-        str1~DynString.{memHandler:@mem write:"Hello, World!"}
-        str2~DynString.{memHandler:@mem write:"Chunk of some data!"}
+        str1~DynString.{write:"Hello, World!"}
+        str2~DynString.{write:"Chunk of some data!"}
         print.line:str1
         print.line:str2
         
@@ -272,7 +276,7 @@ Employee~{
         
         str1.{destroy write:"Test for finding open chunks."}
         
-        db~MasterDynList:Employee.{memHandler:@mem emplace.{
+        db~MasterDynList:Employee.{emplace.{
                 $:@{name:"Spuds Magabbener" age:34} ;
                 $:@{name:"Boris Boringen" age:52} ;
         }}
