@@ -83,6 +83,7 @@ heapHandlerPageTableBuffer~bytes.400
 HeapHandlerPageTableEntry~{
         data~bytes
         spaceLeft~int
+        firstOpenChunk~int
 }
 
 heapHandlerPageTable~MasterList:HeapHandlerPageTableEntry
@@ -101,10 +102,13 @@ HeapHandler~{
                         {heapHandlerPageTable.get:n}.{
                                 {spaceLeft > numBytes}?{
                                         MemArena.{
-                                                data:$.2.data
+                                                data:{firstOpenChunk - 8}
                                                 chunk:$.alloc:numBytes
                                         }
-                                        spaceLeft:{spaceLeft - numBytes - 8}
+                                        spaceLeft:{spaceLeft - 8 - numBytes}
+                                        {chunk = firstOpenChunk}?{
+                                                firstOpenChunk:{chunk + 8 + numBytes}
+                                        }
                                 }^{data = 0}?{
                                         arenaSize~int:4096
                                         {arenaSize < numBytes + 16}?*{
@@ -117,6 +121,7 @@ HeapHandler~{
                                                 set:$.2.data
                                                 chunk:$.alloc:numBytes
                                         }
+                                        firstOpenChunk:{chunk + 8 + numBytes}
                                 }
                         }
                         n:{n+1}
@@ -134,6 +139,9 @@ HeapHandler~{
                 entry:{entry + {24 * {chunkPtr.el / 0x10000 - 1}}}
                 MemArena.free:chunk
                 entry.spaceLeft:{entry.spaceLeft + chunkPtr.el + 8}
+                {chunk < entry.firstOpenChunk}?{
+                        entry.firstOpenChunk:chunk
+                }
         }
 }
 
