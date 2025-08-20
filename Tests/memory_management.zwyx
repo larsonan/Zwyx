@@ -27,12 +27,14 @@ memCpy~{from~bytes to~bytes ;~{
 MemArena~{
         ~MemManagerNF
         data~bytes
+        firstOpenChunkA~int
         allocFn:@{
                 {numBytes % 8}?{
                         numBytes:{numBytes / 8 * 8 + 8}
                 }
                 chunkSize~int:0
-                chunkPtr~@BoxedInt:data
+                chunkBytes~bytes:{firstOpenChunkA - 8}
+                chunkPtr~@BoxedInt:chunkBytes
                 nextChunkPtr~@BoxedInt:chunkPtr
                 {{chunkSize < numBytes} & {{chunkPtr.el & 0xFFFF} < 0xFFFF}}?*{
                         {nextChunkPtr.el & 0x8000}?{
@@ -55,12 +57,20 @@ MemArena~{
                                 nextChunkPtr.el:{chunkSize - numBytes - 8}
                         }
                         chunkPtr.el:{numBytes | 0x8000}
+                        chunkBytes:chunkPtr
+                        {{chunkBytes + 8} = firstOpenChunkA}?{
+                                chunkBytes:{nextChunkPtr + 8}
+                                firstOpenChunkA:chunkBytes
+                        }
                         chunkPtr+8
                 }
         }
         freeFn:@{
                 chunkPtr~@BoxedInt:{chunk-8}
                 chunkPtr.el:{chunkPtr.el & 0x7FFF}
+                {chunk < firstOpenChunkA}?{
+                        firstOpenChunkA:chunk
+                }
         }
         set~{b~bytes ;~{
                 data:b
@@ -75,6 +85,7 @@ MemArena~{
                 } ; }
                 
                 chunkPtr.el:0xFFFF
+                firstOpenChunkA:{data + 8}
         }}
 }
 
@@ -102,13 +113,12 @@ HeapHandler~{
                         {heapHandlerPageTable.get:n}.{
                                 {spaceLeft > numBytes}?{
                                         MemArena.{
+                                                firstOpenChunkA:firstOpenChunk
                                                 data:{firstOpenChunk - 8}
                                                 chunk:$.alloc:numBytes
+                                                firstOpenChunk:firstOpenChunkA
                                         }
                                         spaceLeft:{spaceLeft - 8 - numBytes}
-                                        {chunk = firstOpenChunk}?{
-                                                firstOpenChunk:{chunk + 8 + numBytes}
-                                        }
                                 }^{data = 0}?{
                                         arenaSize~int:4096
                                         {arenaSize < numBytes + 16}?*{
@@ -120,8 +130,9 @@ HeapHandler~{
                                         MemArena.{
                                                 set:$.2.data
                                                 chunk:$.alloc:numBytes
+                                                
+                                                firstOpenChunk:firstOpenChunkA
                                         }
-                                        firstOpenChunk:{chunk + 8 + numBytes}
                                 }
                         }
                         n:{n+1}
@@ -137,11 +148,13 @@ HeapHandler~{
                 entry~@HeapHandlerPageTableEntry
                 entry:@heapHandlerPageTableBuffer
                 entry:{entry + {24 * {chunkPtr.el / 0x10000 - 1}}}
-                MemArena.free:chunk
-                entry.spaceLeft:{entry.spaceLeft + chunkPtr.el + 8}
-                {chunk < entry.firstOpenChunk}?{
-                        entry.firstOpenChunk:chunk
+                MemArena.{
+                        firstOpenChunkA:entry.firstOpenChunk
+                        $.free:chunk
+                        
+                        entry.firstOpenChunk:firstOpenChunkA
                 }
+                entry.spaceLeft:{entry.spaceLeft + chunkPtr.el + 8}
         }
 }
 
