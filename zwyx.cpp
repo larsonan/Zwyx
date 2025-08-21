@@ -550,7 +550,7 @@ void write_init_unit(Instrx *instrx)
 	(void)fprintf(xcfile, "%s,\t", REG_BASE);
 	write_unit(base_instrx);
 	(void)fprintf(xcfile, "\n");
-	write_instrxs(instrx->unit->instrxs);
+	write_instrxs(base_instrx->unit->instrxs);
 	restore_base_to_reg();
 }
 

@@ -27,13 +27,13 @@ memCpy~{from~bytes to~bytes ;~{
 MemArena~{
         ~MemManagerNF
         data~bytes
-        firstOpenChunkA~int
+        firstOpenChunk~int
         allocFn:@{
                 {numBytes % 8}?{
                         numBytes:{numBytes / 8 * 8 + 8}
                 }
                 chunkSize~int:0
-                chunkBytes~bytes:{firstOpenChunkA - 8}
+                chunkBytes~bytes:{firstOpenChunk - 8}
                 chunkPtr~@BoxedInt:chunkBytes
                 nextChunkPtr~@BoxedInt:chunkPtr
                 {{chunkSize < numBytes} & {{chunkPtr.el & 0xFFFF} < 0xFFFF}}?*{
@@ -58,9 +58,9 @@ MemArena~{
                         }
                         chunkPtr.el:{numBytes | 0x8000}
                         chunkBytes:chunkPtr
-                        {{chunkBytes + 8} = firstOpenChunkA}?{
+                        {{chunkBytes + 8} = firstOpenChunk}?{
                                 chunkBytes:{nextChunkPtr + 8}
-                                firstOpenChunkA:chunkBytes
+                                firstOpenChunk:chunkBytes
                         }
                         chunkPtr+8
                 }
@@ -68,8 +68,8 @@ MemArena~{
         freeFn:@{
                 chunkPtr~@BoxedInt:{chunk-8}
                 chunkPtr.el:{chunkPtr.el & 0x7FFF}
-                {chunk < firstOpenChunkA}?{
-                        firstOpenChunkA:chunk
+                {chunk < firstOpenChunk}?{
+                        firstOpenChunk:chunk
                 }
         }
         set~{b~bytes ;~{
@@ -85,7 +85,7 @@ MemArena~{
                 } ; }
                 
                 chunkPtr.el:0xFFFF
-                firstOpenChunkA:{data + 8}
+                firstOpenChunk:{data + 8}
         }}
 }
 
@@ -111,26 +111,20 @@ HeapHandler~{
                 {chunk = 0}?*{
                         {heapHandlerPageTable.get:n}.{
                                 {spaceLeft > numBytes}?{
-                                        MemArena.{
-                                                firstOpenChunkA:arena.firstOpenChunkA
-                                                data:{arena.firstOpenChunkA - 8}
-                                                chunk:$.alloc:numBytes
-                                                arena.firstOpenChunkA:firstOpenChunkA
-                                        }
+                                        chunk:arena.alloc:numBytes
                                         spaceLeft:{spaceLeft - 8 - numBytes}
                                 }^{arena.data = 0}?{
+                                        arena.{_init}
                                         arenaSize~int:4096
                                         {arenaSize < numBytes + 16}?*{
                                                 arenaSize:{arenaSize * 2}
                                         }
-                                        arena.data:_heap_map:arenaSize
-                                        arena.data.count:arenaSize
+                                        d~bytes:_heap_map:arenaSize
+                                        d.count:arenaSize
                                         spaceLeft:{arenaSize - numBytes - 16}
-                                        MemArena.{
-                                                set:arena.data
+                                        arena.{
+                                                set:d
                                                 chunk:$.alloc:numBytes
-                                                
-                                                arena.firstOpenChunkA:firstOpenChunkA
                                         }
                                 }
                         }
@@ -147,13 +141,10 @@ HeapHandler~{
                 entry~@HeapHandlerPageTableEntry
                 entry:@heapHandlerPageTableBuffer
                 entry:{entry + {24 * {chunkPtr.el / 0x10000 - 1}}}
-                MemArena.{
-                        firstOpenChunkA:entry.arena.firstOpenChunkA
-                        $.free:chunk
-                        
-                        entry.arena.firstOpenChunkA:firstOpenChunkA
+                entry.{
+                        arena.free:chunk
+                        spaceLeft:{spaceLeft + 8 + chunkPtr.el}
                 }
-                entry.spaceLeft:{entry.spaceLeft + chunkPtr.el + 8}
         }
 }
 
