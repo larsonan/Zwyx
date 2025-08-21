@@ -33,10 +33,10 @@ using namespace std;
 #define NAMESPACE 1
 #define PTR 2
 #define INT 3
-#define STRUCT 4
+#define METHOD_PTR 4
 #define METHOD 5
 #define BASE 6
-#define METHOD_PTR 7
+#define STRING_LITERAL 7
 #define BYTES 8
 #define COMPTIME_METHOD 9
 #define BYTES_PTR 10
@@ -44,7 +44,7 @@ using namespace std;
 #define INSET 12
 #define IMPORT 13
 #define INT_CONST 14
-#define STRING_LITERAL 15
+#define INIT 15
 #define MEMSIZE_OF 16
 
 #define NO_ERROR 0
@@ -66,6 +66,7 @@ using namespace std;
 #define NUM_OPERS 22
 #define BASE_UNLOADED -2
 #define STRUCT_UNINITIALIZED -1
+#define STRUCT_BASE 7
 #define WORD_SIZE 8
 #define BASE_2_METHOD 10000
 #define MAX_ERRORS 100
@@ -154,7 +155,7 @@ struct Unit
 };
 
 string basic_unit_names[] = {"none", "", "", "int", "", "method", "", "", "bytes", "", "", "_io",
-                              "inset", "_import", "", "", "_mem_size_of"};
+                              "_inset", "_import", "", "_init", "_mem_size_of"};
 
 int precedences[] = {0, 0, 0, 0, 2, 5, 6, 7, 5, 0, 6, 0, 2, 1, 7, 7, 5, 5, 5, 5, 4, 3};
 
@@ -260,7 +261,7 @@ void setup_basic_units(void)
 	
 	Unit *count = new Unit(*basic_units[INT]);
 	count->name = "count";
-	count->mem_base = STRUCT;
+	count->mem_base = STRUCT_BASE;
 	count->mem_used = WORD_SIZE;
 	count->mem_offset = WORD_SIZE;
 	basic_units[METHOD_PTR]->subunits.push_back(count);
@@ -323,7 +324,7 @@ void write_array_count(Instrx *instrx)
 
 bool is_struct(Unit *unit)
 {
-        return ((STRUCT == unit->type) || ((unit->type >= NUM_BASIC_UNITS) && (unit->type < 1000000)));
+        return ((unit->type >= NUM_BASIC_UNITS) && (unit->type < 1000000));
 }
 
 void write_do(Instrx *instrx)
@@ -533,6 +534,26 @@ void restore_base_to_reg()
 {
 	(void)fprintf(xcfile, "mov\t%s,\t[%s]\n", REG_BASE, REG_DEFAULT);
 }
+
+void write_init_unit(Instrx *instrx)
+{
+        Instrx* base_instrx = instrx->unit->base_instrx;
+        handle_mem_level(base_instrx);
+	if (is_struct(base_instrx->unit) && base_instrx->unit->mem_base)
+	{
+	        (void)fprintf(xcfile, "lea\t");
+	}
+	else
+	{
+	        (void)fprintf(xcfile, "mov\t");
+	}
+	(void)fprintf(xcfile, "%s,\t", REG_BASE);
+	write_unit(base_instrx);
+	(void)fprintf(xcfile, "\n");
+	write_instrxs(instrx->unit->instrxs);
+	restore_base_to_reg();
+}
+
 
 void write_math_instrx(Instrx *instrx)
 {
@@ -783,6 +804,10 @@ void handle_instrx_default(Instrx *instrx)
 	if (instrx->is_ptr)
 	{
 		write_ptr_to_temp(instrx);
+	}
+	else if (INIT == instrx->unit->type)
+	{
+	        write_init_unit(instrx);
 	}
 	else if ((is_struct(instrx->unit) && (instrx->unit->method != NULL)) || (METHOD == instrx->unit->type)
 		|| ((METHOD_PTR == instrx->unit->type) && (instrx->oper != INSERTION)))
@@ -1128,7 +1153,7 @@ int handle_alignment(int mem_offset)
 void handle_define_statement(Unit *defined_unit, Unit *definition_unit)
 {
 	definition_unit->name = defined_unit->name;
-	if ((STRUCT == definition_unit->mem_base) || (METHOD == definition_unit->mem_base)
+	if ((STRUCT_BASE == definition_unit->mem_base) || (METHOD == definition_unit->mem_base)
 	              || (NAMESPACE == definition_unit->mem_base))
 	{
 		parent_ptr->mem_used += handle_alignment(definition_unit->mem_used);
@@ -1151,7 +1176,7 @@ Unit* instantiate_unit(Unit *unit, Unit *base, Unit *mem_ref_parent)
 	if ((METHOD_PTR == mem_ref_parent->type) || (BYTES_PTR == mem_ref_parent->type)
 	    || is_struct(mem_ref_parent))
 	{
-	        instance->mem_base = STRUCT;
+	        instance->mem_base = STRUCT_BASE;
 	}
 	if ((INT_CONST == instance->type) && (instance->mem_used > 0))
 	{
@@ -1268,7 +1293,7 @@ vector<Unit*> instantiate_subunits(Unit *superunit, Unit *mem_ref_parent)
 	
 	for (int i = 0; i < superunit->subunits.size(); i++)
 	{
-		if (STRUCT == superunit->subunits[i]->mem_base)
+		if (STRUCT_BASE == superunit->subunits[i]->mem_base)
 		{
 			units.push_back(instantiate_unit(superunit->subunits[i], NULL, mem_ref_parent));
 		}
@@ -1297,6 +1322,11 @@ void handle_instantiation(Instrx *instrx)
 	        int sizes;
 	        size = data_section_strings.size();
 	        instrx->unit->f_num = size;
+	}
+	else if (INIT == instrx->unit->type)
+	{
+	        instrx->unit = new Unit(*instrx->unit);
+	        instrx->unit->base_instrx = parent_ptr->base_instrx;
 	}
 	else if (!instrx->unit->mem_base && (instrx->unit->type != IMPORT) && (instrx->unit->type != INSET)
 	                    && (instrx->oper != IGNORE) && !is_comptime_method(instrx->unit))
@@ -2083,7 +2113,7 @@ void handle_end_superunit()
 void handle_new_superunit()
 {
 	Unit *unit = new Unit;
-	*unit = *basic_units[STRUCT];
+	*unit = *basic_units[STRUCT_BASE];
 	
 	if (DEFINE == new_instrx.oper)
 	{
