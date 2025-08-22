@@ -216,10 +216,10 @@ MasterList~`_io.return~{
 		}
 	}
 	emplace~{
-		in~_io.0.;
+		f~_io.0.;
 		;~{
 			ptr~@_io.0:{buffer+buffer.count}
-			ptr.{in}
+			ptr.{_init f}
 			buffer.count:{buffer.count+memberSize}
 			count:{count+1}
 		}

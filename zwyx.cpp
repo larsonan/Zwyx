@@ -538,6 +538,10 @@ void restore_base_to_reg()
 void write_init_unit(Instrx *instrx)
 {
         Instrx* base_instrx = instrx->unit->base_instrx;
+        if (base_instrx->unit->f_num != STRUCT_UNINITIALIZED)
+        {
+                return;
+        }
         handle_mem_level(base_instrx);
 	if (is_struct(base_instrx->unit) && base_instrx->unit->mem_base)
 	{
