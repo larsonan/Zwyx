@@ -29,6 +29,11 @@ _file_write~{
 
 _heap_map~{
         a~int
-        ;~{_system.{rax:9 rdx:3 rdi:0 rsi:a r8:{0-1} r9:0 r10:34 ;}}
+        ;~{
+                b~bytes
+                b:_system.{rax:9 rdx:3 rdi:0 rsi:a r8:{0-1} r9:0 r10:34 ;}
+                b.count:a
+                b
+        }
 }
 
