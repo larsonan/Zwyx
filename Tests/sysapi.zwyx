@@ -3,6 +3,10 @@ _system~{
 	rdx~int
 	rdi~int
 	rsi~int
+	r8~int
+	r9~int
+	r10~int
+	
 	;~{ 0}
 }
 
@@ -12,5 +16,8 @@ mov	rax,	[rbx+0]
 mov	rdx,	[rbx+8]
 mov	rdi,	[rbx+16]
 mov	rsi,	[rbx+24]
+mov     r8,     [rbx+32]
+mov     r9,     [rbx+40]
+mov     r10,    [rbx+48]
 syscall
 ret

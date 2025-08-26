@@ -11,7 +11,7 @@ CellularAutomaton~{
         wrput~@WriteNF
         ;~{
                 ruleTableBuffer~bytes.8
-                ruleTable~String.{
+                ruleTable~BufferString.{
                         setBuffer:@ruleTableBuffer
                         for.{remainder~int:rule end:8 do:@{
                                 write.c:{remainder%2}
@@ -20,7 +20,7 @@ CellularAutomaton~{
                 }
                 
                 stateBuffer~bytes.22
-                state~String.{
+                state~BufferString.{
                         setBuffer:@stateBuffer
                         write.{
                                 c:0

@@ -39,7 +39,7 @@ Circle~{
         
         b0~bytes.24
         
-        l~List:Shape.{
+        l~BufferList:Shape.{
         	setBuffer:@b0
 	        add.{
 		        $:@rect ; $:@tri ; $:@circ ;

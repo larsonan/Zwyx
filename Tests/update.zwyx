@@ -9,7 +9,7 @@ _import:"utilities_lib"
 give_bank_update~{
 	write~@WriteNF
 	amount~int
-	intro_text~String
+	intro_text~BufferString
 	;~{
 		write.{s:intro_text s:". You have $" d:amount s:" in the bank." endl}
 	}
@@ -19,7 +19,7 @@ give_bank_update~{
 
 
 increase_urgency~{
-	in~String
+	in~BufferString
 	;~{
 	        for.{
 	                end:in.count
@@ -36,7 +36,7 @@ increase_urgency~{
         print.{give_bank_update.{write:@$.2 amount:500 intro_text:"Attention" ;}}
         
         buff~bytes.50
-        String.{
+        BufferString.{
 	        setBuffer:@buff
 	        writer~write
 	        give_bank_update.{write:@writer amount:5 intro_text:"Warning" ;}

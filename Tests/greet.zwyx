@@ -2,7 +2,7 @@ _import:"utilities_lib"
 
 
 Greeter~{
-        name~String
+        name~BufferString
         greet~{
                 ;~{
                         print.{s:"Hello, " s:name c:"!" endl}

@@ -10,7 +10,7 @@ fizzbuzz_generic~{
 	end~int
 	replace~{
 		prime~int
-		with~String
+		with~BufferString
 		n~int
 		replaced~int
 		;~{
