@@ -436,7 +436,7 @@ HeapHandler~{
 
 heapHandlerStatic~HeapHandler
 
-DynString~{
+String~{
         b~bytes
         capacity~int:0
         memHandler~@MemManagerNF:@heapHandlerStatic
@@ -484,7 +484,7 @@ DynString~{
 	}}
 }
 
-MasterDynList~`_io.return~{
+MasterList~`_io.return~{
         memHandler~@MemManagerNF:@heapHandlerStatic
         b~bytes
         count~int:0
