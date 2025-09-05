@@ -85,15 +85,8 @@ virtual~`
         _io.return~_io_data
 `
 
-BufferList~`_io.return~{
+ListNF~`_io.return~{
 	b~bytes
-	setBuffer~{
-		in~bytes
-		;~{
-			b:in
-			b.count:0
-		}
-	}
 	get~{
 		at~int
 		;~{
@@ -109,13 +102,8 @@ BufferList~`_io.return~{
 			it.el:char
 		}
 	}
-	add~{
-		in~@_io.0
-		;~{
-			set.{at:b.count char:in ;}
-			b.count:{b.count + 1}
-		}
-	}
+	add~{in~@_io.0}
+	addFn~virtual:add
 	count~{
 		;~{
 			b.count
@@ -138,6 +126,21 @@ BufferList~`_io.return~{
 				it:{it+8}
 				remaining:{remaining-1}
 			}
+		}
+	}
+}`
+
+BufferList~`_io.return~{
+        ~ListNF:_io.0
+        addFn:@{
+	        set.{at:b.count char:in ;}
+		b.count:{b.count + 1}
+	}
+	setBuffer~{
+		in~bytes
+		;~{
+			b:in
+			b.count:0
 		}
 	}
 }`

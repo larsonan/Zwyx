@@ -1888,9 +1888,9 @@ void handle_last_instrx()
 			        {
 			                parent_ptr->in_unit = instrx->unit;
 			        }
-			}
+		        }
 		}
-	}
+        }
 }
 
 Unit *get_correct_method_type()
@@ -2159,6 +2159,7 @@ void handle_new_superunit()
 	                        handle_new_method(unit);
 	                }
 	                unit->base->method = unit;
+	                parent_ptr->instrxs.back()->unit = basic_units[METHOD];
 	        }
 		handle_define_statement(parent_ptr->instrxs.back()->unit, unit);
 		parent_ptr->instrxs.back()->oper = IGNORE;
