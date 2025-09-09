@@ -1101,6 +1101,10 @@ void handle_inheritance(Unit *unit)
         {
                 set_error(INVALID_USE_OF_OPER, line_num, operators[DEFINE]);
         }
+        if (unit->type > TEMPLATE_ID_NUM_FACTOR)
+        {
+                unit->parent = basic_units[NAMESPACE];
+        }
 	parent_ptr->mem_used = unit->mem_used;
 	parent_ptr->subunits = unit->subunits;
 	parent_ptr->in_unit = unit->in_unit;
