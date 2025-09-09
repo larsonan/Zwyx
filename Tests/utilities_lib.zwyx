@@ -515,7 +515,6 @@ MasterList~`_io.return~{
         memHandler~@MemManagerNF:@heapHandlerStatic
         _count:0
         capacity~int:0
-	memberSize~int:_mem_size_of:_io.0
 	emplaceFn:@{
 		failed~int:0
 		{{_count+1} > capacity}?{
@@ -539,7 +538,7 @@ MasterList~`_io.return~{
 		        }
 		}
 		{failed = 0}?{
-			newMemberBytes~bytes:memHandler.alloc:40
+			newMemberBytes~bytes:memHandler.alloc:_mem_size_of:_io.0
 			newMember~@_io.0:newMemberBytes
 			{newMember}?{
 			        newMember.{_init f}
