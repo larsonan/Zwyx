@@ -592,15 +592,13 @@ boxedPoint.el.y:5
 ```
 
 ## Arrays
-Currently, there are two generic array types defined in the utilities library; *List* and *MasterList*. Both of these are statically-sized arrays that manipulate a separately-defined buffer; undefined behavior will occur if the buffer is not first set with the setBuffer method.
+Currently, there are two generic array types defined in the utilities library; **List** and **MasterList**.
 
 List is an array of pointers to elements that were allocated somewhere else. Elements can be added with the *add* method.
 
 ```
 pList~List:Point
 p~Point
-buff~bytes.32
-pList.setBuffer:@buff
 p.{x:1 y:5}
 pList.add:@p
 ```
@@ -609,10 +607,12 @@ MasterList, by contrast, *owns* the data of its elements. It does not have an ad
 
 ```
 pList~MasterList:Point
-buff~bytes.32
-pList.setBuffer:@buff
 pList.emplace:@{x:1 y:5}
 ```
+
+Both of these lists are heap-allocated, however, neither of them has any automatic garbage collection. They both have a **destroy** method which deallocates their memory and resets their count and capacity to zero.
+
+There are also two additional structures defined; **BufferList** and **BufferMasterList**. These behave the same as the ones above, but they have a fixed capacity; the **setBuffer** method is used to set the **bytes** for the list to use as memory.
 
 ## Polymorphism
 Polymorphism can be attained using the *virtual* metamethod in the utilities library, defined as:
