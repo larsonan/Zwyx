@@ -2024,7 +2024,8 @@ void handle_precedence(Instrx *temp)
 		parent_ptr->in_unit = first->unit;
 	}
         else if ((parent_ptr->base_instrx != NULL) && (NULL == parent_ptr->base_instrx->unit)
-	        && !has_precedence(temp->oper, parent_ptr->base_instrx->oper))
+	        && !has_precedence(temp->oper, parent_ptr->base_instrx->oper)
+	        && (precedences[temp->oper] > 0))
 	{
 	        handle_last_instrx();
 	        while ((parent_ptr->base_instrx != NULL) && (NULL == parent_ptr->base_instrx->unit)
@@ -2101,6 +2102,7 @@ void handle_end_superunit()
 {
         while ((parent_ptr->base_instrx != NULL) && (NULL == parent_ptr->base_instrx->unit))
         {
+                handle_last_instrx();
                 parent_ptr = parent_ptr->parent;
         }
         
