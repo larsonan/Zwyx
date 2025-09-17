@@ -2133,7 +2133,7 @@ void handle_new_superunit()
 		        unit->type = num_types;
 		        num_types++;
 		}
-		if (is_struct(parent_ptr) && (parent_ptr->instrxs.back()->unit->name != "return"))
+		if (is_struct(parent_ptr) && (NULL == parent_ptr->instrxs.back()->unit->parent))
 		{
 		        unit->base_ptr_offset = 0;
 			unit->mem_used += WORD_SIZE;
