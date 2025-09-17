@@ -2100,7 +2100,7 @@ void handle_unit(Unit *unit)
 
 void handle_end_superunit()
 {
-        while ((parent_ptr->base_instrx != NULL) && (NULL == parent_ptr->base_instrx->unit))
+        while ((parent_ptr != NULL) && (parent_ptr->base_instrx != NULL) && (NULL == parent_ptr->base_instrx->unit))
         {
                 handle_last_instrx();
                 parent_ptr = parent_ptr->parent;
