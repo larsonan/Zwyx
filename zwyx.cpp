@@ -180,6 +180,8 @@ int line_num;
 Unit *unit_for_return;
 Unit *arg_unit;
 
+vector<Unit*> used_funcs;
+
 Instrx new_instrx;
 FILE* err_out;
 FILE* xcfile;
@@ -325,6 +327,24 @@ void write_array_count(Instrx *instrx)
 bool is_struct(Unit *unit)
 {
         return ((unit->type >= NUM_BASIC_UNITS) && (unit->type < 1000000));
+}
+
+void place_in_used_funcs(Unit *unit)
+{
+        int found = 0;
+        for (int i = 0; i < used_funcs.size(); i++)
+        {
+                if (used_funcs[i]->f_num == unit->f_num)
+                {
+                        found = 1;
+                        break;
+                }
+        }
+        
+        if ((unit->f_num > 0) && (0 == found))
+        {
+                used_funcs.push_back(unit);
+        }
 }
 
 void write_do(Instrx *instrx)
@@ -772,11 +792,16 @@ void write_do_instrx(Instrx *instrx)
 		else
 		{
 			write_do(instrx);
+			if (METHOD == instrx->unit->type)
+			{
+			        place_in_used_funcs(instrx->unit);
+			}
 		}
 	}
 	else if (is_struct(instrx->unit) && (instrx->unit->method != NULL) && (instrx->unit->method->mem_base))
 	{
 		write_do(instrx);
+		place_in_used_funcs(instrx->unit->method);
 	}
 }
 
@@ -808,6 +833,10 @@ void handle_instrx_default(Instrx *instrx)
 	if (instrx->is_ptr)
 	{
 		write_ptr_to_temp(instrx);
+		if (METHOD == instrx->unit->type)
+		{
+		        place_in_used_funcs(instrx->unit);
+		}
 	}
 	else if (INIT == instrx->unit->type)
 	{
@@ -1010,21 +1039,23 @@ void write_instrxs(vector<Instrx*> instrxs)
 
 void write_f(void)
 {
-	for (int i = 0; i < funcs.size(); i++)
+        int i = 0;
+	while (i < used_funcs.size())
 	{
-		(void)fprintf(xcfile, "f%d:\n", funcs[i]->f_num);
-		if (METHOD_PTR == funcs[i]->mem_base)
+		(void)fprintf(xcfile, "f%d:\n", used_funcs[i]->f_num);
+		if (METHOD_PTR == used_funcs[i]->mem_base)
 		{
 		        (void)fprintf(xcfile, "push\t%s\n", REG_COUNT);
 		}
 		(void)fprintf(xcfile, "push\t%s\n", REG_BASE);
-		write_instrxs(funcs[i]->instrxs);
+		write_instrxs(used_funcs[i]->instrxs);
 		(void)fprintf(xcfile, "pop\t%s\n", REG_BASE);
-		if (METHOD_PTR == funcs[i]->mem_base)
+		if (METHOD_PTR == used_funcs[i]->mem_base)
 		{
 		        (void)fprintf(xcfile, "pop\t%s\n", REG_COUNT);
 		}
 		(void)fprintf(xcfile, "ret\n");
+		i++;
 	}
 }
 
