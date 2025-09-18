@@ -2100,23 +2100,21 @@ void handle_unit(Unit *unit)
 
 void handle_end_superunit()
 {
-        while ((parent_ptr != NULL) && (parent_ptr->base_instrx != NULL) && (NULL == parent_ptr->base_instrx->unit))
+        while ((parent_ptr->base_instrx != NULL) && (NULL == parent_ptr->base_instrx->unit))
         {
                 handle_last_instrx();
                 parent_ptr = parent_ptr->parent;
         }
-        
-	if (NULL == parent_ptr)
-	{
-		set_error(UNMATCHED_END_BRACE, line_num, "}");
-		return;
-	}
 	
 	handle_last_instrx();
 	
 	if (parent_ptr->parent != NULL)
 	{
 		parent_ptr = parent_ptr->parent;
+	}
+	else
+	{
+	        set_error(UNMATCHED_END_BRACE, line_num, "}");
 	}
 }
 
@@ -2361,14 +2359,18 @@ void start_base_unit()
 
 void end_base_unit()
 {
-	if (parent_ptr->parent != NULL)
-	{
-		set_error(MISSING_END_BRACE, line_num, "{");
-	}
-	if (NULL == parent_ptr->parent)
-	{
-		handle_end_superunit();
-	}
+	while ((parent_ptr->base_instrx != NULL) && (NULL == parent_ptr->base_instrx->unit))
+        {
+                handle_last_instrx();
+                parent_ptr = parent_ptr->parent;
+        }
+        
+        handle_last_instrx();
+        
+        if (parent_ptr->parent != NULL)
+        {
+                set_error(MISSING_END_BRACE, line_num, "{");
+        }
 }
 
 void handle_int_const(string str)
