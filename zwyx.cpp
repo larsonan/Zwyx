@@ -172,10 +172,14 @@ vector<Unit*> basic_units;
 
 int num_templates;
 
+vector<int> new_f_nums;
+
 vector<Unit*> funcs;
 string compiled_instrxs;
 
 int line_num;
+
+int num_new_f = 0;
 
 Unit *unit_for_return;
 Unit *arg_unit;
@@ -332,18 +336,16 @@ bool is_struct(Unit *unit)
 void place_in_used_funcs(Unit *unit)
 {
         int found = 0;
-        for (int i = 0; i < used_funcs.size(); i++)
+        if (new_f_nums[unit->f_num] > 0)
         {
-                if (used_funcs[i]->f_num == unit->f_num)
-                {
-                        found = 1;
-                        break;
-                }
+                found = 1;
         }
         
         if ((unit->f_num > 0) && (0 == found))
         {
                 used_funcs.push_back(unit);
+                num_new_f++;
+                new_f_nums[unit->f_num] = num_new_f;
         }
 }
 
@@ -396,7 +398,7 @@ void write_do(Instrx *instrx)
 	}
 	else
 	{
-		(void)fprintf(xcfile, "call\tf%d\n", unit->f_num);
+		(void)fprintf(xcfile, "call\tf%d\n", new_f_nums[unit->f_num]);
 	}
 	(void)fprintf(xcfile, "add\t%s,\t%d\n", REG_DEFAULT, unit->mem_used - WORD_SIZE);
 	(void)fprintf(xcfile, "mov\t%s,\t[%s]\n", REG_BASE, REG_DEFAULT);
@@ -471,7 +473,7 @@ void write_ptr_to_temp(Instrx *instrx)
 	if (METHOD == instrx->unit->type)
 	{
 		(void)fprintf(xcfile, "lea\t%s,\t", REG_TEMP);
-		(void)fprintf(xcfile, "[rel+f%d]\n", instrx->unit->f_num);
+		(void)fprintf(xcfile, "[rel+f%d]\n", new_f_nums[instrx->unit->f_num]);
 	}
 	else
 	{
@@ -791,17 +793,17 @@ void write_do_instrx(Instrx *instrx)
 		}
 		else
 		{
-			write_do(instrx);
 			if (METHOD == instrx->unit->type)
 			{
 			        place_in_used_funcs(instrx->unit);
 			}
+			write_do(instrx);
 		}
 	}
 	else if (is_struct(instrx->unit) && (instrx->unit->method != NULL) && (instrx->unit->method->mem_base))
 	{
-		write_do(instrx);
 		place_in_used_funcs(instrx->unit->method);
+		write_do(instrx);
 	}
 }
 
@@ -832,11 +834,11 @@ void handle_instrx_default(Instrx *instrx)
 {
 	if (instrx->is_ptr)
 	{
-		write_ptr_to_temp(instrx);
 		if (METHOD == instrx->unit->type)
 		{
 		        place_in_used_funcs(instrx->unit);
 		}
+		write_ptr_to_temp(instrx);
 	}
 	else if (INIT == instrx->unit->type)
 	{
@@ -1042,7 +1044,7 @@ void write_f(void)
         int i = 0;
 	while (i < used_funcs.size())
 	{
-		(void)fprintf(xcfile, "f%d:\n", used_funcs[i]->f_num);
+		(void)fprintf(xcfile, "f%d:\n", new_f_nums[used_funcs[i]->f_num]);
 		if (METHOD_PTR == used_funcs[i]->mem_base)
 		{
 		        (void)fprintf(xcfile, "push\t%s\n", REG_COUNT);
@@ -1062,6 +1064,11 @@ void write_f(void)
 void write_xc(string format)
 {
 	xcfile = fopen("xc.asm", "w");
+	
+	for (int i = 0; i < num_f; i++)
+	{
+	        new_f_nums.push_back(0);
+	}
 	
 	if (format == "macho64")
 	{
