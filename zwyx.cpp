@@ -1169,6 +1169,8 @@ void handle_inheritance(Unit *unit)
 void replace_method(Unit *unit)
 {
         unit->f_num = unit->base->method->f_num;
+        unit->typing = unit->base->method;
+        unit->in_unit = unit->typing->in_unit;
         for (int i = 0; i < funcs.size(); i++)
         {
                 if (funcs[i]->f_num == unit->f_num)
@@ -1926,7 +1928,7 @@ void handle_last_instrx()
 			        {
 			                parent_ptr->in_unit = instrx->unit->in_unit;
 			        }
-			        else
+			        else if (NULL == parent_ptr->typing)
 			        {
 			                parent_ptr->in_unit = instrx->unit;
 			        }
@@ -2262,7 +2264,7 @@ void handle_new_superunit()
 void handle_ptr()
 {
         new_instrx.is_ptr = SYMBOL_PTR;
-        if ((new_instrx.oper != DEFINE) && (new_instrx.oper != INSERTION))
+        if ((new_instrx.oper != NO_OPER) && (new_instrx.oper != DEFINE) && (new_instrx.oper != INSERTION))
         {
                 set_error(INVALID_USE_OF_OPER, line_num, operators[new_instrx.oper]);
         }

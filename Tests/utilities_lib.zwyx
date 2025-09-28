@@ -220,6 +220,8 @@ MasterListNF~`_io.return~{
 	emplaceFn~virtual:emplace
 	each~{f~_io.0.;}
 	eachFn~virtual:each
+	get~{at~int ;~{@_io.0}}
+	getFn~virtual:get
 }`
 
 MasterBufferList~`_io.return~{
@@ -234,18 +236,12 @@ MasterBufferList~`_io.return~{
                         } ;
                 }
         }
+        getFn:@{b+{at*_mem_size_of:_io.0}}
         emplaceFn:@{
                 ptr~@_io.0:{b+b.count}
 		ptr.{_init f}
 		b.count:{b.count+_mem_size_of:_io.0}
 		_count:{_count+1}
-        }
-        get~{
-                at~int
-                ;~{
-                        ptr~@_io.0:{b+{at*_mem_size_of:_io.0}}
-                        ptr
-                }
         }
         setBuffer~{
 		buf~bytes
@@ -548,14 +544,11 @@ MasterList~`_io.return~{
 			}
 		}
         }
-        get~{
-	        at~int
-	        ;~{
-	                ptr~@BoxedInt:{b+at*8}
-	                temp~bytes:ptr.el
-	                result~@_io.0:temp
-	                result
-	        }
+        getFn:@{
+	        ptr~@BoxedInt:{b+at*8}
+	        temp~bytes:ptr.el
+	        result~@_io.0:temp
+	        result
 	}
 	eachFn:@{
 	        ptr~@BoxedInt:b
