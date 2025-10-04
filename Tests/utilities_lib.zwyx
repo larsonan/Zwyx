@@ -74,7 +74,7 @@ WriteNF~{
 print~{
 	~WriteNF
 	fn:@{
-		_console_write:data
+		_system.consoleWrite:data
 	}
 }
 
@@ -256,7 +256,7 @@ MasterBufferList~`_io.return~{
 getChar~{
         ;~{
                 c~int.8
-                _console_read.{a:@c size:1 ;}
+                _system.consoleRead.{a:@c size:1 ;}
                 
                 result~int:0
                 result
@@ -282,14 +282,14 @@ File~{
         fd~int
         open~{;~{
                 c_str_buffer~bytes.20
-                fd:_file_open:BufferString.{setBuffer:@c_str_buffer write.{s:name c:0} $}
+                fd:_system.fileOpen:BufferString.{setBuffer:@c_str_buffer write.{s:name c:0} $}
         }}
         close~{;~{
-                _file_close:fd
+                _system.fileClose:fd
         }}
         write~{
                 ~WriteNF
-                fn:@{_file_write.{$.fd:fd a:data ;}}
+                fn:@{_system.fileWrite.{$.fd:fd a:data ;}}
         }
 }
 
@@ -394,7 +394,7 @@ HeapHandler~{
                                 }^{arena.data = 0}?{
                                         arena.{
                                                 _init
-                                                set:_heap_map:{
+                                                set:_system.heapMap:{
                                                         size~int:4096
                                                         {size < numBytes + 16}?*{
                                                                 size:{size * 2}

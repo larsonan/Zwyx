@@ -898,7 +898,7 @@ bool is_default_instrx(Instrx *instrx)
 void initialize_unit(Instrx *instrx)
 {
         Unit *unit = instrx->unit;
-	if (((METHOD == unit->type) && (unit->f_num <= 0)) || is_struct(unit))
+	if (is_struct(unit) || ((METHOD == unit->type) && (0 == unit->name.length())))
 	{
 		if ((unit->base != NULL) && (is_struct(unit->base) || (PTR == unit->base->type)))
 		{
