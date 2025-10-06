@@ -45,7 +45,11 @@ using namespace std;
 #define IMPORT 13
 #define INT_CONST 14
 #define INIT 15
-#define MEMSIZE_OF 16
+#define ASM 16
+#define MEMSIZE_OF 17
+#define SEARCH 18
+#define ID 19
+#define FLOAT 20
 
 #define NO_ERROR 0
 #define INVALID_USE_OF_OPER 1
@@ -62,7 +66,7 @@ using namespace std;
 #define STRING_LITERAL_NOT_ENDED_PROPERLY 12
 #define COMPTIME_METHOD_NOT_ENDED_PROPERLY 13
 
-#define NUM_BASIC_UNITS 17
+#define NUM_BASIC_UNITS 21
 #define NUM_OPERS 22
 #define BASE_UNLOADED -2
 #define STRUCT_UNINITIALIZED -1
@@ -155,7 +159,7 @@ struct Unit
 };
 
 string basic_unit_names[] = {"none", "", "", "int", "", "method", "", "", "bytes", "", "", "_io",
-                              "_inset", "_import", "", "_init", "_mem_size_of"};
+                              "_inset", "_import", "", "_init", "_asm", "_mem_size_of", "", "", ""};
 
 int precedences[] = {0, 0, 0, 0, 2, 5, 6, 7, 5, 0, 6, 0, 2, 1, 7, 7, 5, 5, 5, 5, 4, 3};
 
@@ -175,7 +179,6 @@ int num_templates;
 vector<int> new_f_nums;
 
 vector<Unit*> funcs;
-string compiled_instrxs;
 
 int line_num;
 
@@ -191,7 +194,7 @@ FILE* err_out;
 FILE* xcfile;
 int num_b = 0;
 vector<string> data_section_strings;
-int num_f = 0;
+int num_f = 1;
 int temp_reg_mem;
 int num_types;
 string file_name;
@@ -272,8 +275,8 @@ void setup_basic_units(void)
 	count->mem_offset = WORD_SIZE;
 	basic_units[METHOD_PTR]->subunits.push_back(count);
 	basic_units[BYTES_PTR]->subunits.push_back(count);
-        
         basic_units[INSET]->typing = basic_units[COMPTIME_METHOD];
+        basic_units[ASM]->typing = basic_units[COMPTIME_METHOD];
         basic_units[MEMSIZE_OF]->typing = basic_units[COMPTIME_METHOD];
 }
 
@@ -739,6 +742,11 @@ void handle_static_base()
         (void)fprintf(xcfile, "mov\t%s,\tstatic_mem\n", REG_PTR);
 }
 
+void write_asm(Instrx *instrx)
+{
+        (void)fprintf(xcfile, "%s", &instrx->unit->str.c_str()[1]);
+}
+
 void handle_mem_level(Instrx *instrx)
 {
         if ((instrx->base_level >= BASE_2_STRUCT) || ((instrx->base_level > 1) && (instrx->unit->mem_base != METHOD)))
@@ -839,6 +847,10 @@ void handle_instrx_default(Instrx *instrx)
 		        place_in_used_funcs(instrx->unit);
 		}
 		write_ptr_to_temp(instrx);
+	}
+	else if (ASM == instrx->unit->type)
+	{
+	        write_asm(instrx);
 	}
 	else if (INIT == instrx->unit->type)
 	{
@@ -1092,8 +1104,6 @@ void write_xc(string format)
 	}
 	
 	write_f();
-	
-	(void)fprintf(xcfile, "%s", compiled_instrxs.c_str());
 	
 	if (parent_ptr->mem_used > 0)
 	{
@@ -1696,8 +1706,17 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
 void handle_in(Instrx* instrx)
 {
         handle_instantiation(instrx);
+        
         parent_ptr->in_unit = instrx->unit;
         handle_define_statement(instrx->unit, instrx->unit);
+}
+
+void handle_asm(Instrx* instrx)
+{
+        string str = instrx->unit->str;
+        
+        instrx->unit = new Unit(*basic_units[ASM]);
+        instrx->unit->str = str;
 }
 
 void handle_memsize(Instrx* instrx)
@@ -1711,11 +1730,16 @@ void handle_memsize(Instrx* instrx)
 void handle_compile_time_method(Instrx* method_struct, Instrx* arg)
 {
         int method_struct_type = method_struct->unit->type;
-        if ((INSET == method_struct->unit->type) || (MEMSIZE_OF == method_struct->unit->type))
+        if ((INSET == method_struct->unit->type) || (ASM == method_struct->unit->type)
+                      || (MEMSIZE_OF == method_struct->unit->type))
         {
                 if (INSET == method_struct->unit->type)
                 {
                         handle_in(arg);
+                }
+                else if (ASM == method_struct->unit->type)
+                {
+                        handle_asm(arg);
                 }
                 else if (MEMSIZE_OF == method_struct->unit->type)
                 {
@@ -2522,11 +2546,7 @@ void parse_istream(istream &zyfile)
 	char c = zyfile.get();
 	while (zyfile.good())
 	{
-	        if (COMPILED == read_mode)
-	        {
-	                compiled_instrxs.push_back(c);
-	        }
-	        else if (COMPTIME_METHOD == read_mode)
+	        if (COMPTIME_METHOD == read_mode)
 	        {
 	                if ('`' == c)
 	                {
@@ -2580,16 +2600,7 @@ void parse_istream(istream &zyfile)
 			{
 				if (unit_name_buffer.size() > 0)
 				{
-					if ("0_START_INSTRXS" == unit_name_buffer)
-					{
-						read_mode = COMPILED;
-						handle_last_instrx();
-						funcs.clear();
-					}
-					else
-					{
-						handle_unit_name(unit_name_buffer);
-					}
+					handle_unit_name(unit_name_buffer);
 					unit_name_buffer.clear();
 				}
 				if ('`' == c)

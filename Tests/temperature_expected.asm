@@ -782,7 +782,7 @@ mov	rcx,	[rbx+0]
 mov	qword	[rcx+48],	34
 mov	rbx,	[rbx+0]
 sub	rsp,	16
-call	f0
+call	f20
 add	rsp,	16
 mov	rbx,	[rsp]
 mov	[rsp-16],	rax
@@ -822,7 +822,7 @@ mov	rcx,	[rbx+0]
 mov	rax,	[rcx+40]
 sub	rax,	8
 mov	[rsp-40],	rax
-lea	rax,	[rel+f20]
+lea	rax,	[rel+f21]
 mov	[rsp-24],	rax
 mov	[rsp-16],	rsp
 lea	rbx,	[rsp-48]
@@ -863,7 +863,7 @@ lea	rax,	[rsp-56]
 mov	[rsp-80],	rax
 lea	rbx,	[rsp-80]
 sub	rsp,	80
-call	f21
+call	f22
 add	rsp,	80
 mov	rbx,	[rsp]
 pop	rbx
@@ -901,12 +901,24 @@ mov	rax,	[rbx+0]
 mov	[rsp-16],	rax
 lea	rbx,	[rsp-16]
 sub	rsp,	16
-call	f22
+call	f23
 add	rsp,	16
 mov	rbx,	[rsp]
 pop	rbx
 ret
 f20:
+push	rbx
+mov	rax,	[rbx+0]
+mov	rdx,	[rbx+8]
+mov	rdi,	[rbx+16]
+mov	rsi,	[rbx+24]
+mov     r8,     [rbx+32]
+mov     r9,     [rbx+40]
+mov     r10,    [rbx+48]
+syscall
+pop	rbx
+ret
+f21:
 push	rdx
 push	rbx
 mov	rcx,	[rsp+8]
@@ -920,7 +932,7 @@ mov	[rcx-8],	rax
 pop	rbx
 pop	rdx
 ret
-f21:
+f22:
 push	rbx
 mov	rcx,	[rbx+0]
 mov	qword	[rcx+0],	1
@@ -935,12 +947,12 @@ mov	rcx,	[rbx+0]
 mov	[rcx+24],	rax
 mov	rbx,	[rbx+0]
 sub	rsp,	0
-call	f0
+call	f20
 add	rsp,	0
 mov	rbx,	[rsp]
 pop	rbx
 ret
-f22:
+f23:
 push	rbx
 mov	rax,	[rbx+8]
 mov	[rsp-1],	al
@@ -956,16 +968,6 @@ call	f17
 add	rsp,	8
 mov	rbx,	[rsp]
 pop	rbx
-ret
-f0:
-mov	rax,	[rbx+0]
-mov	rdx,	[rbx+8]
-mov	rdi,	[rbx+16]
-mov	rsi,	[rbx+24]
-mov     r8,     [rbx+32]
-mov     r9,     [rbx+40]
-mov     r10,    [rbx+48]
-syscall
 ret
 SECTION .bss
 static_mem	resb	504
