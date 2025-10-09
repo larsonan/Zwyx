@@ -41,10 +41,10 @@ using namespace std;
 #define COMPTIME_METHOD 9
 #define BYTES_PTR 10
 #define IO 11
-#define INSET 12
-#define IMPORT 13
-#define INT_CONST 14
-#define INIT 15
+#define ARG 12
+#define INIT 13
+#define IMPORT 14
+#define INT_CONST 15
 #define ASM 16
 #define MEMSIZE_OF 17
 #define SEARCH 18
@@ -77,8 +77,7 @@ using namespace std;
 #define BASE_2_STRUCT 100
 #define TEMPLATE_ID_NUM_FACTOR 10000
 #define SYMBOL_PTR 1
-#define COMPILED 1
-#define COMMENT -2
+#define COMMENT 2
 
 #define REG_DEFAULT "rsp"
 #define REG_TEMP "rax"
@@ -159,7 +158,7 @@ struct Unit
 };
 
 string basic_unit_names[] = {"none", "", "", "int", "", "method", "", "", "bytes", "", "", "_io",
-                              "_inset", "_import", "", "_init", "_asm", "_mem_size_of", "", "", ""};
+                              "_arg", "_init", "_import", "", "_asm", "_mem_size_of", "", "", ""};
 
 int precedences[] = {0, 0, 0, 0, 2, 5, 6, 7, 5, 0, 6, 0, 2, 1, 7, 7, 5, 5, 5, 5, 4, 3};
 
@@ -275,7 +274,7 @@ void setup_basic_units(void)
 	count->mem_offset = WORD_SIZE;
 	basic_units[METHOD_PTR]->subunits.push_back(count);
 	basic_units[BYTES_PTR]->subunits.push_back(count);
-        basic_units[INSET]->typing = basic_units[COMPTIME_METHOD];
+        basic_units[ARG]->typing = basic_units[COMPTIME_METHOD];
         basic_units[ASM]->typing = basic_units[COMPTIME_METHOD];
         basic_units[MEMSIZE_OF]->typing = basic_units[COMPTIME_METHOD];
 }
@@ -1386,7 +1385,7 @@ void handle_instantiation(Instrx *instrx)
 	        instrx->unit = new Unit(*instrx->unit);
 	        instrx->unit->base_instrx = parent_ptr->base_instrx;
 	}
-	else if (!instrx->unit->mem_base && (instrx->unit->type != IMPORT) && (instrx->unit->type != INSET)
+	else if (!instrx->unit->mem_base && (instrx->unit->type != IMPORT) && (instrx->unit->type != ARG)
 	                    && (instrx->oper != IGNORE) && !is_comptime_method(instrx->unit))
 	{
 		if (instrx->is_ptr)
@@ -1730,10 +1729,10 @@ void handle_memsize(Instrx* instrx)
 void handle_compile_time_method(Instrx* method_struct, Instrx* arg)
 {
         int method_struct_type = method_struct->unit->type;
-        if ((INSET == method_struct->unit->type) || (ASM == method_struct->unit->type)
+        if ((ARG == method_struct->unit->type) || (ASM == method_struct->unit->type)
                       || (MEMSIZE_OF == method_struct->unit->type))
         {
-                if (INSET == method_struct->unit->type)
+                if (ARG == method_struct->unit->type)
                 {
                         handle_in(arg);
                 }

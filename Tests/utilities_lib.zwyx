@@ -16,7 +16,7 @@ CIter~{
 
 WriteNF~{
 	~SingleFnNF
-	data~_inset:bytes
+	data~_arg:bytes
 	s~{
 		b~bytes
 		;~{
