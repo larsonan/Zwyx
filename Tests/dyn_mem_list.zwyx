@@ -210,31 +210,18 @@ List~`io.return~{
                         b.count:{b.count + 1}
                 }
         }
-	getFn:@{
-		it~@Boxed:_io.0:{b+{at*8}}
-		it.el
-	}
-	eachFn:@{
-		it~@Boxed:_io.0:b
-		remaining~int
-		remaining:b.count
-		{remaining > 0}?*{
-			mbr~@_io.0:it.el
-			mbr.{f}
-			it:{it+8}
-			remaining:{remaining-1}
-		}
-	}
+        std_list_implm:_io.0
 }`
 
 MasterList~`_io.return~{
         ~MasterListNF:_io.0
-        memHandler~@MemManagerNF:@heapHandlerStatic
-        _count:0
+        b.count:0
         capacity~int:0
+        memHandler~@MemManagerNF:@heapHandlerStatic
+        std_list_implm:_io.0
 	emplaceFn:@{
 		failed~int:0
-		{{_count+1} > capacity}?{
+		{{b.count+1} > capacity}?{
 		        free_b~int:1
 		        {capacity = 0}?{
 		                capacity:16
@@ -246,7 +233,8 @@ MasterList~`_io.return~{
 		        {new_b = 0}?{
 		                failed:1
 		        }^{
-		                b.count:{_count*8}
+		                new_b.count:b.count
+		                b.count:{b.count*8}
 		                memCpy.{to:new_b from:b ;}
 		                {free_b}?{
 		                        memHandler.free:b
@@ -259,41 +247,22 @@ MasterList~`_io.return~{
 			newMember~@_io.0:newMemberBytes
 			{newMember}?{
 			        newMember.{_init f}
-			        ptr~@BoxedInt:{b+_count*8}
+			        ptr~@BoxedInt:{b+b.count*8}
 			        ptr.el:newMemberBytes
-			        _count:{_count+1}
+			        b.count:{b.count+1}
 			}
 		}
         }
-        getFn:@{
-	        ptr~@BoxedInt:{b+at*8}
-	        temp~bytes:ptr.el
-	        result~@_io.0:temp
-	        result
-	}
-	eachFn:@{
-	        ptr~@BoxedInt:b
-                for.{
-                        end:_count
-                        do:@{
-                                temp~bytes:ptr.el
-                                ptr2~@_io.0:temp
-                                
-                                ptr2.{f}
-                                ptr:{ptr+8}
-                        } ;
-                }
-	}
 	clear~{;~{
 	        ptr~@BoxedInt:b
 	        for.{
-	                end:_count
+	                end:b.count
 	                do:@{
 	                        memHandler.free:ptr.el
 	                        ptr:{ptr+8}
 	                }
 	        }
-	        _count:0
+	        b.count:0
 	}}
 	destroy~{;~{
 	        clear

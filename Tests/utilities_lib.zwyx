@@ -112,15 +112,10 @@ ListNF~`_io.return~{
 	}
 }`
 
-BufferList~`_io.return~{
-        ~ListNF:_io.0
-	getFn:@{
+std_list_implm~`
+        getFn:@{
 		it~@Boxed:_io.0:{b+{at*8}}
 		it.el
-	}
-        addFn:@{
-	        set.{at:b.count el:in ;}
-		b.count:{b.count + 1}
 	}
 	eachFn:@{
 		it~@Boxed:_io.0:b
@@ -132,6 +127,15 @@ BufferList~`_io.return~{
 			it:{it+8}
 			remaining:{remaining-1}
 		}
+	}
+`
+
+BufferList~`_io.return~{
+        ~ListNF:_io.0
+	std_list_implm:_io.0
+        addFn:@{
+	        set.{at:b.count el:in ;}
+		b.count:{b.count + 1}
 	}
 	setBuffer~{
 		in~bytes
