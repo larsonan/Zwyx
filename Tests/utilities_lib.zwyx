@@ -85,15 +85,16 @@ virtual~`
         _io.return~_io_data
 `
 
+BaseListNF~`_io.return~{
+        get~{at~int ;~{@_io.0}}
+        getFn~virtual:get
+        each~{f~_io.0.;}
+        eachFn~virtual:each
+}`
+
 ListNF~`_io.return~{
+        ~BaseListNF:_io.0
 	b~bytes
-	get~{
-		at~int
-		;~{
-			it~@Boxed:_io.0:{b+{at*8}}
-			it.el
-		}
-	}
 	set~{
 		at~int
 		el~@_io.0
@@ -109,32 +110,28 @@ ListNF~`_io.return~{
 			b.count
 		}
 	}
-	each~{
-		
-		f~_io.0.;
-		;~{
-			it~@Boxed:_io.0:b
-			
-			remaining~int
-			remaining:b.count
-			
-			{remaining > 0}?*{
-				mbr~@_io.0:it.el
-				mbr.{f}
-				
-				
-				it:{it+8}
-				remaining:{remaining-1}
-			}
-		}
-	}
 }`
 
 BufferList~`_io.return~{
         ~ListNF:_io.0
+	getFn:@{
+		it~@Boxed:_io.0:{b+{at*8}}
+		it.el
+	}
         addFn:@{
 	        set.{at:b.count el:in ;}
 		b.count:{b.count + 1}
+	}
+	eachFn:@{
+		it~@Boxed:_io.0:b
+		remaining~int
+		remaining:b.count
+		{remaining > 0}?*{
+			mbr~@_io.0:it.el
+			mbr.{f}
+			it:{it+8}
+			remaining:{remaining-1}
+		}
 	}
 	setBuffer~{
 		in~bytes
@@ -214,14 +211,11 @@ Enum~{
 }
 
 MasterListNF~`_io.return~{
+        ~BaseListNF:_io.0
         b~bytes
         _count~int
 	emplace~{f~_io.0.;}
 	emplaceFn~virtual:emplace
-	each~{f~_io.0.;}
-	eachFn~virtual:each
-	get~{at~int ;~{@_io.0}}
-	getFn~virtual:get
 }`
 
 MasterBufferList~`_io.return~{
