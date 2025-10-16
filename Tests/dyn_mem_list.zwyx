@@ -1,0 +1,290 @@
+_import:"utilities_lib"
+
+
+MemManagerNF~{
+        alloc~{numBytes~int}
+        free~{chunk~bytes}
+        allocFn~virtual:alloc
+        freeFn~virtual:free
+}
+
+MemArena~{
+        ~MemManagerNF
+        data~bytes
+        firstOpenChunk~int
+        allocFn:@{
+                {numBytes % 8}?{
+                        numBytes:{numBytes / 8 * 8 + 8}
+                }
+                chunkSize~int:0
+                chunkBytes~bytes:{firstOpenChunk - 8}
+                chunkPtr~@BoxedInt:chunkBytes
+                nextChunkPtr~@BoxedInt:chunkPtr
+                {{chunkSize < numBytes} & {{chunkPtr.el & 0xFFFF} < 0xFFFF}}?*{
+                        {nextChunkPtr.el & 0x8000}?{
+                                chunkSize:0
+                                chunkPtr:nextChunkPtr
+                        }^{
+                                {chunkSize > 0}?{
+                                        chunkSize:{chunkSize + 8 + nextChunkPtr.el}
+                                        chunkPtr.el:chunkSize
+                                }^{
+                                        chunkPtr:nextChunkPtr
+                                        chunkSize:chunkPtr.el
+                                }
+                        }
+                        nextChunkPtr:{nextChunkPtr+8+{nextChunkPtr.el & 0x7FFF}}
+                }
+                {chunkPtr.el = 0xFFFF}?{0}^{
+                        {chunkSize > numBytes}?{
+                                nextChunkPtr:{chunkPtr + 8 + numBytes}
+                                nextChunkPtr.el:{chunkSize - numBytes - 8}
+                        }
+                        chunkPtr.el:{numBytes | 0x8000}
+                        chunkBytes:chunkPtr
+                        {{chunkBytes + 8} = firstOpenChunk}?{
+                                chunkBytes:{nextChunkPtr + 8}
+                                firstOpenChunk:chunkBytes
+                        }
+                        chunkPtr+8
+                }
+        }
+        freeFn:@{
+                chunkPtr~@BoxedInt:{chunk-8}
+                chunkPtr.el:{chunkPtr.el & 0x7FFF}
+                {chunk < firstOpenChunk}?{
+                        firstOpenChunk:chunk
+                }
+        }
+        set~{b~bytes ;~{
+                data:b
+                
+                chunkPtr~@BoxedInt:data
+                chunkPtr.el:{data.count-16}
+                
+                chunkPtr:{chunkPtr + 8}
+                for.{i:8 step:8 end:{data.count-8} do:@{
+                        chunkPtr.el:0
+                        chunkPtr:{chunkPtr+8}
+                } ; }
+                
+                chunkPtr.el:0xFFFF
+                firstOpenChunk:{data + 8}
+        }}
+}
+
+heapHandlerPageTableBuffer~bytes.400
+
+HeapHandlerPageTableEntry~{
+        arena~MemArena
+        spaceLeft~int
+}
+
+heapHandlerPageTable~MasterBufferList:HeapHandlerPageTableEntry
+
+heapHandlerPageTable.b:@heapHandlerPageTableBuffer
+
+HeapHandler~{
+        ~MemManagerNF
+        
+        allocFn:@{
+                chunk~bytes
+                chunk:0
+                
+                n~int:0
+                {chunk = 0}?*{
+                        {heapHandlerPageTable.get:n}.{
+                                {spaceLeft > numBytes}?{
+                                        chunk:arena.alloc:numBytes
+                                        spaceLeft:{spaceLeft - 8 - numBytes}
+                                }^{arena.data = 0}?{
+                                        arena.{
+                                                _init
+                                                set:_system.heapMap:{
+                                                        size~int:4096
+                                                        {size < numBytes + 16}?*{
+                                                                size:{size * 2}
+                                                        }
+                                                        size
+                                                }
+                                                chunk:$.alloc:numBytes
+                                                spaceLeft:{data.count - numBytes - 16}
+                                        }
+                                }
+                        }
+                        n:{n+1}
+                }
+                
+                chunkPtr~@BoxedInt:{chunk - 8}
+                chunkPtr.el:{chunkPtr.el | {n * 0x10000}}
+                
+                chunk
+        }
+        freeFn:@{
+                chunkPtr~@BoxedInt:{chunk - 8}
+                {heapHandlerPageTable.get:{chunkPtr.el / 0x10000 - 1}}.{
+                        arena.free:chunk
+                        spaceLeft:{spaceLeft + 8 + chunkPtr.el}
+                }
+        }
+}
+
+heapHandlerStatic~HeapHandler
+
+String~{
+        ~StringNF
+        capacity~int:0
+        memHandler~@MemManagerNF:@heapHandlerStatic
+        write~{
+		~WriteNF
+		fn:@{
+		        countin~int:data.count
+		        failed~int:0
+		        
+		        {{b.count+countin} > capacity}?{
+		                free_b~int:1
+		                {capacity = 0}?{
+		                        capacity:16
+		                        free_b:0
+		                        
+		                        b.count:0
+		                }
+		                {{b.count+countin} > capacity}?*{
+		                        capacity:{capacity*2}
+		                }
+		                new_b~bytes:memHandler.alloc:capacity
+		                {new_b = 0}?{
+		                        failed:1
+		                }^{
+		                        new_b.count:b.count
+		                        memCpy.{to:new_b from:b ;}
+		                        {free_b}?{
+		                                memHandler.free:b
+		                        }
+		                        b:new_b
+		                }
+		        }
+		        {failed = 0}?{
+			        memCpy.{to:{b+b.count} from:data ;}
+			        b.count:{b.count+countin}
+			}
+		}
+	}
+	destroy~{;~{
+	       clear
+	       capacity:0
+	       
+	       memHandler.free:b
+	}}
+}
+
+List~`io.return~{
+        ~ListNf:_io.0
+        b.count:0
+        capacity~int:0
+        memHandler~@MemManagerNF:@heapHandlerStatic
+        addFn:@{
+                failed~int:0
+                {b.count = capacity}?{
+                        free_b~int:1
+		        {capacity = 0}?{
+		                capacity:16
+		                free_b:0
+		        }^{
+		                capacity:{capacity*2}
+		        }
+		        new_b~bytes:memHandler.alloc:capacity
+		        {new_b = 0}?{
+		                failed:1
+		        }^{
+		                new_b.count:b.count
+		                memCpy.{to:new_b from:b ;}
+		                {free_b}?{
+		                        memHandler.free:b
+		                }
+		                b:new_b
+		        }
+                }
+                {failed = 0}?{
+                        set.{at:b.count el:in ;}
+                        b.count:{b.count + 1}
+                }
+        }
+}`
+
+MasterList~`_io.return~{
+        ~MasterListNF:_io.0
+        memHandler~@MemManagerNF:@heapHandlerStatic
+        _count:0
+        capacity~int:0
+	emplaceFn:@{
+		failed~int:0
+		{{_count+1} > capacity}?{
+		        free_b~int:1
+		        {capacity = 0}?{
+		                capacity:16
+	                        free_b:0
+		        }^{
+		                capacity:{capacity*2}
+		        }
+		        new_b~bytes:memHandler.alloc:{capacity*8}
+		        {new_b = 0}?{
+		                failed:1
+		        }^{
+		                b.count:{_count*8}
+		                memCpy.{to:new_b from:b ;}
+		                {free_b}?{
+		                        memHandler.free:b
+		                }
+		                b:new_b
+		        }
+		}
+		{failed = 0}?{
+			newMemberBytes~bytes:memHandler.alloc:_mem_size_of:_io.0
+			newMember~@_io.0:newMemberBytes
+			{newMember}?{
+			        newMember.{_init f}
+			        ptr~@BoxedInt:{b+_count*8}
+			        ptr.el:newMemberBytes
+			        _count:{_count+1}
+			}
+		}
+        }
+        getFn:@{
+	        ptr~@BoxedInt:{b+at*8}
+	        temp~bytes:ptr.el
+	        result~@_io.0:temp
+	        result
+	}
+	eachFn:@{
+	        ptr~@BoxedInt:b
+                for.{
+                        end:_count
+                        do:@{
+                                temp~bytes:ptr.el
+                                ptr2~@_io.0:temp
+                                
+                                ptr2.{f}
+                                ptr:{ptr+8}
+                        } ;
+                }
+	}
+	clear~{;~{
+	        ptr~@BoxedInt:b
+	        for.{
+	                end:_count
+	                do:@{
+	                        memHandler.free:ptr.el
+	                        ptr:{ptr+8}
+	                }
+	        }
+	        _count:0
+	}}
+	destroy~{;~{
+	        clear
+	        capacity:0
+	        
+	        memHandler.free:b
+	}}
+}`
+

@@ -1,7 +1,7 @@
 #Test for memory management
 
 
-_import:"utilities_lib"
+_import:"dyn_mem_list"
 
 
 Employee~{

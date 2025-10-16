@@ -188,6 +188,8 @@ Unit *arg_unit;
 
 vector<Unit*> used_funcs;
 
+vector<string> parsed_files;
+
 Instrx new_instrx;
 FILE* err_out;
 FILE* xcfile;
@@ -2121,6 +2123,7 @@ void handle_new_instrx()
 	        else
 	        {
 	                parent_ptr->instrxs.back()->oper = IGNORE;
+	                new_instrx.oper = NO_OPER;
 	                parse_file(new_instrx.unit->name + ".zwyx");
 	        }
 	}
@@ -2643,6 +2646,14 @@ void parse_istream(istream &zyfile)
 
 void parse_file(string parse_file_name)
 {
+        for (int i = 0; i < parsed_files.size(); i++)
+        {
+                if (parsed_files[i] == parse_file_name)
+                {
+                        return;
+                }
+        }
+        parsed_files.push_back(parse_file_name);
         ifstream zyfile(parse_file_name.c_str());
         string outer_file_name = file_name;
         file_name = parse_file_name;
