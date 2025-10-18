@@ -181,23 +181,16 @@ String~{
 List~`io.return~{
         ~ListNf:_io.0
         b.count:0
-        capacity~int:0
+        _count:0
         memHandler~@MemManagerNF:@heapHandlerStatic
         addFn:@{
                 failed~int:0
-                {b.count = capacity}?{
+                {b.count = {_count*8}}?{
                         free_b~int:1
-		        {capacity = 0}?{
-		                capacity:16
-		                free_b:0
-		        }^{
-		                capacity:{capacity*2}
-		        }
-		        new_b~bytes:memHandler.alloc:capacity
+		        new_b~bytes:memHandler.alloc:{{b.count = 0}?{128}^{b.count*2}}
 		        {new_b = 0}?{
 		                failed:1
 		        }^{
-		                new_b.count:b.count
 		                memCpy.{to:new_b from:b ;}
 		                {free_b}?{
 		                        memHandler.free:b
@@ -206,8 +199,8 @@ List~`io.return~{
 		        }
                 }
                 {failed = 0}?{
-                        set.{at:b.count el:in ;}
-                        b.count:{b.count + 1}
+                        set.{at:_count el:in ;}
+                        _count:{_count + 1}
                 }
         }
         std_list_implm:_io.0
@@ -215,28 +208,19 @@ List~`io.return~{
 
 MasterList~`_io.return~{
         ~MasterListNF:_io.0
+        _count:0
         b.count:0
-        capacity~int:0
         memHandler~@MemManagerNF:@heapHandlerStatic
         std_list_implm:_io.0
 	emplaceFn:@{
 		failed~int:0
-		{{b.count+1} > capacity}?{
-		        free_b~int:1
-		        {capacity = 0}?{
-		                capacity:16
-	                        free_b:0
-		        }^{
-		                capacity:{capacity*2}
-		        }
-		        new_b~bytes:memHandler.alloc:{capacity*8}
+		{b.count = {_count*8}}?{
+		        new_b~bytes:memHandler.alloc:{{b.count = 0}?{128}^{b.count*2}}
 		        {new_b = 0}?{
 		                failed:1
 		        }^{
-		                new_b.count:b.count
-		                b.count:{b.count*8}
 		                memCpy.{to:new_b from:b ;}
-		                {free_b}?{
+		                {b.count}?{
 		                        memHandler.free:b
 		                }
 		                b:new_b
@@ -247,26 +231,26 @@ MasterList~`_io.return~{
 			newMember~@_io.0:newMemberBytes
 			{newMember}?{
 			        newMember.{_init f}
-			        ptr~@BoxedInt:{b+b.count*8}
+			        ptr~@BoxedInt:{b+_count*8}
 			        ptr.el:newMemberBytes
-			        b.count:{b.count+1}
+			        _count:{_count+1}
 			}
 		}
         }
 	clear~{;~{
 	        ptr~@BoxedInt:b
 	        for.{
-	                end:b.count
+	                end:_count
 	                do:@{
 	                        memHandler.free:ptr.el
 	                        ptr:{ptr+8}
 	                }
 	        }
-	        b.count:0
+	        _count:0
 	}}
 	destroy~{;~{
 	        clear
-	        capacity:0
+	        b.count:0
 	        
 	        memHandler.free:b
 	}}
