@@ -1137,7 +1137,7 @@ Unit *find_unit_from_list(vector<Unit*> unit_list, string name)
 Unit *find_unit_in_superunit(string name, Unit *superunit)
 {
         Unit *unit = find_unit_from_list(superunit->subunits, name);
-        if ((NULL == unit) && (superunit->typing != NULL))
+        if ((NULL == unit) && (superunit->type != METHOD) && (superunit->typing != NULL))
         {
                 unit = find_unit_from_list(superunit->typing->subunits, name);
         }
