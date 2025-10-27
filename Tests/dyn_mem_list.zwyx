@@ -180,12 +180,15 @@ String~{
 
 List~`io.return~{
         ~ListNf:_io.0
-        b.count:0
-        _count:0
+        std_list_implm:_io.0
         memHandler~@MemManagerNF:@heapHandlerStatic
+        setFn:@{
+                it~@Boxed:_io.0:{b+{at*8}}
+		it.el:el
+        }
         addFn:@{
                 failed~int:0
-                {b.count = {_count*8}}?{
+                {b.count = {count*8}}?{
                         free_b~int:1
 		        new_b~bytes:memHandler.alloc:{{b.count = 0}?{128}^{b.count*2}}
 		        {new_b = 0}?{
@@ -199,22 +202,19 @@ List~`io.return~{
 		        }
                 }
                 {failed = 0}?{
-                        set.{at:_count el:in ;}
-                        _count:{_count + 1}
+                        set.{at:count el:in ;}
+                        count:{count + 1}
                 }
         }
-        std_list_implm:_io.0
 }`
 
 MasterList~`_io.return~{
         ~MasterListNF:_io.0
-        _count:0
-        b.count:0
-        memHandler~@MemManagerNF:@heapHandlerStatic
         std_list_implm:_io.0
+        memHandler~@MemManagerNF:@heapHandlerStatic
 	emplaceFn:@{
 		failed~int:0
-		{b.count = {_count*8}}?{
+		{b.count = {count*8}}?{
 		        new_b~bytes:memHandler.alloc:{{b.count = 0}?{128}^{b.count*2}}
 		        {new_b = 0}?{
 		                failed:1
@@ -231,22 +231,22 @@ MasterList~`_io.return~{
 			newMember~@_io.0:newMemberBytes
 			{newMember}?{
 			        newMember.{_init f}
-			        ptr~@BoxedInt:{b+_count*8}
+			        ptr~@BoxedInt:{b+count*8}
 			        ptr.el:newMemberBytes
-			        _count:{_count+1}
+			        count:{count+1}
 			}
 		}
         }
 	clear~{;~{
 	        ptr~@BoxedInt:b
 	        for.{
-	                end:_count
+	                end:count
 	                do:@{
 	                        memHandler.free:ptr.el
 	                        ptr:{ptr+8}
 	                }
 	        }
-	        _count:0
+	        count:0
 	}}
 	destroy~{;~{
 	        clear
