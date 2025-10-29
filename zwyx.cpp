@@ -294,7 +294,7 @@ void write_unit(Instrx *instrx)
 {
 	if (INT_CONST == instrx->unit->type)
 	{
-		(void)fprintf(xcfile, "%s", instrx->unit->name.c_str());
+		(void)fprintf(xcfile, "%s", instrx->unit->str.c_str());
 	}
 	else
 	{
@@ -420,7 +420,7 @@ void write_insertion(Instrx *instrx)
 	(void)fprintf(xcfile, ",\t");
 	if (INT_CONST == instrx->insertion_source->unit->type)
 	{
-		(void)fprintf(xcfile, "%s", instrx->insertion_source->unit->name.c_str());
+		(void)fprintf(xcfile, "%s", instrx->insertion_source->unit->str.c_str());
 	}
 	else if (STRING_LITERAL == instrx->insertion_source->unit->type)
 	{
@@ -1723,9 +1723,9 @@ void handle_asm(Instrx* instrx)
 void handle_memsize(Instrx* instrx)
 {
         int mem_size = instrx->unit->mem_used;
-        
         instrx->unit = new Unit(*basic_units[INT_CONST]);
         instrx->unit->name = to_string(mem_size);
+        instrx->unit->str = to_string(mem_size);
 }
 
 void handle_compile_time_method(Instrx* method_struct, Instrx* arg)
@@ -2453,6 +2453,7 @@ void handle_int_const(string str)
         {
 	        new_instrx.unit = new Unit(*basic_units[INT_CONST]);
 	        new_instrx.unit->name = str;
+	        new_instrx.unit->str = str;
 	        if (SUBUNIT == new_instrx.oper)
 	        {
 	                new_instrx.unit->mem_used = stoi(str);
@@ -2472,6 +2473,7 @@ void handle_string_literal(string str)
         {
                 new_instrx.unit = new Unit(*basic_units[INT_CONST]);
                 new_instrx.unit->name = to_string(str[0]);
+                new_instrx.unit->str = to_string(str[0]);
         }
         else
         {
