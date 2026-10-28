@@ -121,7 +121,7 @@ std_list_implm~`
 	}
 `
 
-BufferList~`_io.return~{
+BufferList~\{_io.return~{
         ~ListNF:_io.0
 	std_list_implm:_io.0
 	setFn:@{
@@ -139,7 +139,7 @@ BufferList~`_io.return~{
 			count:0
 		}
 	}
-}`
+}}
 
 StringNF~{
 	b~bytes

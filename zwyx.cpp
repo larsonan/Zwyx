@@ -50,6 +50,7 @@ using namespace std;
 #define SEARCH 18
 #define ID 19
 #define FLOAT 20
+#define HYG_MACRO 21
 
 #define NO_ERROR 0
 #define INVALID_USE_OF_OPER 1
@@ -2494,6 +2495,16 @@ void handle_compile_time_method_def(string str, int comptime_method_line_num)
         handle_new_instrx();
 }
 
+void handle_hyg_macro(string str, int comptime_method_line_num)
+{
+        new_instrx.unit = new Unit(*basic_units[COMPTIME_METHOD]);
+        num_templates++;
+        new_instrx.unit->str = str;
+        new_instrx.unit->f_num = num_templates;
+        new_instrx.unit->mem_offset = comptime_method_line_num;
+        handle_new_instrx();
+}
+
 void handle_unit_name(string name)
 {
 	new_instrx.unit = NULL;
@@ -2546,6 +2557,7 @@ void parse_istream(istream &zyfile)
 {
 	string unit_name_buffer;
 	int read_mode = 0;
+	int num_braces = 0;
 	int comptime_method_line_num;
 	char c = zyfile.get();
 	while (zyfile.good())
@@ -2594,6 +2606,28 @@ void parse_istream(istream &zyfile)
 		                unit_name_buffer.push_back(c);
 		        }
 		}
+		else if (HYG_MACRO == read_mode)
+		{
+		        if ('{' == c)
+		        {
+		                num_braces++;
+		        }
+		        if ('}' == c)
+		        {
+		                num_braces--;
+		        }
+		        
+		        if (0 == num_braces)
+		        {
+		                handle_hyg_macro(unit_name_buffer, comptime_method_line_num);
+		                unit_name_buffer.clear();
+		                read_mode = 0;
+		        }
+		        else if ((c != '{') || (num_braces > 1))
+		        {
+		                unit_name_buffer.push_back(c);
+		        }
+		}
 		else
 		{
 			if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || (c == '_'))
@@ -2612,7 +2646,12 @@ void parse_istream(istream &zyfile)
 				        read_mode = COMPTIME_METHOD;
 				        comptime_method_line_num = line_num;
 				}
-				if ('#' == c)
+				else if ('\\' == c)
+				{
+				        read_mode = HYG_MACRO;
+				        comptime_method_line_num = line_num;
+				}
+				else if ('#' == c)
 				{
 				        read_mode = COMMENT;
 				}
