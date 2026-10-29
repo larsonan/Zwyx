@@ -200,6 +200,7 @@ int num_f = 1;
 int temp_reg_mem;
 int num_types;
 string file_name;
+Unit *namespace_unit;
 
 void dbg_out_str(string msg)
 {
@@ -1662,15 +1663,17 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
         Unit *temp_arg = arg_unit;
         line_num = method_struct->unit->mem_offset;
         int temp_temp_reg_mem = temp_reg_mem;
-        int num_args_before = 0;
         arg_unit = new Unit(*basic_units[IO]);
         if (arg != NULL)
         {
                 arg_unit->subunits.push_back(arg->unit);
-                num_args_before++;
         }
+        Unit hyg_parent = *basic_units[STRUCT_BASE];
+        hyg_parent.parent = namespace_unit;
+        Unit *temp_parent = parent_ptr;
         istringstream str(method_struct->unit->str);
         parse_istream(str);
+        parent_ptr = temp_parent;
         handle_last_instrx();
         new_instrx = temp;
         temp_reg_mem = temp_temp_reg_mem;
@@ -1679,7 +1682,7 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
         if (arg_unit->subunits.size() > 0)
         {
                 unit_for_return = arg_unit->subunits.back();
-                if (!unit_for_return->mem_base && (arg_unit->subunits.size() > num_args_before))
+                if ((method_struct->unit->f_num > 0) && (arg != NULL))
                 {
                         unit_for_return->type = arg->unit->type + method_struct->unit->f_num * TEMPLATE_ID_NUM_FACTOR;
                 }
@@ -2422,6 +2425,7 @@ void start_base_unit()
 	*parent_ptr = *basic_units[NAMESPACE];
 	parent_ptr->base = NULL;
 	parent_ptr->parent = NULL;
+	namespace_unit = parent_ptr;
 }
 
 void end_base_unit()
@@ -2485,22 +2489,15 @@ void handle_string_literal(string str)
         handle_new_instrx();
 }
 
-void handle_compile_time_method_def(string str, int comptime_method_line_num)
+void handle_compile_time_method_def(string str, int type, int comptime_method_line_num)
 {
         new_instrx.unit = new Unit(*basic_units[COMPTIME_METHOD]);
-        num_templates++;
         new_instrx.unit->str = str;
-        new_instrx.unit->f_num = num_templates;
-        new_instrx.unit->mem_offset = comptime_method_line_num;
-        handle_new_instrx();
-}
-
-void handle_hyg_macro(string str, int comptime_method_line_num)
-{
-        new_instrx.unit = new Unit(*basic_units[COMPTIME_METHOD]);
-        num_templates++;
-        new_instrx.unit->str = str;
-        new_instrx.unit->f_num = num_templates;
+        if (HYG_MACRO == type)
+        {
+                num_templates++;
+                new_instrx.unit->f_num = num_templates;
+        }
         new_instrx.unit->mem_offset = comptime_method_line_num;
         handle_new_instrx();
 }
@@ -2566,7 +2563,7 @@ void parse_istream(istream &zyfile)
 	        {
 	                if ('`' == c)
 	                {
-	                        handle_compile_time_method_def(unit_name_buffer, comptime_method_line_num);
+	                        handle_compile_time_method_def(unit_name_buffer, read_mode, comptime_method_line_num);
 	                        unit_name_buffer.clear();
 	                        read_mode = 0;
 	                }
@@ -2619,7 +2616,7 @@ void parse_istream(istream &zyfile)
 		        
 		        if (0 == num_braces)
 		        {
-		                handle_hyg_macro(unit_name_buffer, comptime_method_line_num);
+		                handle_compile_time_method_def(unit_name_buffer, read_mode, comptime_method_line_num);
 		                unit_name_buffer.clear();
 		                read_mode = 0;
 		        }

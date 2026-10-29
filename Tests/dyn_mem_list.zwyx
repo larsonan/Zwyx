@@ -178,7 +178,7 @@ String~{
 	}}
 }
 
-List~`io.return~{
+List~\{io.return~{
         ~ListNf:_io.0
         std_list_implm:_io.0
         memHandler~@MemManagerNF:@heapHandlerStatic
@@ -206,9 +206,9 @@ List~`io.return~{
                         count:{count + 1}
                 }
         }
-}`
+}}
 
-MasterList~`_io.return~{
+MasterList~\{_io.return~{
         ~MasterListNF:_io.0
         std_list_implm:_io.0
         memHandler~@MemManagerNF:@heapHandlerStatic
@@ -254,5 +254,5 @@ MasterList~`_io.return~{
 	        
 	        memHandler.free:b
 	}}
-}`
+}}
 

@@ -3,11 +3,11 @@ SingleFnNF~{
 	;~{fn}
 }
 
-Boxed~`
+Boxed~\{
         _io.return~{
                 el~@_io.0
         }
-`
+}
 
 CIter~{
 	el~int.8
@@ -85,20 +85,20 @@ virtual~`
         _io.return~_io_data
 `
 
-BaseListNF~`_io.return~{
+BaseListNF~\{_io.return~{
         get~{at~int ;~{@_io.0}}
         getFn~virtual:get
         each~{f~_io.0.;}
         eachFn~virtual:each
-}`
+}}
 
-ListNF~`_io.return~{
+ListNF~\{_io.return~{
         ~BaseListNF:_io.0
 	set~{at~int el~@_io.0}
 	setFn~virtual:set
 	add~{in~@_io.0}
 	addFn~virtual:add
-}`
+}}
 
 std_list_implm~`
         b~bytes
@@ -209,15 +209,15 @@ Enum~{
 	}
 }
 
-MasterListNF~`_io.return~{
+MasterListNF~\{_io.return~{
         ~BaseListNF:_io.0
         
         
 	emplace~{f~_io.0.;}
 	emplaceFn~virtual:emplace
-}`
+}}
 
-MasterBufferList~`_io.return~{
+MasterBufferList~\{_io.return~{
         ~MasterListNF:_io.0
         b~bytes
         b.count:0
@@ -245,7 +245,7 @@ MasterBufferList~`_io.return~{
 			b:buf
 		}
 	}
-}`
+}}
 
 getChar~{
         ;~{
