@@ -1671,6 +1671,10 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
         Unit hyg_parent = *basic_units[STRUCT_BASE];
         hyg_parent.parent = namespace_unit;
         Unit *temp_parent = parent_ptr;
+        if (method_struct->unit->f_num > 0)
+        {
+                parent_ptr = &hyg_parent;
+        }
         istringstream str(method_struct->unit->str);
         parse_istream(str);
         parent_ptr = temp_parent;
