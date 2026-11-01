@@ -1639,16 +1639,39 @@ void handle_custom_compile_time_method_with_args(Instrx* method_struct, Instrx *
 
 void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
 {
-        Instrx* defined_unit = NULL;
         parent_ptr->instrxs.pop_back();
+        int gen_type = 0;
+        Instrx* defined_unit = NULL;
         if (arg != NULL)
         {
                 parent_ptr->instrxs.pop_back();
+                gen_type = arg->unit->type + method_struct->unit->f_num * TEMPLATE_ID_NUM_FACTOR;
         }
         if ((DEFINE == method_struct->oper) && (parent_ptr->instrxs.size() > 0))
         {
                 defined_unit = parent_ptr->instrxs.back();
                 parent_ptr->instrxs.pop_back();
+        }
+        
+        if (method_struct->unit->f_num > 0)
+        {
+                for (int i = 0; i < method_struct->unit->subunits.size(); i++)
+                {
+                        if (method_struct->unit->subunits[i]->type == gen_type)
+                        {
+                                if (arg != NULL)
+                                {
+                                        delete(arg);
+                                }
+                                if (defined_unit != NULL)
+                                {
+                                        parent_ptr->instrxs.push_back(defined_unit);
+                                }
+                                method_struct->unit = method_struct->unit->subunits[i];
+                                parent_ptr->instrxs.push_back(method_struct);
+                                return;
+                        }
+                }
         }
         Instrx* dummy = new Instrx();
         parent_ptr->instrxs.push_back(dummy);
@@ -1688,7 +1711,8 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
                 unit_for_return = arg_unit->subunits.back();
                 if ((method_struct->unit->f_num > 0) && (arg != NULL))
                 {
-                        unit_for_return->type = arg->unit->type + method_struct->unit->f_num * TEMPLATE_ID_NUM_FACTOR;
+                        unit_for_return->type = gen_type;
+                        method_struct->unit->subunits.push_back(unit_for_return);
                 }
         }
         else
