@@ -1962,6 +1962,16 @@ void handle_last_instrx()
 			                set_error(INVALID_USE_OF_OPER, instrx->unit_line, operators[instrx->oper]);
 			        }
 			        handle_instantiation(instrx);
+			        if ((DEFINE == instrx->oper) && (second_last_instrx != NULL)
+			            && (second_last_instrx->unit != NULL)
+			            && ("<<" == second_last_instrx->unit->str))
+			        {
+			                parent_ptr->in_unit = instrx->unit;
+			                parent_ptr->instrxs.pop_back();
+			                parent_ptr->instrxs.pop_back();
+			                parent_ptr->instrxs.push_back(instrx);
+			                second_last_instrx = get_second_last_instrx();
+			        }
 			        if ((DEFINE == instrx->oper)
 			                && (!is_comptime_method(instrx->unit) || (INSERTION != new_instrx.oper)))
 			        {
