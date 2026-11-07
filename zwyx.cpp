@@ -1964,13 +1964,24 @@ void handle_last_instrx()
 			        handle_instantiation(instrx);
 			        if ((DEFINE == instrx->oper) && (second_last_instrx != NULL)
 			            && (second_last_instrx->unit != NULL)
-			            && ("<<" == second_last_instrx->unit->str))
+			            && (COMPTIME_METHOD == second_last_instrx->unit->type))
 			        {
-			                parent_ptr->in_unit = instrx->unit;
-			                parent_ptr->instrxs.pop_back();
-			                parent_ptr->instrxs.pop_back();
-			                parent_ptr->instrxs.push_back(instrx);
-			                second_last_instrx = get_second_last_instrx();
+			                if ("<<" == second_last_instrx->unit->str)
+			                {
+			                        parent_ptr->in_unit = instrx->unit;
+			                        parent_ptr->instrxs.pop_back();
+			                        parent_ptr->instrxs.pop_back();
+			                        parent_ptr->instrxs.push_back(instrx);
+			                        second_last_instrx = get_second_last_instrx();
+			                }
+			                else if (">>" == second_last_instrx->unit->str)
+			                {
+			                        parent_ptr->in_unit = instrx->unit;
+			                        parent_ptr->instrxs.pop_back();
+			                        parent_ptr->instrxs.pop_back();
+			                        parent_ptr->instrxs.push_back(instrx);
+			                        second_last_instrx = get_second_last_instrx();
+			                }
 			        }
 			        if ((DEFINE == instrx->oper)
 			                && (!is_comptime_method(instrx->unit) || (INSERTION != new_instrx.oper)))
