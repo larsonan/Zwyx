@@ -1738,10 +1738,10 @@ void handle_custom_compile_time_method(Instrx* method_struct, Instrx *arg)
 
 void handle_in(Instrx* instrx)
 {
-        handle_instantiation(instrx);
-        
-        parent_ptr->in_unit = instrx->unit;
-        handle_define_statement(instrx->unit, instrx->unit);
+        string str = instrx->unit->str;
+        instrx->unit = new Unit(*basic_units[METHOD]);
+        instrx->unit->str = str;
+        instrx->unit->typing = basic_units[ARG];
 }
 
 void handle_asm(Instrx* instrx)
@@ -1969,6 +1969,8 @@ void handle_last_instrx()
 			                if ("<<" == second_last_instrx->unit->str)
 			                {
 			                        parent_ptr->in_unit = instrx->unit;
+			                        delete(second_last_instrx->unit);
+			                        delete(second_last_instrx);
 			                        parent_ptr->instrxs.pop_back();
 			                        parent_ptr->instrxs.pop_back();
 			                        parent_ptr->instrxs.push_back(instrx);
@@ -1977,6 +1979,8 @@ void handle_last_instrx()
 			                else if (">>" == second_last_instrx->unit->str)
 			                {
 			                        parent_ptr->in_unit = instrx->unit;
+			                        delete(second_last_instrx->unit);
+			                        delete(second_last_instrx);
 			                        parent_ptr->instrxs.pop_back();
 			                        parent_ptr->instrxs.pop_back();
 			                        parent_ptr->instrxs.push_back(instrx);
