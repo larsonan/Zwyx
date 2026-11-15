@@ -28,6 +28,11 @@ using namespace std;
 #define LESS_THAN 19
 #define AND 20
 #define OR 21
+#define SENDING 22
+#define HAVING 23
+#define SET 24
+#define GET 25
+#define INSERTION_2 26
 
 #define DEF_NONE 0
 #define NAMESPACE 1
@@ -161,10 +166,10 @@ struct Unit
 string basic_unit_names[] = {"none", "", "", "int", "", "method", "", "", "bytes", "", "", "_io",
                               "_arg", "_init", "_import", "", "_asm", "_mem_size_of", "", "", ""};
 
-int precedences[] = {0, 0, 0, 0, 2, 5, 6, 7, 5, 0, 6, 0, 2, 1, 7, 7, 5, 5, 5, 5, 4, 3};
+int precedences[] = {0, 0, 0, 0, 2, 5, 6, 7, 5, 0, 6, 0, 2, 1, 7, 7, 5, 5, 5, 5, 4, 3, 0, 0, 0, 0, 0};
 
 string operators[] = {"", ":", "~", ".", "?", "=", "+", "/", "!=", "!", "-", "", "^", "?*", "*", "%", 
-                ">=", "<=", ">", "<", "&", "|"};
+                ">=", "<=", ">", "<", "&", "|", "", "", "", "", "<<"};
 
 Error errors[MAX_ERRORS];
 int num_errors;
@@ -1976,16 +1981,6 @@ void handle_last_instrx()
 			                        parent_ptr->instrxs.push_back(instrx);
 			                        second_last_instrx = get_second_last_instrx();
 			                }
-			                else if (">>" == second_last_instrx->unit->str)
-			                {
-			                        parent_ptr->in_unit = instrx->unit;
-			                        delete(second_last_instrx->unit);
-			                        delete(second_last_instrx);
-			                        parent_ptr->instrxs.pop_back();
-			                        parent_ptr->instrxs.pop_back();
-			                        parent_ptr->instrxs.push_back(instrx);
-			                        second_last_instrx = get_second_last_instrx();
-			                }
 			        }
 			        if ((DEFINE == instrx->oper)
 			                && (!is_comptime_method(instrx->unit) || (INSERTION != new_instrx.oper)))
@@ -2189,6 +2184,10 @@ void handle_new_instrx()
 	        Instrx *temp = new Instrx(new_instrx);
 	        
 	        handle_precedence(temp);
+	        if (INSERTION_2 == new_instrx.oper)
+	        {
+	                new_instrx.oper = INSERTION;
+	        }
 		
 		if ((INSERTION == new_instrx.oper) || (SUBUNIT == new_instrx.oper)
 		    || (WHILE == new_instrx.oper) || (ELSE == new_instrx.oper) || (BRANCH == new_instrx.oper))
@@ -2410,7 +2409,7 @@ void handle_new_oper(int oper)
                 string operator_str = operators[new_instrx.oper] + operators[oper];
                 int new_oper = NO_OPER;
                 
-	        for (int i = 0; i <= 22; i++)
+	        for (int i = 0; i <= 26; i++)
 	        {
 	                if (operator_str == operators[i])
 	                {
@@ -2420,7 +2419,7 @@ void handle_new_oper(int oper)
 	        }
 	        if (NO_OPER == new_oper)
 	        {
-	                set_error(INVALID_USE_OF_OPER, line_num, operators[new_oper]);
+	                set_error(INVALID_USE_OF_OPER, line_num, operators[oper]);
 	        }
 	        oper = new_oper;
 	        
