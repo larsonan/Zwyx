@@ -16,7 +16,7 @@ CIter~{
 
 WriteNF~{
 	~SingleFnNF
-	data~`<<`~bytes
+	data~`::`~bytes
 	s~{
 		b~bytes
 		;~{
@@ -74,7 +74,7 @@ WriteNF~{
 print~{
 	~WriteNF
 	fn:@{
-		_system.consoleWrite:data
+		_system.consoleWrite::data
 	}
 }
 
@@ -87,17 +87,17 @@ virtual~`
 
 BaseListNF~\{_io.return~{
         get~{at~int ;~{@_io.0}}
-        getFn~virtual:get
+        getFn~virtual::get
         each~{f~_io.0.;}
-        eachFn~virtual:each
+        eachFn~virtual::each
 }}
 
 ListNF~\{_io.return~{
-        ~BaseListNF:_io.0
+        ~BaseListNF::_io.0
 	set~{at~int el~@_io.0}
-	setFn~virtual:set
+	setFn~virtual::set
 	add~{in~@_io.0}
-	addFn~virtual:add
+	addFn~virtual::add
 }}
 
 std_list_implm~`
@@ -122,7 +122,7 @@ std_list_implm~`
 `
 
 BufferList~\{_io.return~{
-        ~ListNF:_io.0
+        ~ListNF::_io.0
 	std_list_implm:_io.0
 	setFn:@{
 	        it~@Boxed:_io.0:{b+{at*8}}
@@ -210,15 +210,15 @@ Enum~{
 }
 
 MasterListNF~\{_io.return~{
-        ~BaseListNF:_io.0
+        ~BaseListNF::_io.0
         
         
 	emplace~{f~_io.0.;}
-	emplaceFn~virtual:emplace
+	emplaceFn~virtual::emplace
 }}
 
 MasterBufferList~\{_io.return~{
-        ~MasterListNF:_io.0
+        ~MasterListNF::_io.0
         b~bytes
         b.count:0
         count~int:0
@@ -228,7 +228,7 @@ MasterBufferList~\{_io.return~{
                         end:count
                         do:@{
                                 ptr.{f}
-                                ptr:{ptr+_mem_size_of:_io.0}
+                                ptr:{ptr+_mem_size_of::_io.0}
                         } ;
                 }
         }
