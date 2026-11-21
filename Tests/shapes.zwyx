@@ -4,7 +4,7 @@
 #21
 #12
 
-_import:"utilities_lib"
+_import::"utilities_lib"
 
 
 Shape~{
@@ -40,12 +40,12 @@ Circle~{
         b0~bytes.24
         
         l~BufferList:Shape.{
-        	setBuffer:@b0
+        	setBuffer::@b0
 	        add.{
 		        $:@rect ; $:@tri ; $:@circ ;
 	        }
         }
 
-        l.each:@{print.{d:area endl}}
+        l.each::@{print.{d::area endl}}
 }
 

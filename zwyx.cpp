@@ -1787,7 +1787,7 @@ void handle_compile_time_method(Instrx* method_struct, Instrx* arg)
                 parent_ptr->instrxs.pop_back();
                 delete(parent_ptr->instrxs.back());
                 parent_ptr->instrxs.pop_back();
-                if (INSERTION == arg->oper)
+                if ((INSERTION == arg->oper) || (INSERTION_2 == arg->oper))
                 {
                         parent_ptr->instrxs.back()->insertion_source = arg;
                 }
@@ -2169,7 +2169,7 @@ void handle_new_instrx()
 	else if ((parent_ptr->instrxs.size() > 0) && (parent_ptr->instrxs.back()->oper != IGNORE)
 	          && (IMPORT == parent_ptr->instrxs.back()->unit->type))
 	{
-	        if (new_instrx.oper != INSERTION)
+	        if ((new_instrx.oper != INSERTION) && (new_instrx.oper != INSERTION_2))
 	        {
 	                set_error(INVALID_USE_OF_IMPORT, line_num, basic_units[IMPORT]->name);
 	        }
@@ -2197,7 +2197,7 @@ void handle_new_instrx()
 			parent_ptr->instrxs.back()->insertion_source = temp;
 		}
 		
-		if (!is_default_instrx(&new_instrx) && new_instrx.oper != DEFINE)
+		if (!is_default_instrx(temp) && new_instrx.oper != DEFINE)
 		{
 			temp_reg_mem = WORD_SIZE;
 		}
@@ -2348,7 +2348,8 @@ void handle_new_superunit()
 void handle_ptr()
 {
         new_instrx.is_ptr = SYMBOL_PTR;
-        if ((new_instrx.oper != NO_OPER) && (new_instrx.oper != DEFINE) && (new_instrx.oper != INSERTION))
+        if ((new_instrx.oper != NO_OPER) && (new_instrx.oper != DEFINE)
+             && (new_instrx.oper != INSERTION) && (new_instrx.oper != INSERTION_2))
         {
                 set_error(INVALID_USE_OF_OPER, line_num, operators[new_instrx.oper]);
         }

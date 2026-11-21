@@ -1,7 +1,7 @@
 #Generic fizzbuzz that can handle any primes and replacement strings
 #Outputs "classic" fizzbuzz and a custom one
 
-_import:"utilities_lib"
+_import::"utilities_lib"
 
 
 fizzbuzz_generic~{
@@ -15,7 +15,7 @@ fizzbuzz_generic~{
 		replaced~int
 		;~{
 			{n % prime = 0}?{
-				write.s:with
+				write.s::with
 				replaced:1
 			}
 		}
@@ -28,7 +28,7 @@ fizzbuzz_generic~{
 				replaced:0
 				replacements
 				{replaced = 0}?{
-					write.d:n
+					write.d::n
 				}
 				write.endl
 				n:{n+1}

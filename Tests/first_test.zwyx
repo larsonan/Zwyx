@@ -17,7 +17,7 @@
 #FGRST
 #AGTER
 
-_import:"utilities_lib"
+_import::"utilities_lib"
 
 npair~{a~int b~int}
 
@@ -37,7 +37,7 @@ getmessage.;~{
 factorial~{
 	in~int
 	;~{
-		{in < 2} ? 1 ^ {in * factorial:{in-1}}
+		{in < 2} ? 1 ^ {in * factorial::{in-1}}
 	}
 }
 
@@ -56,11 +56,11 @@ write_color~{
 	;~{
 		write.{
 			colrw.{
-				red.is ? {s:"RED"}
-				^ green.is ? {s:"GREEN"}
-				^ orange.is ? {s:"ORANGE"}
-				^ yellow.is ? {s:"YELLOW"}
-				^ blue.is ? {s:"BLUE"}
+				red.is ? {s::"RED"}
+				^ green.is ? {s::"GREEN"}
+				^ orange.is ? {s::"ORANGE"}
+				^ yellow.is ? {s::"YELLOW"}
+				^ blue.is ? {s::"BLUE"}
 			}
 			endl
 		}
@@ -84,9 +84,9 @@ divmod_output~{
         ;~{
                 result~divmod.{dd:a dv:b ;}
                 {result.error.count > 0} ? {
-                        print.line:result.error
+                        print.line::result.error
                 } ^ {
-                        print.{s:"Result is " d:result.q s:" and " d:result.r endl}
+                        print.{s::"Result is " d::result.q s::" and " d::result.r endl}
                 }
         }
 }
@@ -98,7 +98,7 @@ remove_duplicates~{
                 l_in.each:@{
                         outer~$
                         found~int:0
-                        l_out.each:@{
+                        l_out.each::@{
                                 {{a = outer.a} & {b = outer.b}}?{
                                         found:1
                                 }
@@ -116,37 +116,37 @@ mbuf~bytes.80
         l~MasterBufferList:npair.{
 	        setBuffer:@mbuf
 	        emplace.{
-		        $:@{a:1 b:0} ;
-		        $:@{a:2 b:5} ;
-		        $:@{a:0 b:5} ;
-		        $:@{a:2 b:7} ;
-		        $:@{a:4 b:1} ;
+		        $::@{a:1 b:0} ;
+		        $::@{a:2 b:5} ;
+		        $::@{a:0 b:5} ;
+		        $::@{a:2 b:7} ;
+		        $::@{a:4 b:1} ;
 	        }
         }
-        l.each:@{print.d:{a+b}}
+        l.each::@{print.d:{a+b}}
         
         bm
         print.{
 	        hello~bytes.40
 	        msg~BufferString
 	        msg.setBuffer:@hello
-	        msg.write.{getmessage:@$}
+	        msg.write.{getmessage::@$}
 	        msg.set.{el:"F" at:1 ; at:2 ; at:3 ; at:4 ;}
-	        s:msg
-	        d:1749 c:102 d:0 c:90
+	        s::msg
+	        d::1749 c::102 d::0 c::90
 	        endl
         }
         
-        print.{d:factorial:7 endl}
+        print.{d:factorial::7 endl}
         
         color_a~Color
         color_a.blue.set
-        print.{d:color_a.blue.is endl d:color_a.orange.is endl}
+        print.{d::color_a.blue.is endl d::color_a.orange.is endl}
         print.{write_color.{write:@$.2 colrw:color_a ; color_a.orange.set colrw:color_a ;}}
         
         n~int:4
-        l.each:@{b:n n:{n-1}}
-        l.each:@{print.d:{a+b}}
+        l.each::@{b:n n:{n-1}}
+        l.each::@{print.d:{a+b}}
         print.endl
         
         divmod_output.{13,2,; 7,0,;}
@@ -159,7 +159,7 @@ mbuf~bytes.80
                 {$:4 ;}.{a:2 b:4}
         }
         
-        print.d:{6-4/2+5*9}
+        print.d::{6-4/2+5*9}
         print.endl
         
         b1~bytes.48
@@ -175,13 +175,13 @@ mbuf~bytes.80
         
         l2.each:@{print.{d:a d:b endl}}
         
-        print.line:"This is in fact a line."
+        print.line::"This is in fact a line."
         
         strBuffer1~bytes.40
         strBuffer2~bytes.40
-        str1~BufferString.{setBuffer:@strBuffer1 write:"FIRST"}
-        str2~BufferString.{setBuffer:@strBuffer2 write:"AFTER"}
+        str1~BufferString.{setBuffer:@strBuffer1 write::"FIRST"}
+        str2~BufferString.{setBuffer:@strBuffer2 write::"AFTER"}
         BufferString.set.{at:1 el:71 $.$:@str1 ; $.$:@str2 ;}
-        print.{s:str1 endl s:str2 endl}
+        print.{s::str1 endl s::str2 endl}
 }
 

@@ -1,7 +1,7 @@
 #Plays a perfect game of tic-tac-toe, as X
 #Cannot lose, only win or draw
 
-_import:"utilities_lib"
+_import::"utilities_lib"
 
 
 Board~{
@@ -60,7 +60,7 @@ Board~{
                         for.{
                                 end:9
                                 do:@{
-                                        print.c:p.el
+                                        print.c::p.el
                                         p:{p+1}
                                         {{i % 3} = 2}?{
                                                 print.endl
@@ -167,7 +167,7 @@ Game~{
                 stateFn:start
                 {state.DEFAULT.is}?*{
                         board.printBoard
-                        print:"Enter move (Row,Column):"
+                        print::"Enter move (Row,Column):"
                         RInput~int:getChar
                         newChar~int:getChar
                         {newChar = ","}?{
@@ -178,7 +178,7 @@ Game~{
                                 newChar:getChar
                         }
                         {{RInput < "1"} | {RInput > "3"} | {CInput < "1"} | {CInput > "3"}} ? {
-                                print.line:"Illegal move."
+                                print.line::"Illegal move."
                         }^{
                                 r:{RInput-"1"}
                                 c:{CInput-"1"}
@@ -187,15 +187,15 @@ Game~{
                                         stateFn
                                         board.cell.{r:$.2.r c:$.2.c X.set}
                                 }^{
-                                        print.line:"Illegal move."
+                                        print.line::"Illegal move."
                                 }
                         }
                 }
                 board.printBoard
                 {state.WON.is}?{
-                        print.line:"Game over"
+                        print.line::"Game over"
                 }^{
-                        print.line:"Cats game"
+                        print.line::"Cats game"
                 }
         }
 }

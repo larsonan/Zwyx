@@ -1,25 +1,25 @@
-_import:"utilities_lib"
+_import::"utilities_lib"
 
 
 Greeter~{
         name~BufferString
         greet~{
                 ;~{
-                        print.{s:"Hello, " s:name c:"!" endl}
+                        print.{s::"Hello, " s::name c::"!" endl}
                 }
         }
 }
 
 ;~{
         greeter~Greeter
-        print:"What is your name? "
+        print::"What is your name? "
         buff~bytes.20
         ch~int:0
         greeter.name.{
                 setBuffer:@buff
                 ch:getChar
                 {ch != 10}?*{
-                        write.c:ch
+                        write.c::ch
                         ch:getChar
                 }
         }

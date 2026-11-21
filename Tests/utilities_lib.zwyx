@@ -105,11 +105,11 @@ std_list_implm~`
         b.count:0
         count~int:0
         getFn:@{
-		it~@Boxed:_io.0:{b+{at*8}}
+		it~@Boxed::_io.0:{b+{at*8}}
 		it.el
 	}
 	eachFn:@{
-		it~@Boxed:_io.0:b
+		it~@Boxed::_io.0:b
 		remaining~int
 		remaining:count
 		{remaining > 0}?*{
@@ -123,9 +123,9 @@ std_list_implm~`
 
 BufferList~\{_io.return~{
         ~ListNF::_io.0
-	std_list_implm:_io.0
+	std_list_implm::_io.0
 	setFn:@{
-	        it~@Boxed:_io.0:{b+{at*8}}
+	        it~@Boxed::_io.0:{b+{at*8}}
 		it.el:el
 	}
         addFn:@{
@@ -276,10 +276,10 @@ File~{
         fd~int
         open~{;~{
                 c_str_buffer~bytes.20
-                fd:_system.fileOpen:BufferString.{setBuffer:@c_str_buffer write.{s:name c:0} $}
+                fd:_system.fileOpen::BufferString.{setBuffer:@c_str_buffer write.{s:name c:0} $}
         }}
         close~{;~{
-                _system.fileClose:fd
+                _system.fileClose::fd
         }}
         write~{
                 ~WriteNF
