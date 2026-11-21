@@ -97,70 +97,69 @@ using namespace std;
 
 string error_messages[] = 
 {
-	"", /* No Error */
-	"Invalid use of operator",
-	"Undefined unit",
-	"Redefinition of unit",
-	"Invalid number format",
-	"Missing end brace",
-	"Invalid character in string literal",
-	"Cannot open file",
-	"Invalid in unit",
-	"Invalid use of import",
-	"No default method found in context",
-	"Unmatched end brace",
-	"String literal not ended properly",
-	"Compiletime method not ended properly"
+    "", /* No Error */
+    "Invalid use of operator",
+    "Undefined unit",
+    "Redefinition of unit",
+    "Invalid number format",
+    "Missing end brace",
+    "Invalid character in string literal",
+    "Cannot open file",
+    "Invalid in unit",
+    "Invalid use of import",
+    "No default method found in context",
+    "Unmatched end brace",
+    "String literal not ended properly",
+    "Compiletime method not ended properly"
 };
 
 struct Instrx
 {
-	struct Unit *unit;
-	int oper;
-	int is_ptr;
-	int unit_line;
-	int oper_line;
-	int base_level;
-	int state;
-	Instrx *ptr_source;
-	Instrx *insertion_source;
+    struct Unit *unit;
+    int oper;
+    int is_ptr;
+    int unit_line;
+    int oper_line;
+    int base_level;
+    int state;
+    Instrx *ptr_source;
+    Instrx *insertion_source;
 };
 
 struct Method
 {
-	int f_num;
-	int mem_base;
-	int num_instrx;
-	
-	Instrx **instrxs;
+    int f_num;
+    int mem_base;
+    int num_instrx;
+    Instrx **instrxs;
 };
 
 struct Error
 {
-	int type;
-	int line;
-	string section;
-	string file_name;
+    int type;
+    int line;
+    string section;
+    string file_name;
 };
 
 struct Unit
 {
-	string name;
-	int type;
-	int mem_offset;
-	int mem_used;
-	int mem_base;
-	Unit *base;
-	vector<Unit*> subunits;
-	int f_num;
-	Unit *method;
-	Unit *parent;
-	Unit *typing;
-	vector<Instrx*> instrxs;
-	Instrx *base_instrx;
-	int base_ptr_offset;
-	Unit *in_unit;
-	string str;
+    string name;
+    int type;
+    int mem_offset;
+    int mem_used;
+    int mem_base;
+    Unit *base;
+    vector<Unit*> subunits;
+    int f_num;
+    Unit *method;
+    Unit *parent;
+    Unit *typing;
+    vector<Instrx*> instrxs;
+    Instrx *base_instrx;
+    int base_ptr_offset;
+    Unit *in_unit;
+    string str;
 };
 
 string basic_unit_names[] = {"none", "", "", "int", "", "method", "", "", "bytes", "", "", "_io",
@@ -209,41 +208,41 @@ Unit *namespace_unit;
 
 void dbg_out_str(string msg)
 {
-	FILE *test_f = fopen("output.txt", "a");
-	(void)fprintf(test_f, "%s", msg.c_str());
-	(void)fprintf(test_f, "\n");
-	fclose(test_f);
+    FILE *test_f = fopen("output.txt", "a");
+    (void)fprintf(test_f, "%s", msg.c_str());
+    (void)fprintf(test_f, "\n");
+    fclose(test_f);
 }
 
 void dbg_out(int msg_int)
 {
-	FILE *test_f = fopen("output.txt", "a");
-	(void)fprintf(test_f, "%d", msg_int);
-	(void)fprintf(test_f, "\n");
-	fclose(test_f);
+    FILE *test_f = fopen("output.txt", "a");
+    (void)fprintf(test_f, "%d", msg_int);
+    (void)fprintf(test_f, "\n");
+    fclose(test_f);
 }
 
 void set_error(int type, int line, string section)
 {
-	errors[num_errors].type = type;
-	errors[num_errors].line = line;
-	errors[num_errors].section = section;
-	errors[num_errors].file_name = file_name;
-	if (num_errors < MAX_ERRORS - 1)
-	{
-		num_errors++;
-	}
+    errors[num_errors].type = type;
+    errors[num_errors].line = line;
+    errors[num_errors].section = section;
+    errors[num_errors].file_name = file_name;
+    if (num_errors < MAX_ERRORS - 1)
+    {
+        num_errors++;
+    }
 }
 
 void print_errors(void)
 {
-	for (int i = 0; i < num_errors; i++)
-	{
-	        (void)fprintf(stdout, "%s, ", errors[i].file_name.c_str());
-		(void)fprintf(stdout, "line %d", errors[i].line);
-		(void)fprintf(stdout, " - \"%s\"", errors[i].section.c_str());
-		(void)fprintf(stdout, ": %s\n", error_messages[errors[i].type].c_str());
-	}
+    for (int i = 0; i < num_errors; i++)
+    {
+        (void)fprintf(stdout, "%s, ", errors[i].file_name.c_str());
+	(void)fprintf(stdout, "line %d", errors[i].line);
+	(void)fprintf(stdout, " - \"%s\"", errors[i].section.c_str());
+	(void)fprintf(stdout, ": %s\n", error_messages[errors[i].type].c_str());
+    }
 }
 
 vector<Unit*> instantiate_subunits(Unit *superunit, Unit *mem_ref_parent);
@@ -263,491 +262,485 @@ void write_do(Instrx *instrx);
 
 void setup_basic_units(void)
 {
-	for (int i = 0; i < NUM_BASIC_UNITS; i++)
-	{
-		basic_units.push_back(&basic_unit_data[i]);
-		
-		basic_units[i]->type = i;
-		basic_units[i]->mem_base = false;
-		basic_units[i]->name = basic_unit_names[i];
-	}
-	basic_units[PTR]->mem_used = WORD_SIZE;
-	basic_units[BYTES_PTR]->mem_used = WORD_SIZE * 2;
-	basic_units[INT]->mem_used = WORD_SIZE;
-	basic_units[METHOD_PTR]->mem_used = WORD_SIZE * 2;
-	
-	Unit *count = new Unit(*basic_units[INT]);
-	count->name = "count";
-	count->mem_base = STRUCT_BASE;
-	count->mem_used = WORD_SIZE;
-	count->mem_offset = WORD_SIZE;
-	basic_units[METHOD_PTR]->subunits.push_back(count);
-	basic_units[BYTES_PTR]->subunits.push_back(count);
-        basic_units[ARG]->typing = basic_units[COMPTIME_METHOD];
-        basic_units[ASM]->typing = basic_units[COMPTIME_METHOD];
-        basic_units[MEMSIZE_OF]->typing = basic_units[COMPTIME_METHOD];
+    for (int i = 0; i < NUM_BASIC_UNITS; i++)
+    {
+	basic_units.push_back(&basic_unit_data[i]);
+	basic_units[i]->type = i;
+	basic_units[i]->mem_base = false;
+	basic_units[i]->name = basic_unit_names[i];
+    }
+    basic_units[PTR]->mem_used = WORD_SIZE;
+    basic_units[BYTES_PTR]->mem_used = WORD_SIZE * 2;
+    basic_units[INT]->mem_used = WORD_SIZE;
+    basic_units[METHOD_PTR]->mem_used = WORD_SIZE * 2;
+    
+    Unit *count = new Unit(*basic_units[INT]);
+    count->name = "count";
+    count->mem_base = STRUCT_BASE;
+    count->mem_used = WORD_SIZE;
+    count->mem_offset = WORD_SIZE;
+    basic_units[METHOD_PTR]->subunits.push_back(count);
+    basic_units[BYTES_PTR]->subunits.push_back(count);
+    basic_units[ARG]->typing = basic_units[COMPTIME_METHOD];
+    basic_units[ASM]->typing = basic_units[COMPTIME_METHOD];
+    basic_units[MEMSIZE_OF]->typing = basic_units[COMPTIME_METHOD];
 }
 
 void init(void)
 {
-	num_errors = 0;
-	num_templates = 0;
-	parent_ptr = NULL;
-	num_types = NUM_BASIC_UNITS;
-	setup_basic_units();
+    num_errors = 0;
+    num_templates = 0;
+    parent_ptr = NULL;
+    num_types = NUM_BASIC_UNITS;
+    setup_basic_units();
 }
 
 void write_unit(Instrx *instrx)
 {
-	if (INT_CONST == instrx->unit->type)
+    if (INT_CONST == instrx->unit->type)
+    {
+    	(void)fprintf(xcfile, "%s", instrx->unit->str.c_str());
+    }
+    else
+    {
+        if ((instrx->base_level >= BASE_2_METHOD) && (0 == (instrx->base_level % BASE_2_METHOD)))
 	{
-		(void)fprintf(xcfile, "%s", instrx->unit->str.c_str());
+	    (void)fprintf(xcfile, "[%s-%d]", REG_PTR, instrx->unit->mem_offset);
+	}
+	else if (METHOD == instrx->unit->mem_base)
+	{
+	    (void)fprintf(xcfile, "[%s-%d]", REG_DEFAULT, instrx->unit->mem_offset);
+	}
+	else if (1 == instrx->base_level)
+	{
+	    (void)fprintf(xcfile, "[%s+%d]", REG_BASE, instrx->unit->mem_offset);
 	}
 	else
 	{
-	        if ((instrx->base_level >= BASE_2_METHOD) && (0 == (instrx->base_level % BASE_2_METHOD)))
-	        {
-	                (void)fprintf(xcfile, "[%s-%d]", REG_PTR, instrx->unit->mem_offset);
-	        }
-		else if (METHOD == instrx->unit->mem_base)
-		{
-			(void)fprintf(xcfile, "[%s-%d]", REG_DEFAULT, instrx->unit->mem_offset);
-		}
-		else if (1 == instrx->base_level)
-		{
-			(void)fprintf(xcfile, "[%s+%d]", REG_BASE, instrx->unit->mem_offset);
-		}
-		else
-		{
-			(void)fprintf(xcfile, "[%s+%d]", REG_PTR, instrx->unit->mem_offset);
-		}
+	    (void)fprintf(xcfile, "[%s+%d]", REG_PTR, instrx->unit->mem_offset);
 	}
+    }
 }
 
 void write_load_ptr_base(Instrx *instrx)
 {
-	(void)fprintf(xcfile, "mov\t%s,\t", REG_PTR);
-	write_unit(instrx);
-	(void)fprintf(xcfile, "\n");
+    (void)fprintf(xcfile, "mov\t%s,\t", REG_PTR);
+    write_unit(instrx);
+    (void)fprintf(xcfile, "\n");
 }
 
 void write_array_count(Instrx *instrx)
 {
-        struct Instrx temp = *instrx;
-        temp.unit = instrx->unit->subunits[0];
-        
-        write_unit(&temp);
+    struct Instrx temp = *instrx;
+    temp.unit = instrx->unit->subunits[0];    
+    
+    write_unit(&temp);
 }
 
 bool is_struct(Unit *unit)
 {
-        return ((unit->type >= NUM_BASIC_UNITS) && (unit->type < 1000000));
+    return ((unit->type >= NUM_BASIC_UNITS) && (unit->type < 1000000));
 }
 
 void place_in_used_funcs(Unit *unit)
 {
-        int found = 0;
-        if (new_f_nums[unit->f_num] > 0)
-        {
-                found = 1;
-        }
-        
-        if ((unit->f_num > 0) && (0 == found))
-        {
-                used_funcs.push_back(unit);
-                num_new_f++;
-                new_f_nums[unit->f_num] = num_new_f;
-        }
+    int found = 0;
+    if (new_f_nums[unit->f_num] > 0)
+    {
+        found = 1;
+    }
+    
+    if ((unit->f_num > 0) && (0 == found))
+    {
+        used_funcs.push_back(unit);
+        num_new_f++;
+        new_f_nums[unit->f_num] = num_new_f;
+    }
 }
 
 void write_do(Instrx *instrx)
 {
-        struct Unit *unit;
-        struct Instrx *base_instrx;
-        if (is_struct(instrx->unit))
-        {
-                unit = instrx->unit->method;
-                base_instrx = instrx;
-        }
-        else
-        {
-                unit = instrx->unit;
-                base_instrx = instrx->unit->base_instrx;
-        }
-	if (METHOD_PTR == unit->type)
-	{
-	        (void)fprintf(xcfile, "mov\t%s,\t", REG_COUNT);
-	        write_array_count(instrx);
-	        (void)fprintf(xcfile, "\n");
-		(void)fprintf(xcfile, "mov\t%s,\t", REG_TEMP);
-		write_unit(instrx);
-		(void)fprintf(xcfile, "\n");
-	}
-	
-	if (base_instrx != NULL)
-	{
-	        handle_mem_level(base_instrx);
-	        if ((is_struct(base_instrx->unit))
-	                      && ((base_instrx->unit->mem_base) || (METHOD_PTR == unit->type)))
-	        {
-	                (void)fprintf(xcfile, "lea\t");
-	        }
-	        else
-	        {
-	                (void)fprintf(xcfile, "mov\t");
-	        }
-	        (void)fprintf(xcfile, "%s,\t", REG_BASE);
-	        write_unit(base_instrx);
-	        (void)fprintf(xcfile, "\n");
-	}
-	(void)fprintf(xcfile, "sub\t%s,\t%d\n", REG_DEFAULT, unit->mem_used - WORD_SIZE);
-	
-	if (METHOD_PTR == unit->type)
-	{
-		
-		(void)fprintf(xcfile, "call\t%s\n", REG_TEMP);
-	}
-	else
-	{
-		(void)fprintf(xcfile, "call\tf%d\n", new_f_nums[unit->f_num]);
-	}
-	(void)fprintf(xcfile, "add\t%s,\t%d\n", REG_DEFAULT, unit->mem_used - WORD_SIZE);
-	(void)fprintf(xcfile, "mov\t%s,\t[%s]\n", REG_BASE, REG_DEFAULT);
-}
-
-void write_insertion(Instrx *instrx)
-{
-	(void)fprintf(xcfile, "mov\t");
-	if ((INT_CONST == instrx->insertion_source->unit->type)
-	  || (STRING_LITERAL == instrx->insertion_source->unit->type))
-	{
-		(void)fprintf(xcfile, "qword\t");
-	}
-	write_unit(instrx);
-	(void)fprintf(xcfile, ",\t");
-	if (INT_CONST == instrx->insertion_source->unit->type)
-	{
-		(void)fprintf(xcfile, "%s", instrx->insertion_source->unit->str.c_str());
-	}
-	else if (STRING_LITERAL == instrx->insertion_source->unit->type)
-	{
-	        (void)fprintf(xcfile, "s%d", instrx->insertion_source->unit->f_num);
-	}
-	else if (instrx->unit->mem_used < WORD_SIZE)
-	{
-	        (void)fprintf(xcfile, "%s", REG_TEMP_ONE_BYTE);
-	}
-	else
-	{
-		(void)fprintf(xcfile, "%s", REG_TEMP);
-	}
+    struct Unit *unit;
+    struct Instrx *base_instrx;
+    if (is_struct(instrx->unit))
+    {
+        unit = instrx->unit->method;
+        base_instrx = instrx;
+    }
+    else
+    {
+        unit = instrx->unit;
+        base_instrx = instrx->unit->base_instrx;
+    }
+    if (METHOD_PTR == unit->type)
+    {
+	(void)fprintf(xcfile, "mov\t%s,\t", REG_COUNT);
+	write_array_count(instrx);
 	(void)fprintf(xcfile, "\n");
-	
-	if ((BYTES_PTR == instrx->unit->type) || (METHOD_PTR == instrx->unit->type))
-	{
-	        (void)fprintf(xcfile, "mov\t");
-	        if ((STRING_LITERAL == instrx->insertion_source->unit->type)
-	                      || (INT == instrx->insertion_source->unit->type)
-	                      || (BYTES == instrx->insertion_source->unit->type))
-	        {
-	                (void)fprintf(xcfile, "qword\t");
-	        }
-	        write_array_count(instrx);
-	        (void)fprintf(xcfile, ",\t");
-	        if ((STRING_LITERAL == instrx->insertion_source->unit->type)
-	                      || (INT == instrx->insertion_source->unit->type)
-	                      || (BYTES == instrx->insertion_source->unit->type))
-	        {
-	                (void)fprintf(xcfile, "%d", instrx->insertion_source->unit->mem_used);
-	        }
-	        else if ((METHOD_PTR == instrx->unit->type) && (METHOD == instrx->insertion_source->unit->type))
-	        {
-	                if (METHOD == instrx->insertion_source->unit->parent->type)
-	                {
-	                        (void)fprintf(xcfile, "%s", REG_DEFAULT);
-	                }
-	                else
-	                {
-	                        (void)fprintf(xcfile, "%s", REG_BASE);
-	                }
-	        }
-	        else
-	        {
-	                (void)fprintf(xcfile, "%s", REG_COUNT);
-	        }
-	        (void)fprintf(xcfile, "\n");
-	}
-}
-
-void write_ptr_to_temp(Instrx *instrx)
-{
-	if (METHOD == instrx->unit->type)
-	{
-		(void)fprintf(xcfile, "lea\t%s,\t", REG_TEMP);
-		(void)fprintf(xcfile, "[rel+f%d]\n", new_f_nums[instrx->unit->f_num]);
-	}
-	else
-	{
-	        if ((is_struct(instrx->unit)) || (BYTES == instrx->unit->type) || (INT == instrx->unit->type))
-	        {
-		        (void)fprintf(xcfile, "lea\t%s,\t", REG_TEMP);
-		}
-	        else
-	        {
-	                (void)fprintf(xcfile, "mov\t%s,\t", REG_TEMP);
-	        }
-	        write_unit(instrx);
-	        (void)fprintf(xcfile, "\n");
-	}
-}
-
-void write_ptr_reg_to_temp()
-{
-        (void)fprintf(xcfile, "mov\t%s,\t%s\n", REG_TEMP, REG_PTR);
-}
-
-void load_base_to_temp(Instrx* instrx)
-{
-        (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_TEMP, REG_BASE, instrx->ptr_source->unit->base_ptr_offset);
-}
-
-void store_temp(int mem_offset)
-{
-	(void)fprintf(xcfile, "mov\t[%s-%d],\t%s\n", REG_DEFAULT, mem_offset, REG_TEMP);
-}
-
-void get_stored_temp(int mem_offset)
-{
-	(void)fprintf(xcfile, "mov\t%s,\t[%s-%d]\n", REG_TEMP, REG_DEFAULT, mem_offset);
-}
-
-void load_base_to_reg(int mem_offset)
-{
-	(void)fprintf(xcfile, "lea\t%s,\t[%s-%d]\n", REG_BASE, REG_DEFAULT, mem_offset);
-}
-
-void load_static_base_to_reg(int mem_offset)
-{
-        (void)fprintf(xcfile, "lea\t%s,\t[%s+%d]\n", REG_BASE, REG_PTR, mem_offset);
-}
-
-void store_base(int mem_offset)
-{
-        (void)fprintf(xcfile, "mov\t[%s-%d],\t%s\n", REG_DEFAULT, mem_offset, REG_BASE);
-}
-
-void write_count_reg_to_temp()
-{
-        (void)fprintf(xcfile, "mov\t%s,\t%s\n", REG_TEMP, REG_COUNT);
-}
-
-void write_insertion_src(Instrx *instrx)
-{
-        if ((instrx->unit->mem_used < WORD_SIZE) && (instrx->unit->type != INT_CONST))
-        {
-                (void)fprintf(xcfile, "mov\t%s,\t", REG_TEMP_ONE_BYTE);
-        }
-        else
-        {
-	        (void)fprintf(xcfile, "mov\t%s,\t", REG_TEMP);
-	}
+	(void)fprintf(xcfile, "mov\t%s,\t", REG_TEMP);
 	write_unit(instrx);
 	(void)fprintf(xcfile, "\n");
-	
-	if ((BYTES_PTR == instrx->unit->type) || (METHOD_PTR == instrx->unit->type))
+    }
+    
+    if (base_instrx != NULL)
+    {
+	handle_mem_level(base_instrx);
+	if ((is_struct(base_instrx->unit)) && ((base_instrx->unit->mem_base) || (METHOD_PTR == unit->type)))
 	{
-	        (void)fprintf(xcfile, "mov\t%s,\t", REG_COUNT);
-	        write_array_count(instrx);
-	        
-	        (void)fprintf(xcfile, "\n");
-	}
-}
-
-void restore_base_to_reg()
-{
-	(void)fprintf(xcfile, "mov\t%s,\t[%s]\n", REG_BASE, REG_DEFAULT);
-}
-
-void write_init_unit(Instrx *instrx)
-{
-        Instrx* base_instrx = instrx->unit->base_instrx;
-        if (base_instrx->unit->f_num != STRUCT_UNINITIALIZED)
-        {
-                return;
-        }
-        handle_mem_level(base_instrx);
-	if (is_struct(base_instrx->unit) && base_instrx->unit->mem_base)
-	{
-	        (void)fprintf(xcfile, "lea\t");
+	    (void)fprintf(xcfile, "lea\t");
 	}
 	else
 	{
-	        (void)fprintf(xcfile, "mov\t");
+	    (void)fprintf(xcfile, "mov\t");
 	}
 	(void)fprintf(xcfile, "%s,\t", REG_BASE);
 	write_unit(base_instrx);
 	(void)fprintf(xcfile, "\n");
-	write_instrxs(base_instrx->unit->instrxs);
-	restore_base_to_reg();
+    }
+    (void)fprintf(xcfile, "sub\t%s,\t%d\n", REG_DEFAULT, unit->mem_used - WORD_SIZE);
+    
+    if (METHOD_PTR == unit->type)
+    {
+	(void)fprintf(xcfile, "call\t%s\n", REG_TEMP);
+    }
+    else
+    {
+        (void)fprintf(xcfile, "call\tf%d\n", new_f_nums[unit->f_num]);
+    }
+    (void)fprintf(xcfile, "add\t%s,\t%d\n", REG_DEFAULT, unit->mem_used - WORD_SIZE);
+    (void)fprintf(xcfile, "mov\t%s,\t[%s]\n", REG_BASE, REG_DEFAULT);
 }
 
-
-void write_math_instrx(Instrx *instrx)
+void write_insertion(Instrx *instrx)
 {
-	int get_unit_from_reg = 0;
-	if ((MULTIPLY == instrx->oper) || (DIVIDE == instrx->oper) || (MODULUS == instrx->oper))
+    (void)fprintf(xcfile, "mov\t");
+    if ((INT_CONST == instrx->insertion_source->unit->type)
+        || (STRING_LITERAL == instrx->insertion_source->unit->type))
+    {
+	(void)fprintf(xcfile, "qword\t");
+    }
+    write_unit(instrx);
+    (void)fprintf(xcfile, ",\t");
+    if (INT_CONST == instrx->insertion_source->unit->type)
+    {
+	(void)fprintf(xcfile, "%s", instrx->insertion_source->unit->str.c_str());
+    }
+    else if (STRING_LITERAL == instrx->insertion_source->unit->type)
+    {
+	(void)fprintf(xcfile, "s%d", instrx->insertion_source->unit->f_num);
+    }
+    else if (instrx->unit->mem_used < WORD_SIZE)
+    {
+	(void)fprintf(xcfile, "%s", REG_TEMP_ONE_BYTE);
+    }
+    else
+    {
+	(void)fprintf(xcfile, "%s", REG_TEMP);
+    }
+    (void)fprintf(xcfile, "\n");
+    
+    if ((BYTES_PTR == instrx->unit->type) || (METHOD_PTR == instrx->unit->type))
+    {
+	(void)fprintf(xcfile, "mov\t");
+	if ((STRING_LITERAL == instrx->insertion_source->unit->type) || (INT == instrx->insertion_source->unit->type)
+	    || (BYTES == instrx->insertion_source->unit->type))
 	{
-		(void)fprintf(xcfile, "xor\trdx,\trdx\n");
-		if (INT_CONST == instrx->unit->type)
-		{
-			get_unit_from_reg = 1;
-			(void)fprintf(xcfile, "mov\tqword\trcx,\t%s\n", instrx->unit->name.c_str());
-		}
+	    (void)fprintf(xcfile, "qword\t");
 	}
-	
-	switch (instrx->oper)
+	write_array_count(instrx);
+	(void)fprintf(xcfile, ",\t");
+	if ((STRING_LITERAL == instrx->insertion_source->unit->type) || (INT == instrx->insertion_source->unit->type)
+	    || (BYTES == instrx->insertion_source->unit->type))
 	{
-	case MODULUS:
-	case DIVIDE:
-		(void)fprintf(xcfile, "div\tqword\t");
-		break;
-	case ADD:
-		(void)fprintf(xcfile, "add\t%s,\t", REG_TEMP);
-		break;
-	case SUBTRACT:
-		(void)fprintf(xcfile, "sub\t%s,\t", REG_TEMP);
-		break;
-	case MULTIPLY:
-		(void)fprintf(xcfile, "mul\tqword\t");
-		break;
-	case AND:
-	        (void)fprintf(xcfile, "and\t%s,\t", REG_TEMP);
-	        break;
-	case OR:
-	        (void)fprintf(xcfile, "or\t%s,\t", REG_TEMP);
-	        break;
-	case COMPARE:
-	case COMPARE_NOT:
-	case LESS_THAN_OR_EQUAL:
-	case GREATER_THAN_OR_EQUAL:
-	case GREATER_THAN:
-	case LESS_THAN:
-	        (void)fprintf(xcfile, "cmp\t%s,\t", REG_TEMP);
-	        break;
-	default:
-		break;
+	    (void)fprintf(xcfile, "%d", instrx->insertion_source->unit->mem_used);
 	}
-	
-	if (get_unit_from_reg)
+	else if ((METHOD_PTR == instrx->unit->type) && (METHOD == instrx->insertion_source->unit->type))
 	{
-		(void)fprintf(xcfile, "rcx\n");
+	    if (METHOD == instrx->insertion_source->unit->parent->type)
+	    {
+	        (void)fprintf(xcfile, "%s", REG_DEFAULT);
+	    }
+	    else
+	    {
+	        (void)fprintf(xcfile, "%s", REG_BASE);
+	    }
 	}
 	else
 	{
-		write_unit(instrx);
-		(void)fprintf(xcfile, "\n");
+	    (void)fprintf(xcfile, "%s", REG_COUNT);
 	}
-	
-	if (MODULUS == instrx->oper)
+	(void)fprintf(xcfile, "\n");
+    }
+}
+
+void write_ptr_to_temp(Instrx *instrx)
+{
+    if (METHOD == instrx->unit->type)
+    {
+	(void)fprintf(xcfile, "lea\t%s,\t", REG_TEMP);
+	(void)fprintf(xcfile, "[rel+f%d]\n", new_f_nums[instrx->unit->f_num]);
+    }
+    else
+    {
+	if ((is_struct(instrx->unit)) || (BYTES == instrx->unit->type) || (INT == instrx->unit->type))
 	{
-	        write_count_reg_to_temp();
+	    (void)fprintf(xcfile, "lea\t%s,\t", REG_TEMP);
 	}
-	
-	switch (instrx->oper)
+	else
 	{
-		case COMPARE:
-		        (void)fprintf(xcfile, "sete\tal\nmovzx\t%s,\tal\n", REG_TEMP);
-		        break;
-		case GREATER_THAN_OR_EQUAL:
-		        (void)fprintf(xcfile, "setge\tal\nmovzx\t%s,\tal\n", REG_TEMP);
-		        break;
-		case LESS_THAN_OR_EQUAL:
-		        (void)fprintf(xcfile, "setle\tal\nmovzx\t%s,\tal\n", REG_TEMP);
-		        break;
-		case COMPARE_NOT:
-		        (void)fprintf(xcfile, "setne\tal\nmovzx\t%s,\tal\n", REG_TEMP);
-		        break;
-		case GREATER_THAN:
-		        (void)fprintf(xcfile, "setg\tal\nmovzx\t%s,\tal\n", REG_TEMP);
-		        break;
-		case LESS_THAN:
-		        (void)fprintf(xcfile, "setl\tal\nmovzx\t%s,\tal\n", REG_TEMP);
-		        break;
-		default:
-		        break;
+	    (void)fprintf(xcfile, "mov\t%s,\t", REG_TEMP);
 	}
+	write_unit(instrx);
+	(void)fprintf(xcfile, "\n");
+    }
+}
+
+void write_ptr_reg_to_temp()
+{
+    (void)fprintf(xcfile, "mov\t%s,\t%s\n", REG_TEMP, REG_PTR);
+}
+
+void load_base_to_temp(Instrx* instrx)
+{
+    (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_TEMP, REG_BASE, instrx->ptr_source->unit->base_ptr_offset);
+}
+
+void store_temp(int mem_offset)
+{
+    (void)fprintf(xcfile, "mov\t[%s-%d],\t%s\n", REG_DEFAULT, mem_offset, REG_TEMP);
+}
+
+void get_stored_temp(int mem_offset)
+{
+    (void)fprintf(xcfile, "mov\t%s,\t[%s-%d]\n", REG_TEMP, REG_DEFAULT, mem_offset);
+}
+
+void load_base_to_reg(int mem_offset)
+{
+    (void)fprintf(xcfile, "lea\t%s,\t[%s-%d]\n", REG_BASE, REG_DEFAULT, mem_offset);
+}
+
+void load_static_base_to_reg(int mem_offset)
+{
+    (void)fprintf(xcfile, "lea\t%s,\t[%s+%d]\n", REG_BASE, REG_PTR, mem_offset);
+}
+
+void store_base(int mem_offset)
+{
+    (void)fprintf(xcfile, "mov\t[%s-%d],\t%s\n", REG_DEFAULT, mem_offset, REG_BASE);
+}
+
+void write_count_reg_to_temp()
+{
+    (void)fprintf(xcfile, "mov\t%s,\t%s\n", REG_TEMP, REG_COUNT);
+}
+
+void write_insertion_src(Instrx *instrx)
+{
+    if ((instrx->unit->mem_used < WORD_SIZE) && (instrx->unit->type != INT_CONST))
+    {
+        (void)fprintf(xcfile, "mov\t%s,\t", REG_TEMP_ONE_BYTE);
+    }
+    else
+    {
+	(void)fprintf(xcfile, "mov\t%s,\t", REG_TEMP);
+    }
+    write_unit(instrx);
+    (void)fprintf(xcfile, "\n");
+    
+    if ((BYTES_PTR == instrx->unit->type) || (METHOD_PTR == instrx->unit->type))
+    {
+	(void)fprintf(xcfile, "mov\t%s,\t", REG_COUNT);
+	write_array_count(instrx);
+	
+	(void)fprintf(xcfile, "\n");
+    }
+}
+
+void restore_base_to_reg()
+{
+    (void)fprintf(xcfile, "mov\t%s,\t[%s]\n", REG_BASE, REG_DEFAULT);
+}
+
+void write_init_unit(Instrx *instrx)
+{
+    Instrx* base_instrx = instrx->unit->base_instrx;
+    if (base_instrx->unit->f_num != STRUCT_UNINITIALIZED)
+    {
+        return;
+    }
+    handle_mem_level(base_instrx);
+    if (is_struct(base_instrx->unit) && base_instrx->unit->mem_base)
+    {
+	(void)fprintf(xcfile, "lea\t");
+    }
+    else
+    {
+	(void)fprintf(xcfile, "mov\t");
+    }
+    (void)fprintf(xcfile, "%s,\t", REG_BASE);
+    write_unit(base_instrx);
+    (void)fprintf(xcfile, "\n");
+    write_instrxs(base_instrx->unit->instrxs);
+    restore_base_to_reg();
+}
+
+void write_math_instrx(Instrx *instrx)
+{
+    int get_unit_from_reg = 0;
+    if ((MULTIPLY == instrx->oper) || (DIVIDE == instrx->oper) || (MODULUS == instrx->oper))
+    {
+	(void)fprintf(xcfile, "xor\trdx,\trdx\n");
+	if (INT_CONST == instrx->unit->type)
+	{
+	    get_unit_from_reg = 1;
+	    (void)fprintf(xcfile, "mov\tqword\trcx,\t%s\n", instrx->unit->name.c_str());
+	}
+    }
+    
+    switch (instrx->oper)
+    {
+    case MODULUS:
+    case DIVIDE:
+	(void)fprintf(xcfile, "div\tqword\t");
+	break;
+    case ADD:
+	(void)fprintf(xcfile, "add\t%s,\t", REG_TEMP);
+	break;
+    case SUBTRACT:
+	(void)fprintf(xcfile, "sub\t%s,\t", REG_TEMP);
+	break;
+    case MULTIPLY:
+	(void)fprintf(xcfile, "mul\tqword\t");
+	break;
+    case AND:
+	(void)fprintf(xcfile, "and\t%s,\t", REG_TEMP);
+	break;
+    case OR:
+	(void)fprintf(xcfile, "or\t%s,\t", REG_TEMP);
+	break;
+    case COMPARE:
+    case COMPARE_NOT:
+    case LESS_THAN_OR_EQUAL:
+    case GREATER_THAN_OR_EQUAL:
+    case GREATER_THAN:
+    case LESS_THAN:
+	(void)fprintf(xcfile, "cmp\t%s,\t", REG_TEMP);
+	break;
+    default:
+	break;
+    }
+    
+    if (get_unit_from_reg)
+    {
+	(void)fprintf(xcfile, "rcx\n");
+    }
+    else
+    {
+	write_unit(instrx);
+	(void)fprintf(xcfile, "\n");
+    }
+    
+    if (MODULUS == instrx->oper)
+    {
+	write_count_reg_to_temp();
+    }
+    
+    switch (instrx->oper)
+    {
+	case COMPARE:
+	    (void)fprintf(xcfile, "sete\tal\nmovzx\t%s,\tal\n", REG_TEMP);
+	    break;
+	case GREATER_THAN_OR_EQUAL:
+	    (void)fprintf(xcfile, "setge\tal\nmovzx\t%s,\tal\n", REG_TEMP);
+	    break;
+	case LESS_THAN_OR_EQUAL:
+	    (void)fprintf(xcfile, "setle\tal\nmovzx\t%s,\tal\n", REG_TEMP);
+	    break;
+	case COMPARE_NOT:
+	    (void)fprintf(xcfile, "setne\tal\nmovzx\t%s,\tal\n", REG_TEMP);
+	    break;
+	case GREATER_THAN:
+	    (void)fprintf(xcfile, "setg\tal\nmovzx\t%s,\tal\n", REG_TEMP);
+	    break;
+	case LESS_THAN:
+	    (void)fprintf(xcfile, "setl\tal\nmovzx\t%s,\tal\n", REG_TEMP);
+	    break;
+	default:
+	    break;
+    }
 }
 
 void write_jump_unconditional(int b_num)
 {
-        (void)fprintf(xcfile, "jmp\tb%d\n", b_num);
+    (void)fprintf(xcfile, "jmp\tb%d\n", b_num);
 }
 
 void write_label_no(int b_num)
 {
-        (void)fprintf(xcfile, "b%d:\n", b_num);
+    (void)fprintf(xcfile, "b%d:\n", b_num);
 }
 
 void write_jump_conditional(int b_num)
 {
-        (void)fprintf(xcfile, "cmp\t%s,\t0\nje\tb%d\n", REG_TEMP, b_num);
+    (void)fprintf(xcfile, "cmp\t%s,\t0\nje\tb%d\n", REG_TEMP, b_num);
 }
 
 void decrease_base_level(Instrx* instrx)
 {
-        int base_level = instrx->base_level;
-        Unit *base;
-        if ((instrx->ptr_source != NULL) && (instrx->ptr_source->unit != NULL))
+    int base_level = instrx->base_level;
+    Unit *base;
+    if ((instrx->ptr_source != NULL) && (instrx->ptr_source->unit != NULL))
+    {
+        base = instrx->ptr_source->unit;
+    }
+    if (base_level >= BASE_2_METHOD)
+    {
+        (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_DEFAULT, WORD_SIZE);
+        base_level -= BASE_2_METHOD;
+        while (base_level >= BASE_2_METHOD)
         {
-                base = instrx->ptr_source->unit;
+            (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_PTR, WORD_SIZE);
+            base_level -= BASE_2_METHOD;
         }
-        if (base_level >= BASE_2_METHOD)
+        if (base_level >= BASE_2_STRUCT)
         {
-                (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_DEFAULT, WORD_SIZE);
-                base_level -= BASE_2_METHOD;
-                while (base_level >= BASE_2_METHOD)
-                {
-                        (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_PTR, WORD_SIZE);
-                        base_level -= BASE_2_METHOD;
-                }
-                if (base_level >= BASE_2_STRUCT)
-                {
-                        (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_PTR, WORD_SIZE);
-                        base_level -= BASE_2_STRUCT;
-                }
-                else if (base_level >= 1)
-                {
-                        (void)fprintf(xcfile, "mov\t%s,\t[%s]\n", REG_PTR, REG_PTR);
-                }
-                if (base_level >= 2)
-                {
-                        (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_PTR, base->base_ptr_offset);
-                }
+            (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_PTR, WORD_SIZE);
+            base_level -= BASE_2_STRUCT;
         }
-        else if (base_level >= BASE_2_STRUCT)
+        else if (base_level >= 1)
         {
-                (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_DEFAULT, WORD_SIZE);
-                base_level -= BASE_2_STRUCT;
-                if (base_level >= 2)
-                {
-                        (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_PTR, base->base_ptr_offset);
-                }
+            (void)fprintf(xcfile, "mov\t%s,\t[%s]\n", REG_PTR, REG_PTR);
         }
-        else
+        if (base_level >= 2)
         {
-                (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_BASE, base->base_ptr_offset);
+            (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_PTR, base->base_ptr_offset);
         }
-        
-        for (int i = 2; i < base_level; i++)
+    }
+    else if (base_level >= BASE_2_STRUCT)
+    {
+        (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_DEFAULT, WORD_SIZE);
+        base_level -= BASE_2_STRUCT;
+        if (base_level >= 2)
         {
-                base = base->parent;
-                (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_PTR, base->base_ptr_offset);
+            (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_PTR, base->base_ptr_offset);
         }
+    }
+    else
+    {
+        (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_BASE, base->base_ptr_offset);
+    }
+    
+    for (int i = 2; i < base_level; i++)
+    {
+        base = base->parent;
+        (void)fprintf(xcfile, "mov\t%s,\t[%s+%d]\n", REG_PTR, REG_PTR, base->base_ptr_offset);
+    }
 }
 
 void handle_static_base()
 {
-        (void)fprintf(xcfile, "mov\t%s,\tstatic_mem\n", REG_PTR);
+    (void)fprintf(xcfile, "mov\t%s,\tstatic_mem\n", REG_PTR);
 }
 
 void write_asm(Instrx *instrx)
