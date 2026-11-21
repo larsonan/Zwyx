@@ -24,7 +24,7 @@ increase_urgency~{
 	        for.{
 	                end:in.count
 	                do:@{
-	                        {in.get::i = "."}?{
+	                        {in.get::i == "."}?{
 	                                in.set.{el:"!" at:i ;}
 	                        }
 	                } ;

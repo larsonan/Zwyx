@@ -201,10 +201,10 @@ Enum~{
 	op~{
 		op_val~int
 		is~{
-			;~{val=op_val}
+			;~{val==op_val}
 		}
 		set~{
-			;~{val:op_val}
+			;~{val: op_val}
 		}
 	}
 }

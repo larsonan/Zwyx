@@ -69,7 +69,7 @@ write_color~{
 
 divmod~{ dd~int dv~int r~int q~int error~BufferString:""
         ;~{
-                {dv = 0} ? {
+                {dv == 0} ? {
                         error:"Cannot divide by zero!"
                 } ^ {
                         q:{dd/dv}
@@ -99,11 +99,11 @@ remove_duplicates~{
                         outer~$
                         found~int:0
                         l_out.each::@{
-                                {{a = outer.a} & {b = outer.b}}?{
+                                {{a == outer.a} & {b == outer.b}}?{
                                         found:1
                                 }
                         }
-                        {found = 0}?{
+                        {found == 0}?{
                                 l_out.add:outer
                         }
                 }
