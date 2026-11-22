@@ -2109,228 +2109,228 @@ void handle_subunit()
 
 bool has_precedence(int oper_1, int oper_2)
 {
-        return ((precedences[oper_1] > 0) && (precedences[oper_2] > 0)
-                && (precedences[oper_1] > precedences[oper_2]));
+    return ((precedences[oper_1] > 0) && (precedences[oper_2] > 0)
+            && (precedences[oper_1] > precedences[oper_2]));
 }
 
 void handle_precedence(Instrx *temp)
 {
-	if ((parent_ptr->instrxs.size() > 0) && has_precedence(new_instrx.oper, parent_ptr->instrxs.back()->oper))
-	{
-		Instrx *first = new Instrx(*(parent_ptr->instrxs.back()));
-		int first_oper = first->oper;
-		new_instrx.oper = first_oper;
-		first->oper = NO_OPER;
-		parent_ptr->instrxs.pop_back();
-		handle_new_superunit();
-		parent_ptr->base_instrx = new Instrx();
-		parent_ptr->base_instrx->unit = NULL;
-		parent_ptr->base_instrx->oper = first_oper;
-		parent_ptr->instrxs.push_back(first);
-		parent_ptr->in_unit = first->unit;
-	}
-        else if ((parent_ptr->base_instrx != NULL) && (NULL == parent_ptr->base_instrx->unit)
-	        && !has_precedence(temp->oper, parent_ptr->base_instrx->oper)
-	        && (precedences[temp->oper] > 0))
-	{
-	        handle_last_instrx();
-	        while ((parent_ptr->base_instrx != NULL) && (NULL == parent_ptr->base_instrx->unit)
-	              && !has_precedence(temp->oper, parent_ptr->base_instrx->oper))
-	        {
-	                parent_ptr = parent_ptr->parent;
-	        }
-	}
+    if ((parent_ptr->instrxs.size() > 0) && has_precedence(new_instrx.oper, parent_ptr->instrxs.back()->oper))
+    {
+        Instrx *first = new Instrx(*(parent_ptr->instrxs.back()));
+        int first_oper = first->oper;
+        new_instrx.oper = first_oper;
+        first->oper = NO_OPER;
+        parent_ptr->instrxs.pop_back();
+        handle_new_superunit();
+        parent_ptr->base_instrx = new Instrx();
+        parent_ptr->base_instrx->unit = NULL;
+        parent_ptr->base_instrx->oper = first_oper;
+        parent_ptr->instrxs.push_back(first);
+        parent_ptr->in_unit = first->unit;
+    }
+    else if ((parent_ptr->base_instrx != NULL) && (NULL == parent_ptr->base_instrx->unit)
+             && !has_precedence(temp->oper, parent_ptr->base_instrx->oper)
+             && (precedences[temp->oper] > 0))
+    {
+        handle_last_instrx();
+        while ((parent_ptr->base_instrx != NULL) && (NULL == parent_ptr->base_instrx->unit)
+              && !has_precedence(temp->oper, parent_ptr->base_instrx->oper))
+        {
+            parent_ptr = parent_ptr->parent;
+        }
+    }
 }
 
 void handle_new_instrx()
 {
-        handle_oper_errors();
-        if ((BYTES == new_instrx.unit->type) && (!new_instrx.unit->mem_base))
+    handle_oper_errors();
+    if ((BYTES == new_instrx.unit->type) && (!new_instrx.unit->mem_base))
+    {
+        new_instrx.unit = basic_units[BYTES_PTR];
+    }
+    
+    if (SUBUNIT == new_instrx.oper)
+    {
+        handle_subunit();
+    }
+    else if ((parent_ptr->instrxs.size() > 0) && (parent_ptr->instrxs.back()->oper != IGNORE)
+            && (IMPORT == parent_ptr->instrxs.back()->unit->type))
+    {
+        if ((new_instrx.oper != INSERTION) && (new_instrx.oper != INSERTION_2))
         {
-                new_instrx.unit = basic_units[BYTES_PTR];
+            set_error(INVALID_USE_OF_IMPORT, line_num, basic_units[IMPORT]->name);
+        }
+        else
+        {
+            parent_ptr->instrxs.back()->oper = IGNORE;
+            new_instrx.oper = NO_OPER;
+            parse_file(new_instrx.unit->name + ".zwyx");
+        }
+    }
+    else
+    {
+        Instrx *temp = new Instrx(new_instrx);
+        handle_precedence(temp);
+        
+        if (INSERTION_2 == new_instrx.oper)
+        {
+            temp->oper = INSERTION;
         }
         
-	if (SUBUNIT == new_instrx.oper)
-	{
-		handle_subunit();
-	}
-	else if ((parent_ptr->instrxs.size() > 0) && (parent_ptr->instrxs.back()->oper != IGNORE)
-	          && (IMPORT == parent_ptr->instrxs.back()->unit->type))
-	{
-	        if ((new_instrx.oper != INSERTION) && (new_instrx.oper != INSERTION_2))
-	        {
-	                set_error(INVALID_USE_OF_IMPORT, line_num, basic_units[IMPORT]->name);
-	        }
-	        else
-	        {
-	                parent_ptr->instrxs.back()->oper = IGNORE;
-	                new_instrx.oper = NO_OPER;
-	                parse_file(new_instrx.unit->name + ".zwyx");
-	        }
-	}
-	else
-	{
-	        Instrx *temp = new Instrx(new_instrx);
-	        
-	        handle_precedence(temp);
-	        if (INSERTION_2 == new_instrx.oper)
-	        {
-	                temp->oper = INSERTION;
-	        }
-		
-		if    ((INSERTION == new_instrx.oper) || (INSERTION_2 == new_instrx.oper)
-		    || (SUBUNIT == new_instrx.oper) || (WHILE == new_instrx.oper)
-		    || (ELSE == new_instrx.oper) || (BRANCH == new_instrx.oper))
-		{
-			parent_ptr->instrxs.back()->insertion_source = temp;
-		}
-		
-		if (!is_default_instrx(temp) && new_instrx.oper != DEFINE)
-		{
-			temp_reg_mem = WORD_SIZE;
-		}
-		else
-		{
-			temp_reg_mem = 0;
-		}
-		
-		parent_ptr->instrxs.push_back(temp);
-	}
-	new_instrx.oper = NO_OPER;
-	new_instrx.base_level = 0;
-	new_instrx.is_ptr = 0;
-	new_instrx.ptr_source = NULL;
-	new_instrx.unit = NULL;
-	parent_ptr->instrxs.back()->unit_line = line_num;
+        if    ((INSERTION == new_instrx.oper) || (INSERTION_2 == new_instrx.oper)
+              || (SUBUNIT == new_instrx.oper) || (WHILE == new_instrx.oper)
+              || (ELSE == new_instrx.oper) || (BRANCH == new_instrx.oper))
+        {
+            parent_ptr->instrxs.back()->insertion_source = temp;
+        }
+        
+        if (!is_default_instrx(temp) && new_instrx.oper != DEFINE)
+        {
+             temp_reg_mem = WORD_SIZE;
+        }
+        else
+        {
+            temp_reg_mem = 0;
+        }
+        
+        parent_ptr->instrxs.push_back(temp);
+    }
+    new_instrx.oper = NO_OPER;
+    new_instrx.base_level = 0;
+    new_instrx.is_ptr = 0;
+    new_instrx.ptr_source = NULL;
+    new_instrx.unit = NULL;
+    parent_ptr->instrxs.back()->unit_line = line_num;
 }
 
 void handle_unit(Unit *unit)
 {
-	new_instrx.unit = unit;
-	handle_new_instrx();
+    new_instrx.unit = unit;
+    handle_new_instrx();
 }
 
 void handle_end_superunit()
 {
-        while ((parent_ptr->base_instrx != NULL) && (NULL == parent_ptr->base_instrx->unit))
-        {
-                handle_last_instrx();
-                parent_ptr = parent_ptr->parent;
-        }
-	
-	handle_last_instrx();
-	
-	if (parent_ptr->parent != NULL)
-	{
-		parent_ptr = parent_ptr->parent;
-	}
-	else
-	{
-	        set_error(UNMATCHED_END_BRACE, line_num, "}");
-	}
+    while ((parent_ptr->base_instrx != NULL) && (NULL == parent_ptr->base_instrx->unit))
+    {
+        handle_last_instrx();
+        parent_ptr = parent_ptr->parent;
+    }
+    
+    handle_last_instrx();
+    
+    if (parent_ptr->parent != NULL)
+    {
+        parent_ptr = parent_ptr->parent;
+    }
+    else
+    {
+        set_error(UNMATCHED_END_BRACE, line_num, "}");
+    }
 }
 
 void handle_new_superunit()
 {
-	Unit *unit = new Unit;
-	*unit = *basic_units[STRUCT_BASE];
-	
-	if (DEFINE == new_instrx.oper)
-	{
-		unit->base = parent_ptr;
-		if (parent_ptr->instrxs.back()->unit->type != METHOD)
-		{
-		        unit->type = num_types;
-		        num_types++;
-		}
-		if (is_struct(parent_ptr) && (NULL == parent_ptr->instrxs.back()->unit->parent))
-		{
-		        unit->base_ptr_offset = 0;
-			unit->mem_used += WORD_SIZE;
-		}
-	        if (METHOD == parent_ptr->instrxs.back()->unit->type)
-		{
-		        unit->type = METHOD;
-		        if (NAMESPACE == parent_ptr->type)
-		        {
-		                unit->mem_used += WORD_SIZE;
-		        }
-		        else
-		        {
-		                handle_new_method(unit);
-		        }
-			parent_ptr->method = unit;
-	        }
-	        if (METHOD_PTR == parent_ptr->instrxs.back()->unit->type)
-	        {
-	                unit->type = METHOD;
-	                unit->mem_used += WORD_SIZE;
-	                unit->base = parent_ptr->instrxs.back()->ptr_source->unit;
-	                if (unit->base->method != NULL)
-	                {
-	                        replace_method(unit);
-	                }
-	                else
-	                {
-	                        handle_new_method(unit);
-	                }
-	                unit->base->method = unit;
-	                parent_ptr->instrxs.back()->unit = basic_units[METHOD];
-	        }
-		handle_define_statement(parent_ptr->instrxs.back()->unit, unit);
-		parent_ptr->instrxs.back()->oper = IGNORE;
-		new_instrx.oper = NO_OPER;
-	}
-	else
-	{
-	        handle_last_instrx();
-		unit->type = METHOD;
-		unit->mem_base = METHOD;
-		unit->mem_used = parent_ptr->mem_used;
-		if (SUBUNIT == new_instrx.oper)
-		{
-		        if (METHOD == parent_ptr->instrxs.back()->unit->type)
-		        {
-		                unit->base = new Unit(*parent_ptr->instrxs.back()->unit->in_unit);
-		                unit->base->mem_base = METHOD;
-		                unit->base->mem_offset = unit->mem_used;
-		                unit->mem_used += WORD_SIZE;
-		                unit->base_instrx = new Instrx();
-		                unit->base_instrx->unit = unit->base;
-		        }
-		        else
-		        {
-			        unit->base_instrx = new Instrx(*parent_ptr->instrxs.back());
-			        unit->base_instrx->oper = 0;
-			        unit->base_instrx->state = 0;
-			        unit->base = parent_ptr->instrxs.back()->unit;
-			}
-			
-			if ((parent_ptr->instrxs.back()->unit->mem_offset >= parent_ptr->mem_used)
-			    && (METHOD == parent_ptr->instrxs.back()->unit->mem_base))
-			{
-			        unit->mem_used = parent_ptr->instrxs.back()->unit->mem_offset + WORD_SIZE;
-			}
-		}
-		else if (new_instrx.is_ptr)
-		{
-		        unit->base = in_unit(parent_ptr->instrxs.back()->unit)->base;
-		        unit->mem_base = METHOD_PTR;
-		        unit->base_instrx = new Instrx();
-		        unit->base_instrx->unit = new Unit(*basic_units[PTR]);
-		        unit->base_instrx->unit->mem_base = METHOD;
-		        unit->base_instrx->unit->typing = in_unit(parent_ptr->instrxs.back()->unit)->base;
-			handle_new_method(unit);
-			unit->mem_used = WORD_SIZE;
-			unit->typing = basic_units[METHOD_PTR];
-		}
-		handle_unit(unit);
-		unit->mem_used += temp_reg_mem;
-		unit->mem_offset = unit->mem_used;
-	}
-	
-	unit->parent = parent_ptr;
-	parent_ptr = unit;
+    Unit *unit = new Unit;
+    *unit = *basic_units[STRUCT_BASE];
+    
+    if (DEFINE == new_instrx.oper)
+    {
+        unit->base = parent_ptr;
+        if (parent_ptr->instrxs.back()->unit->type != METHOD)
+        {
+            unit->type = num_types;
+            num_types++;
+        }
+        if (is_struct(parent_ptr) && (NULL == parent_ptr->instrxs.back()->unit->parent))
+        {
+            unit->base_ptr_offset = 0;
+            unit->mem_used += WORD_SIZE;
+        }
+        if (METHOD == parent_ptr->instrxs.back()->unit->type)
+        {
+            unit->type = METHOD;
+            if (NAMESPACE == parent_ptr->type)
+            {
+                unit->mem_used += WORD_SIZE;
+            }
+            else
+            {
+                handle_new_method(unit);
+            }
+            parent_ptr->method = unit;
+        }
+        if (METHOD_PTR == parent_ptr->instrxs.back()->unit->type)
+        {
+            unit->type = METHOD;
+            unit->mem_used += WORD_SIZE;
+            unit->base = parent_ptr->instrxs.back()->ptr_source->unit;
+            if (unit->base->method != NULL)
+            {
+                replace_method(unit);
+	    }
+	    else
+            {
+                handle_new_method(unit);
+            }
+            unit->base->method = unit;
+            parent_ptr->instrxs.back()->unit = basic_units[METHOD];
+        }
+        handle_define_statement(parent_ptr->instrxs.back()->unit, unit);
+        parent_ptr->instrxs.back()->oper = IGNORE;
+        new_instrx.oper = NO_OPER;
+    }
+    else
+    {
+        handle_last_instrx();
+        unit->type = METHOD;
+        unit->mem_base = METHOD;
+        unit->mem_used = parent_ptr->mem_used;
+        if (SUBUNIT == new_instrx.oper)
+        {
+            if (METHOD == parent_ptr->instrxs.back()->unit->type)
+            {
+                unit->base = new Unit(*parent_ptr->instrxs.back()->unit->in_unit);
+                unit->base->mem_base = METHOD;
+                unit->base->mem_offset = unit->mem_used;
+                unit->mem_used += WORD_SIZE;
+                unit->base_instrx = new Instrx();
+                unit->base_instrx->unit = unit->base;
+            }
+            else
+            {
+                unit->base_instrx = new Instrx(*parent_ptr->instrxs.back());
+                unit->base_instrx->oper = 0;
+                unit->base_instrx->state = 0;
+                unit->base = parent_ptr->instrxs.back()->unit;
+            }
+            
+            if ((parent_ptr->instrxs.back()->unit->mem_offset >= parent_ptr->mem_used)
+                && (METHOD == parent_ptr->instrxs.back()->unit->mem_base))
+            {
+                unit->mem_used = parent_ptr->instrxs.back()->unit->mem_offset + WORD_SIZE;
+            }
+        }
+        else if (new_instrx.is_ptr)
+        {
+            unit->base = in_unit(parent_ptr->instrxs.back()->unit)->base;
+            unit->mem_base = METHOD_PTR;
+            unit->base_instrx = new Instrx();
+            unit->base_instrx->unit = new Unit(*basic_units[PTR]);
+            unit->base_instrx->unit->mem_base = METHOD;
+            unit->base_instrx->unit->typing = in_unit(parent_ptr->instrxs.back()->unit)->base;
+      	    handle_new_method(unit);
+      	    unit->mem_used = WORD_SIZE;
+            unit->typing = basic_units[METHOD_PTR];
+        }
+        handle_unit(unit);
+        unit->mem_used += temp_reg_mem;
+        unit->mem_offset = unit->mem_used;
+    }
+    
+    unit->parent = parent_ptr;
+    parent_ptr = unit;
 }
 
 void handle_ptr()
