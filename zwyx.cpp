@@ -2006,106 +2006,105 @@ void handle_last_instrx()
 
 Unit *get_correct_method_type()
 {
-	if ((DEFINE == new_instrx.oper) || (SUBUNIT == new_instrx.oper))
-	{
-		return basic_units[METHOD_PTR];
-	}
-	
-	if (is_struct(parent_ptr))
-	{
+    if ((DEFINE == new_instrx.oper) || (SUBUNIT == new_instrx.oper))
+    {
+        return basic_units[METHOD_PTR];
+    }
+    
+    if (is_struct(parent_ptr))
+    {
+        return basic_units[METHOD];
+    }
+    
+    Unit* superunit = parent_ptr;
+    while (METHOD == superunit->type)
+    {
+        if ((superunit->base != NULL) && (METHOD == superunit->base->type))
+        {
+            return basic_units[METHOD_PTR];
+        }
+        if (METHOD_PTR == superunit->mem_base)
+        {
+            return superunit->base->method;
+        }
+        if (!superunit->mem_base)
+        {
+            if ((superunit->base->base != NULL) && (superunit->base->base->method != NULL))
+            {
+                new_instrx.ptr_source = new Instrx();
+                new_instrx.ptr_source->unit = superunit;
+                new_instrx.ptr_source->base_level = 1;
+                return superunit->base->base->method;
+            }
+            else
+            {
+	        set_error(NO_DEFAULT_METHOD, line_num, ";");
 	        return basic_units[METHOD];
-	}
-	
-	Unit* superunit = parent_ptr;
-	while (METHOD == superunit->type)
-	{
-	        if ((superunit->base != NULL) && (METHOD == superunit->base->type))
-	        {
-	                return basic_units[METHOD_PTR];
-	        }
-	        if (METHOD_PTR == superunit->mem_base)
-	        {
-	                return superunit->base->method;
-	        }
-		if (!superunit->mem_base)
-		{
-		        if ((superunit->base->base != NULL) && (superunit->base->base->method != NULL))
-		        {
-		                new_instrx.ptr_source = new Instrx();
-		                new_instrx.ptr_source->unit = superunit;
-		                new_instrx.ptr_source->base_level = 1;
-			        return superunit->base->base->method;
-			}
-			else
-			{
-			        set_error(NO_DEFAULT_METHOD, line_num, ";");
-			        return basic_units[METHOD];
-			}
-		}
-		if ((superunit->base_instrx != NULL) && (superunit->base_instrx->unit != NULL)
-		                                     && (superunit->base_instrx->unit->method != NULL))
-		{
-		        new_instrx.ptr_source = superunit->base_instrx;
-		        superunit->base_instrx->oper = 0;
-			return superunit->base_instrx->unit->method;
-		}
-		superunit = superunit->parent;
-	}
-	
-	return basic_units[METHOD];
+            }
+        }
+        if ((superunit->base_instrx != NULL) && (superunit->base_instrx->unit != NULL)
+            && (superunit->base_instrx->unit->method != NULL))
+        {
+            new_instrx.ptr_source = superunit->base_instrx;
+            superunit->base_instrx->oper = 0;
+            return superunit->base_instrx->unit->method;
+        }
+        superunit = superunit->parent;
+    }
+
+    return basic_units[METHOD];
 }
 
 void handle_oper_errors()
 {
-        if (((IMPORT == new_instrx.unit->type) && (new_instrx.oper != NO_OPER))
-            || ((INT_CONST == new_instrx.unit->type) && (DEFINE == new_instrx.oper)))
-        {
-                set_error(INVALID_USE_OF_OPER, line_num, operators[new_instrx.oper]);
-        }
+    if (((IMPORT == new_instrx.unit->type) && (new_instrx.oper != NO_OPER))
+        || ((INT_CONST == new_instrx.unit->type) && (DEFINE == new_instrx.oper)))
+    {
+        set_error(INVALID_USE_OF_OPER, line_num, operators[new_instrx.oper]);
+    }
 }
 
 void handle_subunit()
 {
-        if ((1 == parent_ptr->instrxs.size()) && (DEFINE == parent_ptr->instrxs.back()->oper))
-	{
-	        set_error(INVALID_USE_OF_OPER, line_num, operators[SUBUNIT]);
-	}
-	if ((BASE == parent_ptr->instrxs.back()->unit->type) && (new_instrx.unit->type != INT_CONST))
-	{
-	        handle_base(parent_ptr->instrxs.back(), 1);
-	}
-	if ((new_instrx.unit->type != METHOD_PTR) && (new_instrx.unit->type != INT_CONST)
-	    && (parent_ptr->instrxs.back()->unit->type != BASE))
-	{
-		handle_instantiation(parent_ptr->instrxs.back());
-	}
-	if (BASE == new_instrx.unit->type)
-	{
-	        Unit *first_base = parent_ptr->instrxs.back()->unit;
-	        new_instrx.unit = new Unit(*basic_units[PTR]);
-	        new_instrx.unit->typing = first_base->base;
-	        new_instrx.unit->mem_base = first_base->mem_base;
-	        new_instrx.unit->mem_offset = first_base->mem_offset - first_base->base_ptr_offset;
-	}
-	if ((METHOD == new_instrx.unit->type) && (DEFINE == parent_ptr->instrxs.back()->oper))
-	{
-		parent_ptr->instrxs.back()->oper = NO_OPER;
-	}
-	if ((PTR == parent_ptr->instrxs.back()->unit->type) || (METHOD == new_instrx.unit->type)
-	    || (!new_instrx.unit->mem_base && (new_instrx.unit->type != INT_CONST)))
-	{
-		parent_ptr->instrxs.back()->ptr_source = 
-		                                        new Instrx(*parent_ptr->instrxs.back());
-		        
-		parent_ptr->instrxs.back()->ptr_source->oper = NO_OPER;
-		parent_ptr->instrxs.back()->base_level = 0;
-	}
-	if ((INT_CONST == new_instrx.unit->type) && (INT == parent_ptr->instrxs.back()->unit->type))
-	{
-	        new_instrx.unit->type = INT;
-	}
-	parent_ptr->instrxs.back()->state = 0;
-	parent_ptr->instrxs.back()->unit = new_instrx.unit;
+    if ((1 == parent_ptr->instrxs.size()) && (DEFINE == parent_ptr->instrxs.back()->oper))
+    {
+        set_error(INVALID_USE_OF_OPER, line_num, operators[SUBUNIT]);
+    }
+    if ((BASE == parent_ptr->instrxs.back()->unit->type) && (new_instrx.unit->type != INT_CONST))
+    {
+        handle_base(parent_ptr->instrxs.back(), 1);
+    }
+    if ((new_instrx.unit->type != METHOD_PTR) && (new_instrx.unit->type != INT_CONST)
+        && (parent_ptr->instrxs.back()->unit->type != BASE))
+    {
+        handle_instantiation(parent_ptr->instrxs.back());
+    }
+    if (BASE == new_instrx.unit->type)
+    {
+        Unit *first_base = parent_ptr->instrxs.back()->unit;
+        new_instrx.unit = new Unit(*basic_units[PTR]);
+        new_instrx.unit->typing = first_base->base;
+        new_instrx.unit->mem_base = first_base->mem_base;
+        new_instrx.unit->mem_offset = first_base->mem_offset - first_base->base_ptr_offset;
+    }
+    if ((METHOD == new_instrx.unit->type) && (DEFINE == parent_ptr->instrxs.back()->oper))
+    {
+        parent_ptr->instrxs.back()->oper = NO_OPER;
+    }
+    if ((PTR == parent_ptr->instrxs.back()->unit->type) || (METHOD == new_instrx.unit->type)
+        || (!new_instrx.unit->mem_base && (new_instrx.unit->type != INT_CONST)))
+    {
+        parent_ptr->instrxs.back()->ptr_source = new Instrx(*parent_ptr->instrxs.back());
+        
+        parent_ptr->instrxs.back()->ptr_source->oper = NO_OPER;
+        parent_ptr->instrxs.back()->base_level = 0;
+    }
+    if ((INT_CONST == new_instrx.unit->type) && (INT == parent_ptr->instrxs.back()->unit->type))
+    {
+        new_instrx.unit->type = INT;
+    }
+    parent_ptr->instrxs.back()->state = 0;
+    parent_ptr->instrxs.back()->unit = new_instrx.unit;
 }
 
 bool has_precedence(int oper_1, int oper_2)
