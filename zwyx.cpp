@@ -1975,10 +1975,8 @@ void handle_last_instrx()
                 {
                     handle_define_statement(second_last_instrx->unit, instrx->unit);
                     second_last_instrx->oper = IGNORE;
-                    if ((instrx->unit->f_num != STRUCT_UNINITIALIZED)
-                         && (new_instrx.oper != INSERTION_2)
-                         && (new_instrx.oper != INSERTION)
-                         && (new_instrx.oper != SUBUNIT))
+                    if ((instrx->unit->f_num != STRUCT_UNINITIALIZED) && (new_instrx.oper != INSERTION)
+                         && (new_instrx.oper != SUBUNIT) && (new_instrx.oper != INSERTION_2))
                     {
                         instrx->oper = IGNORE;
                     }
