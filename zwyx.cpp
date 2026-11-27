@@ -2333,394 +2333,394 @@ void handle_new_superunit()
 
 void handle_ptr()
 {
-        new_instrx.is_ptr = SYMBOL_PTR;
-        if ((new_instrx.oper != NO_OPER) && (new_instrx.oper != DEFINE)
-             && (new_instrx.oper != INSERTION) && (new_instrx.oper != INSERTION_2))
-        {
-                set_error(INVALID_USE_OF_OPER, line_num, operators[new_instrx.oper]);
-        }
+    new_instrx.is_ptr = SYMBOL_PTR;
+    if ((new_instrx.oper != NO_OPER) && (new_instrx.oper != DEFINE)
+        && (new_instrx.oper != INSERTION) && (new_instrx.oper != INSERTION_2))
+    {
+        set_error(INVALID_USE_OF_OPER, line_num, operators[new_instrx.oper]);
+    }
 }
 
 void handle_comma()
 {
-        if (0 == parent_ptr->instrxs.size())
+    if (0 == parent_ptr->instrxs.size())
+    {
+        set_error(INVALID_USE_OF_OPER, line_num, ",");
+    }
+    else if (parent_ptr->instrxs.back()->oper != INSERTION)
+    {
+        handle_last_instrx();
+        while ((parent_ptr->base_instrx->oper < parent_ptr->base_instrx->unit->subunits.size())
+                && !parent_ptr->base_instrx->unit->subunits[parent_ptr->base_instrx->oper]->mem_base)
         {
-                set_error(INVALID_USE_OF_OPER, line_num, ",");
+            parent_ptr->base_instrx->oper++;
         }
-        else if (parent_ptr->instrxs.back()->oper != INSERTION)
+        if (parent_ptr->base_instrx->oper >= parent_ptr->base_instrx->unit->subunits.size())
         {
-                handle_last_instrx();
-                while ((parent_ptr->base_instrx->oper < parent_ptr->base_instrx->unit->subunits.size())
-                        && !parent_ptr->base_instrx->unit->subunits[parent_ptr->base_instrx->oper]->mem_base)
-                {
-                        parent_ptr->base_instrx->oper++;
-                }
-                if (parent_ptr->base_instrx->oper >= parent_ptr->base_instrx->unit->subunits.size())
-                {
-                        set_error(INVALID_USE_OF_OPER, line_num, ",");
-                        return;
-                }
-                Instrx* instrx = new Instrx();
-                if (NO_OPER == parent_ptr->instrxs.back()->oper)
-                {
-                        instrx->insertion_source = parent_ptr->instrxs.back();
-                        parent_ptr->instrxs.pop_back();
-                }
-                else
-                {
-                        instrx->insertion_source = new Instrx();
-                        instrx->insertion_source->unit = basic_units[DEF_NONE];
-                }
-                instrx->insertion_source->oper = INSERTION;
-                instrx->unit = parent_ptr->base_instrx->unit->subunits[parent_ptr->base_instrx->oper];
-                parent_ptr->base_instrx->oper++;
-                parent_ptr->instrxs.push_back(instrx);
-                if (instrx->insertion_source->unit->type != DEF_NONE)
-                {
-                        parent_ptr->instrxs.push_back(instrx->insertion_source);
-                }
+            set_error(INVALID_USE_OF_OPER, line_num, ",");
+            return;
         }
+        Instrx* instrx = new Instrx();
+        if (NO_OPER == parent_ptr->instrxs.back()->oper)
+        {
+            instrx->insertion_source = parent_ptr->instrxs.back();
+            parent_ptr->instrxs.pop_back();
+        }
+        else
+        {
+            instrx->insertion_source = new Instrx();
+            instrx->insertion_source->unit = basic_units[DEF_NONE];
+        }
+        instrx->insertion_source->oper = INSERTION;
+        instrx->unit = parent_ptr->base_instrx->unit->subunits[parent_ptr->base_instrx->oper];
+        parent_ptr->base_instrx->oper++;
+        parent_ptr->instrxs.push_back(instrx);
+        if (instrx->insertion_source->unit->type != DEF_NONE)
+        {
+            parent_ptr->instrxs.push_back(instrx->insertion_source);
+        }
+    }
 }
 
 void handle_new_oper(int oper)
 {
-        if (new_instrx.is_ptr || ((oper != DEFINE) && (0 == parent_ptr->instrxs.size())))
-	{
-	        set_error(INVALID_USE_OF_OPER, line_num, operators[oper]);
+    if (new_instrx.is_ptr || ((oper != DEFINE) && (0 == parent_ptr->instrxs.size())))
+    {
+        set_error(INVALID_USE_OF_OPER, line_num, operators[oper]);
+    }
+    if (((INSERTION == oper) || (INSERTION_2 == oper)) && (is_struct(parent_ptr))
+        && (parent_ptr->instrxs.back()->unit->type != COMPTIME_METHOD))
+    {
+        parent_ptr->f_num = STRUCT_UNINITIALIZED;
+    }
+    if (new_instrx.oper != NO_OPER)
+    {
+        string operator_str = operators[new_instrx.oper] + operators[oper];
+        int new_oper = NO_OPER;
+        
+	for (int i = 0; i <= 26; i++)
+        {
+            if (operator_str == operators[i])
+            {
+	        new_oper = i;
+                break;
+            }
 	}
-	if (((INSERTION == oper) || (INSERTION_2 == oper)) && (is_struct(parent_ptr))
-	  && (parent_ptr->instrxs.back()->unit->type != COMPTIME_METHOD))
+	if (NO_OPER == new_oper)
 	{
-	        parent_ptr->f_num = STRUCT_UNINITIALIZED;
+            set_error(INVALID_USE_OF_OPER, line_num, operators[oper]);
 	}
-	if (new_instrx.oper != NO_OPER)
-	{
-                string operator_str = operators[new_instrx.oper] + operators[oper];
-                int new_oper = NO_OPER;
-                
-	        for (int i = 0; i <= 26; i++)
-	        {
-	                if (operator_str == operators[i])
-	                {
-	                        new_oper = i;
-	                        break;
-	                }
-	        }
-	        if (NO_OPER == new_oper)
-	        {
-	                set_error(INVALID_USE_OF_OPER, line_num, operators[oper]);
-	        }
-	        oper = new_oper;
-	        
-	}
-	new_instrx.oper = oper;
+	oper = new_oper;
+	
+    }
+    new_instrx.oper = oper;
 }
 
 void handle_char(int c)
 {
-        if ((' ' == c) || ('\t' == c) || ('\n' == c))
+    if ((' ' == c) || ('\t' == c) || ('\n' == c))
+    {
+        return;
+    }
+    int new_oper = NO_OPER;
+    for (int i = 0; i <= 22; i++)
+    {
+        if ((1 == operators[i].size()) && (c == operators[i][0]))
         {
-                return;
+            handle_new_oper(i);
+            break;
         }
-        int new_oper = NO_OPER;
-	for (int i = 0; i <= 22; i++)
-	{
-		if ((1 == operators[i].size()) && (c == operators[i][0]))
-		{
-			handle_new_oper(i);
-			break;
-		}
-	}
-	if (((';' == c) || ('$' == c)) && (new_instrx.oper != SUBUNIT))
-	{
-		handle_last_instrx();
-	}
-	switch(c)
-	{
-	case ';':
-		handle_unit(get_correct_method_type());
-		break;
-	case '{':
-		handle_new_superunit();
-		break;
-	case '}':
-		handle_end_superunit();
-		break;
-	case '$':
-		handle_unit(basic_units[BASE]);
-		break;
-	case '@':
-		handle_ptr();
-		break;
-	case ',':
-	        handle_comma();
-	        break;
-	default:
-		break;
-	}
+    }
+    if (((';' == c) || ('$' == c)) && (new_instrx.oper != SUBUNIT))
+    {
+        handle_last_instrx();
+    }
+    switch(c)
+    {
+    case ';':
+        handle_unit(get_correct_method_type());
+        break;
+    case '{':
+        handle_new_superunit();
+        break;
+    case '}':
+        handle_end_superunit();
+        break;
+    case '$':
+        handle_unit(basic_units[BASE]);
+        break;
+    case '@':
+        handle_ptr();
+        break;
+    case ',':
+        handle_comma();
+        break;
+    default:
+        break;
+    }
 }
 
 void start_base_unit()
 {
-	parent_ptr = new Unit;
-	*parent_ptr = *basic_units[NAMESPACE];
-	parent_ptr->base = NULL;
-	parent_ptr->parent = NULL;
-	namespace_unit = parent_ptr;
+    parent_ptr = new Unit;
+    *parent_ptr = *basic_units[NAMESPACE];
+    parent_ptr->base = NULL;
+    parent_ptr->parent = NULL;
+    namespace_unit = parent_ptr;
 }
 
 void end_base_unit()
 {
-	while ((parent_ptr->base_instrx != NULL) && (NULL == parent_ptr->base_instrx->unit))
-        {
-                handle_last_instrx();
-                parent_ptr = parent_ptr->parent;
-        }
-        
+    while ((parent_ptr->base_instrx != NULL) && (NULL == parent_ptr->base_instrx->unit))
+    {
         handle_last_instrx();
-        
-        if (parent_ptr->parent != NULL)
-        {
-                set_error(MISSING_END_BRACE, line_num, "{");
-        }
+        parent_ptr = parent_ptr->parent;
+    }
+    
+    handle_last_instrx();
+    
+    if (parent_ptr->parent != NULL)
+    {
+        set_error(MISSING_END_BRACE, line_num, "{");
+    }
 }
 
 void handle_int_const(string str)
 {
-        if ((SUBUNIT == new_instrx.oper) && (IO == parent_ptr->instrxs.back()->unit->type))
+    if ((SUBUNIT == new_instrx.oper) && (IO == parent_ptr->instrxs.back()->unit->type))
+    {
+        new_instrx.unit = arg_unit->subunits[0];
+    }
+    else if ((SUBUNIT == new_instrx.oper) && (BASE == parent_ptr->instrxs.back()->unit->type))
+    {
+        handle_base(&new_instrx, stoi(str));
+    }
+    else
+    {
+        new_instrx.unit = new Unit(*basic_units[INT_CONST]);
+        new_instrx.unit->name = str;
+        new_instrx.unit->str = str;
+        if (SUBUNIT == new_instrx.oper)
         {
-                new_instrx.unit = arg_unit->subunits[0];
+            new_instrx.unit->mem_used = stoi(str);
+            if (INT == parent_ptr->instrxs.back()->unit->type)
+            {
+                new_instrx.unit->mem_used /= 8;
+            }
         }
-        else if ((SUBUNIT == new_instrx.oper) && (BASE == parent_ptr->instrxs.back()->unit->type))
-        {
-                handle_base(&new_instrx, stoi(str));
-        }
-        else
-        {
-	        new_instrx.unit = new Unit(*basic_units[INT_CONST]);
-	        new_instrx.unit->name = str;
-	        new_instrx.unit->str = str;
-	        if (SUBUNIT == new_instrx.oper)
-	        {
-	                new_instrx.unit->mem_used = stoi(str);
-	                if (INT == parent_ptr->instrxs.back()->unit->type)
-	                {
-	                        new_instrx.unit->mem_used /= 8;
-	                }
-	        }
-	}
+    }
 }
 
 void handle_string_literal(string str)
 {
-        handle_last_instrx();
-        if ((1 == str.size())
-            && ((new_instrx.oper != INSERTION)) || ((INT == in_unit(parent_ptr->instrxs.back()->unit)->type)))
-        {
-                new_instrx.unit = new Unit(*basic_units[INT_CONST]);
-                new_instrx.unit->name = to_string(str[0]);
-                new_instrx.unit->str = to_string(str[0]);
-        }
-        else
-        {
-                new_instrx.unit = new Unit(*basic_units[STRING_LITERAL]);
-                new_instrx.unit->name = str;
-                new_instrx.unit->mem_used = str.size();
-        }
-        handle_new_instrx();
+    handle_last_instrx();
+    if ((1 == str.size())
+        && ((new_instrx.oper != INSERTION)) || ((INT == in_unit(parent_ptr->instrxs.back()->unit)->type)))
+    {
+        new_instrx.unit = new Unit(*basic_units[INT_CONST]);
+        new_instrx.unit->name = to_string(str[0]);
+        new_instrx.unit->str = to_string(str[0]);
+    }
+    else
+    {
+        new_instrx.unit = new Unit(*basic_units[STRING_LITERAL]);
+        new_instrx.unit->name = str;
+        new_instrx.unit->mem_used = str.size();
+    }
+    handle_new_instrx();
 }
 
 void handle_compile_time_method_def(string str, int type, int comptime_method_line_num)
 {
-        new_instrx.unit = new Unit(*basic_units[COMPTIME_METHOD]);
-        new_instrx.unit->str = str;
-        if (HYG_MACRO == type)
-        {
-                num_templates++;
-                new_instrx.unit->f_num = num_templates;
-        }
-        new_instrx.unit->mem_offset = comptime_method_line_num;
-        handle_new_instrx();
+    new_instrx.unit = new Unit(*basic_units[COMPTIME_METHOD]);
+    new_instrx.unit->str = str;
+    if (HYG_MACRO == type)
+    {
+        num_templates++;
+        new_instrx.unit->f_num = num_templates;
+    }
+    new_instrx.unit->mem_offset = comptime_method_line_num;
+    handle_new_instrx();
 }
 
 void handle_unit_name(string name)
 {
-	new_instrx.unit = NULL;
-	if (new_instrx.oper != SUBUNIT)
-	{
-		handle_last_instrx();
-	}
-	if ((name[0] >= '0') && (name[0] <= '9'))
-	{
-	        handle_int_const(name);
-	}
-	else
-	{
-		new_instrx.unit = find_unit_from_list(basic_units, name);
-		if ((new_instrx.unit != NULL) && (IO == new_instrx.unit->type))
-		{
-		        new_instrx.unit = arg_unit;
-		}
-		if (NULL == new_instrx.unit)
-		{
-			if (new_instrx.oper != SUBUNIT)
-			{
-				id_unit(name);
-			}
-			else
-			{
-			        if (BASE == parent_ptr->instrxs.back()->unit->type)
-			        {
-			                handle_base_no_index(parent_ptr->instrxs.back());
-			        }
-				new_instrx.unit = find_unit_in_superunit(name, parent_ptr->instrxs.back()->unit);
-			}
-		}
-		if (NULL == new_instrx.unit)
-		{
-			new_instrx.unit = new Unit;
-			new_instrx.unit->name = name;
-			new_instrx.unit->type = DEF_NONE;
-			new_instrx.unit->parent = NULL;
-			if (SUBUNIT == new_instrx.oper)
-			{
-			        new_instrx.unit->parent = parent_ptr->instrxs.back()->unit;
-			}
-		}
-	}
-	handle_new_instrx();
+    new_instrx.unit = NULL;
+    if (new_instrx.oper != SUBUNIT)
+    {
+        handle_last_instrx();
+    }
+    if ((name[0] >= '0') && (name[0] <= '9'))
+    {
+        handle_int_const(name);
+    }
+    else
+    {
+        new_instrx.unit = find_unit_from_list(basic_units, name);
+        if ((new_instrx.unit != NULL) && (IO == new_instrx.unit->type))
+        {
+            new_instrx.unit = arg_unit;
+        }
+        if (NULL == new_instrx.unit)
+        {
+            if (new_instrx.oper != SUBUNIT)
+            {
+                id_unit(name);
+            }
+            else
+            {
+                if (BASE == parent_ptr->instrxs.back()->unit->type)
+                {
+                    handle_base_no_index(parent_ptr->instrxs.back());
+                }
+	        new_instrx.unit = find_unit_in_superunit(name, parent_ptr->instrxs.back()->unit);
+	    }
+        }
+        if (NULL == new_instrx.unit)
+        {
+            new_instrx.unit = new Unit;
+            new_instrx.unit->name = name;
+            new_instrx.unit->type = DEF_NONE;
+            new_instrx.unit->parent = NULL;
+            if (SUBUNIT == new_instrx.oper)
+            {
+                new_instrx.unit->parent = parent_ptr->instrxs.back()->unit;
+            }
+        }
+    }
+    handle_new_instrx();
 }
 
 void parse_istream(istream &zyfile)
 {
-	string unit_name_buffer;
-	int read_mode = 0;
-	int num_braces = 0;
-	int comptime_method_line_num;
-	char c = zyfile.get();
-	while (zyfile.good())
-	{
-	        if (COMPTIME_METHOD == read_mode)
+    string unit_name_buffer;
+    int read_mode = 0;
+    int num_braces = 0;
+    int comptime_method_line_num;
+    char c = zyfile.get();
+    while (zyfile.good())
+    {
+        if (COMPTIME_METHOD == read_mode)
+        {
+            if ('`' == c)
+            {
+                handle_compile_time_method_def(unit_name_buffer, read_mode, comptime_method_line_num);
+                unit_name_buffer.clear();
+                read_mode = 0;
+            }
+            else
+            {
+                unit_name_buffer.push_back(c);
+            }
+        }
+        else if (COMMENT == read_mode)
+        {
+            if ('\n' == c)
+            {
+                read_mode = 0;
+            }
+        }
+        else if (BYTES == read_mode)
+        {
+            if ('"' == c)
+            {
+                handle_string_literal(unit_name_buffer);
+                unit_name_buffer.clear();
+                read_mode = 0;
+            }
+            else if ('\n' == c)
+            {
+                set_error(STRING_LITERAL_NOT_ENDED_PROPERLY, line_num, "");
+                handle_string_literal(unit_name_buffer);
+                unit_name_buffer.clear();
+                read_mode = 0;
+            }
+            else if ('\'' == c)
+            {
+                set_error(INVALID_CHAR_IN_STRING_LITERAL, line_num, "'");
+            }
+            else
+            {
+                unit_name_buffer.push_back(c);
+            }
+        }
+        else if (HYG_MACRO == read_mode)
+        {
+            if ('{' == c)
+            {
+                num_braces++;
+            }
+            if ('}' == c)
+            {
+                num_braces--;
+            }
+            
+            if (0 == num_braces)
+            {
+                handle_compile_time_method_def(unit_name_buffer, read_mode, comptime_method_line_num);
+                unit_name_buffer.clear();
+                read_mode = 0;
+            }
+            else if ((c != '{') || (num_braces > 1))
+            {
+                unit_name_buffer.push_back(c);
+            }
+        }
+        else
+        {
+            if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || (c == '_'))
+            {
+                unit_name_buffer.push_back(c);
+            }
+            else
+            {
+                if (unit_name_buffer.size() > 0)
+                {
+                    handle_unit_name(unit_name_buffer);
+                    unit_name_buffer.clear();
+                }
+                if ('`' == c)
+                {
+                    read_mode = COMPTIME_METHOD;
+                    comptime_method_line_num = line_num;
+                }
+	        else if ('\\' == c)
+                {
+                    read_mode = HYG_MACRO;
+	            comptime_method_line_num = line_num;
+                }
+	        else if ('#' == c)
 	        {
-	                if ('`' == c)
-	                {
-	                        handle_compile_time_method_def(unit_name_buffer, read_mode, comptime_method_line_num);
-	                        unit_name_buffer.clear();
-	                        read_mode = 0;
-	                }
-	                else
-	                {
-	                        unit_name_buffer.push_back(c);
-	                }
-	        }
-	        else if (COMMENT == read_mode)
-	        {
-	                if ('\n' == c)
-	                {
-	                        read_mode = 0;
-	                }
-	        }
-		else if (BYTES == read_mode)
-		{
-		        if ('"' == c)
-		        {
-		                handle_string_literal(unit_name_buffer);
-		                unit_name_buffer.clear();
-		                read_mode = 0;
-		        }
-		        else if ('\n' == c)
-		        {
-		                set_error(STRING_LITERAL_NOT_ENDED_PROPERLY, line_num, "");
-		                handle_string_literal(unit_name_buffer);
-		                unit_name_buffer.clear();
-		                read_mode = 0;
-		        }
-		        else if ('\'' == c)
-		        {
-		                set_error(INVALID_CHAR_IN_STRING_LITERAL, line_num, "'");
-		        }
-		        else
-		        {
-		                unit_name_buffer.push_back(c);
-		        }
-		}
-		else if (HYG_MACRO == read_mode)
-		{
-		        if ('{' == c)
-		        {
-		                num_braces++;
-		        }
-		        if ('}' == c)
-		        {
-		                num_braces--;
-		        }
-		        
-		        if (0 == num_braces)
-		        {
-		                handle_compile_time_method_def(unit_name_buffer, read_mode, comptime_method_line_num);
-		                unit_name_buffer.clear();
-		                read_mode = 0;
-		        }
-		        else if ((c != '{') || (num_braces > 1))
-		        {
-		                unit_name_buffer.push_back(c);
-		        }
-		}
-		else
-		{
-			if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || (c == '_'))
-			{
-				unit_name_buffer.push_back(c);
-			}
-			else
-			{
-				if (unit_name_buffer.size() > 0)
-				{
-					handle_unit_name(unit_name_buffer);
-					unit_name_buffer.clear();
-				}
-				if ('`' == c)
-				{
-				        read_mode = COMPTIME_METHOD;
-				        comptime_method_line_num = line_num;
-				}
-				else if ('\\' == c)
-				{
-				        read_mode = HYG_MACRO;
-				        comptime_method_line_num = line_num;
-				}
-				else if ('#' == c)
-				{
-				        read_mode = COMMENT;
-				}
-				else if ('"' == c)
-				{
-				        read_mode = BYTES;
-				}
-				else
-				{
-				        handle_char(c);
-				}
-			}
-		}
-		if ('\n' == c)
-		{
-		        line_num++;
-		}
-		c = zyfile.get();
-	}
-	if (unit_name_buffer.size() > 0)
-	{
-		handle_unit_name(unit_name_buffer);
-	}
-	if (BYTES == read_mode)
-	{
-	        set_error(STRING_LITERAL_NOT_ENDED_PROPERLY, line_num, "");
-	}
-	if (COMPTIME_METHOD == read_mode)
-	{
-	        set_error(COMPTIME_METHOD_NOT_ENDED_PROPERLY, line_num, "");
-	}
+                    read_mode = COMMENT;
+                }
+                else if ('"' == c)
+                {
+                    read_mode = BYTES;
+                }
+                else
+                {
+                    handle_char(c);
+                }
+            }
+        }
+        if ('\n' == c)
+        {
+            line_num++;
+        }
+        c = zyfile.get();
+    }
+    if (unit_name_buffer.size() > 0)
+    {
+        handle_unit_name(unit_name_buffer);
+    }
+    if (BYTES == read_mode)
+    {
+        set_error(STRING_LITERAL_NOT_ENDED_PROPERLY, line_num, "");
+    }
+    if (COMPTIME_METHOD == read_mode)
+    {
+        set_error(COMPTIME_METHOD_NOT_ENDED_PROPERLY, line_num, "");
+    }
 }
 
 void parse_file(string parse_file_name)
