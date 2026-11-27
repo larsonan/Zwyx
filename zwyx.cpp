@@ -2725,56 +2725,55 @@ void parse_istream(istream &zyfile)
 
 void parse_file(string parse_file_name)
 {
-        for (int i = 0; i < parsed_files.size(); i++)
+    for (int i = 0; i < parsed_files.size(); i++)
+    {
+        if (parsed_files[i] == parse_file_name)
         {
-                if (parsed_files[i] == parse_file_name)
-                {
-                        return;
-                }
+            return;
         }
-        parsed_files.push_back(parse_file_name);
-        ifstream zyfile(parse_file_name.c_str());
-        string outer_file_name = file_name;
-        file_name = parse_file_name;
-        int outer_line_num = line_num;
-        line_num = 1;
-        if (!zyfile.is_open())
-        {
-                set_error(CANNOT_OPEN_FILE, line_num, parse_file_name);
-                return;
-        }
-        parse_istream(zyfile);
-        zyfile.close();
-        line_num = outer_line_num;
-        file_name = outer_file_name;
+    }
+    parsed_files.push_back(parse_file_name);
+    ifstream zyfile(parse_file_name.c_str());
+    string outer_file_name = file_name;
+    file_name = parse_file_name;
+    int outer_line_num = line_num;
+    line_num = 1;
+    if (!zyfile.is_open())
+    {
+        set_error(CANNOT_OPEN_FILE, line_num, parse_file_name);
+        return;
+    }
+    parse_istream(zyfile);
+    zyfile.close();
+    line_num = outer_line_num;
+    file_name = outer_file_name;
 }
 
 int main(int argc, char** argv)
 {
-	if (argc < 2)
-	{
-	        fprintf(stdout, "File name is needed as input.\n");
-	}
-	else
-	{
-	        init();
-	        start_base_unit();
-	        parse_file("sysapi.zwyx");
-	        parse_file(string("sysapi_")+FORMAT+".zwyx");
-	        
-	        parse_file(argv[1]);
-	        end_base_unit();
-	        if (num_errors > 0)
-	        {
-		        
-		        print_errors();
-	        }
-	        else if (parent_ptr->method != NULL)
-	        {
-		        write_xc(FORMAT);
-	        }
-	}
-	
-	return 0;
+    if (argc < 2)
+    {
+        fprintf(stdout, "File name is needed as input.\n");
+    }
+    else
+    {
+        init();
+        start_base_unit();
+        parse_file("sysapi.zwyx");
+        parse_file(string("sysapi_")+FORMAT+".zwyx");
+        
+        parse_file(argv[1]);
+        end_base_unit();
+        if (num_errors > 0)
+        {
+            print_errors();
+        }
+        else if (parent_ptr->method != NULL)
+        {
+            write_xc(FORMAT);
+        }
+    }
+    
+    return 0;
 }
 
