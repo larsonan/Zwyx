@@ -14,13 +14,13 @@ Greeter~{
         greeter~Greeter
         print::"What is your name? "
         buff~bytes.20
-        ch~int:0
+        ch~int = 0
         greeter.name.{
-                setBuffer:@buff
-                ch:getChar
+                setBuffer::@buff
+                ch = getChar
                 {ch != 10}?*{
                         write.c::ch
-                        ch:getChar
+                        ch = getChar
                 }
         }
         greeter.greet

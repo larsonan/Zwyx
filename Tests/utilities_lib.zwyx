@@ -20,7 +20,7 @@ WriteNF~{
 	s~{
 		b~bytes
 		;~{
-			data:b
+			data = b
 			;
 		}
 	}
@@ -28,9 +28,9 @@ WriteNF~{
 		in~int
 		;~{
 			b~int.8
-			b:in
-			data:@b
-			data.count:1
+			b = in
+			data = @b
+			data.count = 1
 			;
 		}
 	}
@@ -43,7 +43,7 @@ WriteNF~{
 	line~{
 		b~bytes
 		;~{
-			s:b
+			s::b
 			endl
 		}
 	}
@@ -51,21 +51,21 @@ WriteNF~{
 		in~int
 		;~{
 			buff~bytes.48
-			it~@CIter:@buff
-			it:{it+40}
-			it.el:{in%10+48}
-			in:{in/10}
-			it:{it-1}
-			size~int:1
+			it~@CIter::@buff
+			it = {it+40}
+			it.el = {in%10+48}
+			in = {in/10}
+			it = {it-1}
+			size~int = 1
 			
 			{in > 0}?*{
-				it.el:{in%10+48}
-				in:{in/10}
-				it:{it-1}
-				size:{size+1}
+				it.el = {in%10+48}
+				in = {in/10}
+				it = {it-1}
+				size = {size+1}
 			}
-			data:{it+1}
-			data.count:size
+			data = {it+1}
+			data.count = size
 			;
 		}
 	}
@@ -73,7 +73,7 @@ WriteNF~{
 
 print~{
 	~WriteNF
-	fn:@{
+	fn=@{
 		_system.consoleWrite::data
 	}
 }
@@ -102,21 +102,21 @@ ListNF~\{_io.return~{
 
 std_list_implm~`
         b~bytes
-        b.count:0
-        count~int:0
-        getFn:@{
-		it~@Boxed::_io.0:{b+{at*8}}
+        b.count = 0
+        count~int = 0
+        getFn=@{
+		it~@Boxed::_io.0 = {b+{at*8}}
 		it.el
 	}
-	eachFn:@{
-		it~@Boxed::_io.0:b
+	eachFn=@{
+		it~@Boxed::_io.0 = b
 		remaining~int
-		remaining:count
+		remaining = count
 		{remaining > 0}?*{
-			mbr~@_io.0:it.el
+			mbr~@_io.0 = it.el
 			mbr.{f}
-			it:{it+8}
-			remaining:{remaining-1}
+			it = {it+8}
+			remaining = {remaining-1}
 		}
 	}
 `
@@ -124,19 +124,19 @@ std_list_implm~`
 BufferList~\{_io.return~{
         ~ListNF::_io.0
 	std_list_implm::_io.0
-	setFn:@{
-	        it~@Boxed::_io.0:{b+{at*8}}
-		it.el:el
+	setFn=@{
+	        it~@Boxed::_io.0 = {b+{at*8}}
+		it.el = el
 	}
-        addFn:@{
-	        set.{at:count el:in ;}
-		count:{count + 1}
+        addFn=@{
+	        set.{at = count el = in ;}
+		count = {count + 1}
 	}
 	setBuffer~{
 		in~bytes
 		;~{
-			b:in
-			count:0
+			b = in
+			count = 0
 		}
 	}
 }}
@@ -151,7 +151,7 @@ StringNF~{
 	get~{
 		at~int
 		;~{
-			it~@CIter:{b+at}
+			it~@CIter = {b+at}
 			it.el % 256
 		}
 	}
@@ -159,22 +159,22 @@ StringNF~{
 		at~int
 		el~int
 		;~{
-			it~@CIter:{b+at}
-			it.el:el
+			it~@CIter = {b+at}
+			it.el = el
 		}
 	}
-	clear~{;~{ b.count:0 }}
+	clear~{;~{ b.count = 0 }}
 }
 
 memCpy~{from~bytes to~bytes ;~{
-        fromPtr~@CIter:from
-        toPtr~@CIter:to
-        num~int:from.count
+        fromPtr~@CIter = from
+        toPtr~@CIter = to
+        num~int = from.count
         {num > 0}?*{
-                toPtr.el:fromPtr.el
-                fromPtr:{fromPtr+1}
-                toPtr:{toPtr+1}
-                num:{num-1}
+                toPtr.el = fromPtr.el
+                fromPtr = {fromPtr+1}
+                toPtr = {toPtr+1}
+                num = {num-1}
         }
 }}
 
@@ -183,15 +183,15 @@ BufferString~{
 	setBuffer~{
 	        in~bytes
 	        ;~{
-	                b:in
-	                b.count:0
+	                b = in
+	                b.count = 0
 	        }
 	}
 	write~{
 	        ~WriteNF
-	        fn:@{
-	                memCpy.{to:{b+b.count} from:data ;}
-	                b.count:{b.count + data.count}
+	        fn=@{
+	                memCpy.{to={b+b.count} from=data ;}
+	                b.count = {b.count + data.count}
 	        }
 	}
 }
@@ -204,7 +204,7 @@ Enum~{
 			;~{val==op_val}
 		}
 		set~{
-			;~{val: op_val}
+			;~{val= op_val}
 		}
 	}
 }
@@ -220,29 +220,29 @@ MasterListNF~\{_io.return~{
 MasterBufferList~\{_io.return~{
         ~MasterListNF::_io.0
         b~bytes
-        b.count:0
-        count~int:0
-        eachFn:@{
-	        ptr~@_io.0:b
+        b.count = 0
+        count~int = 0
+        eachFn=@{
+	        ptr~@_io.0 = b
                 for.{
-                        end:count
-                        do:@{
+                        end=count
+                        do=@{
                                 ptr.{f}
-                                ptr:{ptr+_mem_size_of::_io.0}
+                                ptr = {ptr+_mem_size_of::_io.0}
                         } ;
                 }
         }
-        getFn:@{b+{at*_mem_size_of:_io.0}}
-        emplaceFn:@{
-                ptr~@_io.0:{b+{count*_mem_size_of:_io.0}}
+        getFn=@{b+{at*_mem_size_of::_io.0}}
+        emplaceFn=@{
+                ptr~@_io.0 = {b+{count*_mem_size_of::_io.0}}
 		ptr.{_init f}
-		count:{count+1}
+		count = {count+1}
         }
         setBuffer~{
 		buf~bytes
 		;~{
-		        count:0
-			b:buf
+		        count = 0
+			b = buf
 		}
 	}
 }}
@@ -250,23 +250,23 @@ MasterBufferList~\{_io.return~{
 getChar~{
         ;~{
                 c~int.8
-                _system.consoleRead.{a:@c size:1 ;}
+                _system.consoleRead.{a=@c size=1 ;}
                 
-                result~int:0
+                result~int = 0
                 result
                 c
         }
 }
 
 for~{
-        i~int:0
+        i~int = 0
         end~int
-        step~int:1
+        step~int = 1
         do~;
         ;~{
                 {i < end}?*{
                         do
-                        i:{i+step}
+                        i = {i+step}
                 }
         }
 }
@@ -276,14 +276,14 @@ File~{
         fd~int
         open~{;~{
                 c_str_buffer~bytes.20
-                fd:_system.fileOpen::BufferString.{setBuffer:@c_str_buffer write.{s:name c:0} $}
+                fd = _system.fileOpen::BufferString.{setBuffer::@c_str_buffer write.{s=name c=0} $}
         }}
         close~{;~{
                 _system.fileClose::fd
         }}
         write~{
                 ~WriteNF
-                fn:@{_system.fileWrite.{$.fd:fd a:data ;}}
+                fn=@{_system.fileWrite.{$.fd=fd a=data ;}}
         }
 }
 

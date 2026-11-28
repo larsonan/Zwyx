@@ -22,10 +22,10 @@ increase_urgency~{
 	in~BufferString
 	;~{
 	        for.{
-	                end:in.count
-	                do:@{
+	                end=in.count
+	                do=@{
 	                        {in.get::i == "."}?{
-	                                in.set.{el:"!" at:i ;}
+	                                in.set.{el="!" at=i ;}
 	                        }
 	                } ;
 	        }
@@ -33,13 +33,13 @@ increase_urgency~{
 }
 
 ;~{
-        print.{give_bank_update.{write:@$.2 amount:500 intro_text:"Attention" ;}}
+        print.{give_bank_update.{write=@$.2 amount=500 intro_text="Attention" ;}}
         
         buff~bytes.50
         BufferString.{
-	        setBuffer:@buff
+	        setBuffer::@buff
 	        writer~write
-	        give_bank_update.{write:@writer amount:5 intro_text:"Warning" ;}
+	        give_bank_update.{write=@writer amount=5 intro_text="Warning" ;}
 	        increase_urgency::$
 	        print.s::$
         }

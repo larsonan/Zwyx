@@ -11,7 +11,7 @@ _systemNF~{
 }
 
 _systemNF.;~{
-_asm:`
+_asm::`
 mov	rax,	[rbx+0]
 mov	rdx,	[rbx+8]
 mov	rdi,	[rbx+16]
